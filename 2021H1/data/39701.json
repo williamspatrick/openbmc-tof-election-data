@@ -1,0 +1,373 @@
+{
+    "project": "openbmc/phosphor-pid-control",
+    "branch": "master",
+    "id": "I33016d34d8404c0d9d14409b5a896b3104a1a98a",
+    "number": 39701,
+    "subject": "Release zones and timer in the restartControlLoops",
+    "owner": {
+        "name": "John Wang",
+        "email": "wangzhiqiang02@inspur.com",
+        "username": "wangzqbj"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/39701",
+    "commitMessage": "Release zones and timer in the restartControlLoops\n\nThere was this log on g220a.\n\nJan 11 09:10:20 g220a swampd[317]: 0 Failed during restartControlLoops, try again: sd_bus_add_object_vtable: org.freedesktop.DBus.Error.FileExists: File exists\n\nThis should be because the zones are captured and held by lambda,\nin which case they are not actually released as expected when\nzones.clear()\n\nChange the shared_ptr to weak_ptr, so that we can\nmake sure that the restartControlLoops can release zones\nand timers. especially zones.\n\nTested: Reboot the g220a-bmc twice, there is no that log.\n\nSigned-off-by: John Wang <wangzhiqiang.bj@bytedance.com>\nChange-Id: I33016d34d8404c0d9d14409b5a896b3104a1a98a\n",
+    "createdOn": 1610611086,
+    "lastUpdated": 1616498880,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1610611086,
+            "reviewer": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1610611099,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1610611419,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10922/ : SUCCESS"
+        },
+        {
+            "timestamp": 1610614248,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1610733710,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1: Code-Review+1\n\n(2 comments)\n\nPatchset overall looks reasonable.  I suspect the real root cause is that somewhere we need a x.emplace(std::piecewise_construct...) so that the new PID object is created AFTER the old one is destroyed.  With that said, this is a solution, and is arguably makes this code no worse, so looks fine to me."
+        },
+        {
+            "timestamp": 1611112569,
+            "reviewer": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1611113270,
+            "reviewer": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611652708,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\nThis looks good. There's another bug in phosphor-pid-control that I noticed: when pushing many updates to the D-Bus parameters in rapid succession, causing the thermal zone control loops to rapidly restart themselves, there's a bug in which the control interface will disappear. The PID loops will still work normally, however, their control interface (the Manual and FailSafe booleans) will disappear from D-Bus. I think this is a race condition during re-initialization. I'm curious if you have also noticed this, perhaps it could be related to the bug you are fixing here?"
+        },
+        {
+            "timestamp": 1611898926,
+            "reviewer": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\n> Patch Set 2:\n> \n> (1 comment)\n> \n> This looks good. There's another bug in phosphor-pid-control that I noticed: when pushing many updates to the D-Bus parameters in rapid succession, causing the thermal zone control loops to rapidly restart themselves, there's a bug in which the control interface will disappear. The PID loops will still work normally, however, their control interface (the Manual and FailSafe booleans) will disappear from D-Bus. I think this is a race condition during re-initialization. I'm curious if you have also noticed this, perhaps it could be related to the bug you are fixing here?\n\nSorry I didn't notice that.\n\nI think the pid loops hold the zones. so it won't be destroyed. I don't know why the control interface will  disapper from D-Bus."
+        },
+        {
+            "timestamp": 1612222361,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614066683,
+            "reviewer": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614128872,
+            "reviewer": {
+                "name": "Hao Jiang",
+                "email": "jianghao@google.com",
+                "username": "drakedog2008"
+            },
+            "message": "Patch Set 2: Code-Review-1\n\nI have a different opinion on this fix. \n\nSince the lamba only holds the weak_ptr, assuming pidControlLoop lambda is the only job running on the the io_context. It doesn't hold any resource since the next scheduling lambda is holding weak_ptr. zones and timers are released. It has no difference comparing to passing by bare pointer before Josh Lehan's CL, which converting the bare ptr into shared ptr. \n\nIt reports no error/exception because the lambda will exit by failing to lock the weak_ptr. However the actual control loop is not executed."
+        },
+        {
+            "timestamp": 1614129039,
+            "reviewer": {
+                "name": "Hao Jiang",
+                "email": "jianghao@google.com",
+                "username": "drakedog2008"
+            },
+            "message": "Patch Set 2:\n\nI got a CL aiming at exact the same problem: \n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/40786/2"
+        },
+        {
+            "timestamp": 1614129341,
+            "reviewer": {
+                "name": "Hao Jiang",
+                "email": "jianghao@google.com",
+                "username": "drakedog2008"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 1: Code-Review+1\n> \n> (2 comments)\n> \n> Patchset overall looks reasonable.  I suspect the real root cause is that somewhere we need a x.emplace(std::piecewise_construct...) so that the new PID object is created AFTER the old one is destroyed.  With that said, this is a solution, and is arguably makes this code no worse, so looks fine to me.\n\nI think the root cause is that the tryLoop (restartControlLoops) running in one piece and it doesn't yield its runtime to pidloop in order to release the resource."
+        },
+        {
+            "timestamp": 1614130853,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2:\n\nAlso see https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/40788 which is a similar fix.\n\nOf these two fixes, which is preferable? Can both fixes be done simultaneously without conflict?"
+        },
+        {
+            "timestamp": 1614131377,
+            "reviewer": {
+                "name": "Hao Jiang",
+                "email": "jianghao@google.com",
+                "username": "drakedog2008"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> Also see https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/40788 which is a similar fix.\n> \n> Of these two fixes, which is preferable? Can both fixes be done simultaneously without conflict?\n\nYeah, that is the the follow up fix of https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/40786."
+        },
+        {
+            "timestamp": 1614446643,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Removed reviewer Patrick Venture."
+        },
+        {
+            "timestamp": 1614906289,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2:\n\n40788 has been merged, so this patch will need to be refactored in order to stack on top of 40788, if this patch is still needed."
+        },
+        {
+            "timestamp": 1616498880,
+            "reviewer": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "message": "Abandoned"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "17cbc9d8c498481e22a5b87bb3e12c5c2bd58cbf",
+            "parents": [
+                "ca791156e2594ce7d25b42793a0a1b60d922fefd"
+            ],
+            "ref": "refs/changes/01/39701/1",
+            "uploader": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "createdOn": 1610611086,
+            "author": {
+                "name": "John Wang",
+                "email": "wangzhiqiang.bj@bytedance.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "typo."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "John Wang",
+                        "email": "wangzhiqiang02@inspur.com",
+                        "username": "wangzqbj"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "pid/pidloop.cpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "In this context, the timer doesn't actually need to be able to create an owning reference to itself in the lambda.\n\nBecause the timer owns this lambda, there's no way this can ever be called back after the timer has been destroyed.  So, you can simply pass in a reference here.\n\nWith that said, weak_ptr works too, it's just more complex."
+                },
+                {
+                    "file": "pid/pidloop.cpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "John Wang",
+                        "email": "wangzhiqiang02@inspur.com",
+                        "username": "wangzqbj"
+                    },
+                    "message": "Thanks for your information. \ud83d\ude09"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/pidloop.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "pid/pidloop.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 2,
+            "revision": "1f3a2a9bce1cd560059a6b60ee3bc922c1eb2f05",
+            "parents": [
+                "ca791156e2594ce7d25b42793a0a1b60d922fefd"
+            ],
+            "ref": "refs/changes/01/39701/2",
+            "uploader": {
+                "name": "John Wang",
+                "email": "wangzhiqiang02@inspur.com",
+                "username": "wangzqbj"
+            },
+            "createdOn": 1611112569,
+            "author": {
+                "name": "John Wang",
+                "email": "wangzhiqiang.bj@bytedance.com",
+                "username": ""
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "pid/pidloop.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Should it also test for wtimer.lock() and return out if lock() failed?"
+                },
+                {
+                    "file": "pid/pidloop.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "John Wang",
+                        "email": "wangzhiqiang02@inspur.com",
+                        "username": "wangzqbj"
+                    },
+                    "message": "The wtimer is passed to pidControlLoop directly(L113 L139). Let pidControlLoop check this :)."
+                },
+                {
+                    "file": "pid/pidloop.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "OK, there's no usage of \"wtimer\" in this function, except for passing it into pidControlLoop(), so it's OK here, even though I still think it would be safer to check wtimer and wzone at the same time."
+                },
+                {
+                    "file": "pid/pidloop.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "John Wang",
+                        "email": "wangzhiqiang02@inspur.com",
+                        "username": "wangzqbj"
+                    },
+                    "message": "emm, so let's not check it \ud83d\ude0a\n\n@josh @patrick could we just merge it, since there is no -1 \ud83d\ude09"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/pidloop.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "pid/pidloop.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 9
+        }
+    ]
+}

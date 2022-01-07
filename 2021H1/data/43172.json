@@ -1,0 +1,134 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I0e9b885e8c0494d46d39af965047a7582255a48e",
+    "number": 43172,
+    "subject": "Always fill both values for a threshold interface",
+    "owner": {
+        "name": "Konstantin Aladyshev",
+        "email": "aladyshev22@gmail.com",
+        "username": "Kostr"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/43172",
+    "commitMessage": "Always fill both values for a threshold interface\n\nIf one of the thresholds for a threshold dbus interface is provided we\nhave to set the other one as dbus properties are never optional.\n\nTested:\n  Before:\nxyz.openbmc_project.Sensor.Threshold.Warning    interface -      -\n.WarningAlarmHigh                               property  b      false\n.WarningHigh                                    property  d      14\n\n  After:\nxyz.openbmc_project.Sensor.Threshold.Warning    interface -      -\n.WarningAlarmHigh                               property  b      false\n.WarningAlarmLow                                property  b      false\n.WarningHigh                                    property  d      14\n.WarningLow                                     property  d      nan\n\nSigned-off-by: Konstantin Aladyshev <aladyshev22@gmail.com>\nChange-Id: I0e9b885e8c0494d46d39af965047a7582255a48e\n",
+    "createdOn": 1620894452,
+    "lastUpdated": 1629157944,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1620894452,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1620894464,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620894586,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/17185/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620917983,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1620919390,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nI like the result here, but I'd like to see if we can do a first pass optimization on the code.  Having a whole new method for this and having to do a second pass seems error prone."
+        },
+        {
+            "timestamp": 1629157944,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "e65e47ce5cdc67e7f74e43776892166121e295c9",
+            "parents": [
+                "13b63f8f597d396db8b5bd182ac2e5814d599e2f"
+            ],
+            "ref": "refs/changes/72/43172/1",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1620894452,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 460,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The fact that we're looping over in a second pass would kind of imply that our data structure (vector<threshold>) is wrong, and we should be pairing together the thresholds such that we're not unrolling the second stage of this loop by hand.\n\nsomething like\n\nstd::vector<std::pair<Threshold, Threshold>>\n\nor maybe even move the severity to the higher level container so it can be shared.\n\nflat_map<Severity, std::pair<Threshold, Threshold>>\n\nWhich would allow us to initialize the paired threshold at the same time we initialize the first threshold, instead of having to add a second pass to sweep through and do it.  Additionally, it prepares us for having 5 thresholds in the future.\n\nI need to give this more thought, but I don't like that this method is going to double in size once we get the next three threshold severities supported (which is already in review)."
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 460,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Feels like the issue is that the dbus objects is manually registered to match the yaml definition. Auto generated sdbusplus::server::object_t <Sensor::Threshold::Critical> etc. can be used to ensure all properties are initialized.\nDownside is that it requires a bigger change of existing code and different thresholds will be different object Critical/Warning/..."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 26,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 0
+        }
+    ]
+}

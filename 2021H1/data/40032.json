@@ -1,0 +1,220 @@
+{
+    "project": "openbmc/meta-phosphor",
+    "branch": "master",
+    "id": "I11cc5c862a4aa7c5497f860edc00414337fec3e3",
+    "number": 40032,
+    "subject": "Replace deprecated Linux-PAM modules",
+    "owner": {
+        "name": "Joseph Reynolds",
+        "email": "joseph-reynolds@charter.net",
+        "username": "joseph-reynolds"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/meta-phosphor/+/40032",
+    "commitMessage": "Replace deprecated Linux-PAM modules\n\nThis replaces deprecated Linux-PAM modules with supported modules:\n - pam_passwdqc replaces pam_cracklib.\n - pam_faillock replaces pam_tally2.\n\npam_passwdqc was selected over pam_pwquality because it is smaller and\nfaster.\n\nNote pam_faillock is necessarily configured into the pam module stack\ndifferently than pam_tally2.\n\nThis creates the priv-noaccess group needed by phosphor-user-manager.\n\nThis patchset causes BMC operational changes:\n- If a user\n  authenticates correctly but cannot gain access because their account\n  is locked, this tells the user their account is locked.  The previous\n  behavior was silent, and the user did not know if their password was\n  correct or not.  NOTE: This new behavior only discloses information to\n  authenticated users, so it is not an undue security risk.\n- The \"change password\" prompts are different (because they are now\n  being supplied by the passwdqc module instead of cracklib).\n  This behavior is seen on SSH sessions (if the password change dialog\n  is needed) and on the `paswd` command invoked from the BMC's command\n  shell.  This behavior is not seen on the Redfish, REST, or IPMI\n  interfaces.\n- The pam_tally2 command (invoked from the BMC's command line) is no\n  longer present.  If you used the \"pam_tally2 -u USER -r\" command\n  to unlock a user after repeated authentication failures, change to\n  use: faillock --user USER --reset\n\nNote account locking is not the default behavior.  Account locking only\ntakes effect when the Redfish AccountService AccountLockoutThreshold\nproperty value is nonzero.  For example, to test, use:\ncurl -X PATCH https://${bmc}/redfish/v1/AccountService\n  -d '{\"AccountLockoutThreshold\": 3, \"AccountLockoutDuration\": 60}'\n\nThis creates the priv-noaccess group needed by phosphor-user-manager.\n\nCompatibility note / migration issue.  If your BMC cannot authenticate\nusers after installing this change, the cause might be an overlayfs file\nhiding the new /etc/pam.d/common-auth file.  To find out, use\n`grep deny= /etc/pam.d/common-auth` on your BMC.  If it shows \"tally2\"\nthen your BMC is affected; it should show \"faillock\".  The recovery is\nto delete the overlay file or to factory reset the BMC.\n\nNote that account lockout information is lost and reset when the BMC\nreboots.  Note that if the BMC has its default configuration or is\ninternally misconfigured (directory /run/faillock missing) then no\naccount locking is performed, meaning unlimited login attempts.\n\nNote that accounts that were recently unlocked due to expiration of\nthe AccountLockoutDuration will show as locked until the next\nauthentication attempt.  The scenario is:\n- Lock the account due to excessive authentication failures.\n- Wait for the AccountLockoutDuration to elapse.\n- At this point, the account *is* unlocked and the user can\n  authenticate with a correct password, but the APIs (both D-Bus and\n  Redfish) show the account is locked.  This condition persists\n  until the next authentication attempt using that username.\nThis behavior is due to a limitation in how the faillock command\noutput is interpreted with combination with the faillock module\nconfiguration in the pam configuration files.\nSee https://github.com/linux-pam/linux-pam/issues/327\n\nThis is work in progress.\n\nThis requires recipe changes to compile:\n - faillock is available in libpam_1.5.1.bb.\n - passwdqc_1.3.1.bb is in the latest yocto.\n\nThis is currently being tested.\n\nTests for password changing:\nChange the password via:\n- the passwd command\n- the PATCH Refish AccountService {Password: NEW}\n- SSH (accessible only when the password is expired)\n- IPMI user set password (accessible only when the password is not expired)\nPerform the above for both unexpired and expired passwords.\nHint: passwd --expire\n\nPerform the above with an unacceptable password.\n\nTest various unacceptable passwords:\n- too short\n- too simple\n- too similar to the username\n\nSample password results:\n - `CI4ever!` is rejected because it is based on a dictionary word.\n - `0penBmc` is too short.\n - `0penBmc1` is accepted.\n\nTests for lockout:\nLDAP\nNo LDAP\nNon-existent user\nMultiple consecutive fails\nMultiple non-consecutive fail: fail fail success fail fail success ...\nSSH, POST Redfish AccountService, POST /login, IPMI\nCreate new user\n\nWhen the account is locked, try with both correct and incorrect password.\nEnsure account is unlocked after X seconds.\nEnsure the faillock command works.\n\nSigned-off-by: Joseph Reynolds <joseph-reynolds@charter.net>\nChange-Id: I11cc5c862a4aa7c5497f860edc00414337fec3e3\n",
+    "createdOn": 1611715441,
+    "lastUpdated": 1611869772,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1611715441,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1611715455,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611716170,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\nThis is a continuation of https://gerrit.openbmc-project.xyz/c/openbmc/meta-phosphor/+/39737\nI think I'll have to abandon this and push to openbmc/openbmc now that the git subtrees are gone.\n\nAnyway, this has my latest fixes.  It corrects a bug with the previous patchset, and (I hope) it creates the /run/faillock directory which is needed for locking to actually work.  This has a much-expanded commit message.  This needs more testing: especially with LDAP.\n\nI have not started the forward compatibility converter (to convert /etc/pam.d/common-auth: s/tally2/faillock/, etc.).  I think a non-trivial awk script running on the BMC would accomplish that."
+        },
+        {
+            "timestamp": 1611716384,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\nThe phosphor-user-manager piece of this is here: https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-user-manager/+/39853"
+        },
+        {
+            "timestamp": 1611760480,
+            "reviewer": {
+                "name": "Richard Marian Thomaiyar",
+                "email": "richard.marian.thomaiyar@linux.intel.com",
+                "username": "rthomaiy"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1611762663,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)\n\nAnswered comments."
+        },
+        {
+            "timestamp": 1611773219,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611869772,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Abandoned\n\nMoved into https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/40102"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3122053c83f0c10b0cf650a22b33226922a77852",
+            "parents": [
+                "cf9a8ecdc994f24e7e5d52869fea528424028b8b"
+            ],
+            "ref": "refs/changes/32/40032/1",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611715441,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "Joseph, can you tell me the size difference. Still prefer the pam_pwquality as strength checking against dictionary of words is done only in pam_pwquality. pam_cracklib already supported this and moving to pam_paswdqc will be degrading the security check which we enforced earlier.\nSo it's better to replace the same with pam_pwquality (which is also compatible with pam_cracklib), such that when we update from old version to new version, we need to make sure that pam_cracklib module name in pam.d configuration files is replaced with pam_pwquality. \nBy the way, i don't find a patch for upgrade mechanism, not sure, whether it is not sent for review. If it is not created, let me know, i can try to send it out, with my local testing of these changes, such that all these are updated and bumped up together."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I don't have the size difference.  Based on your advice, I will change this to use pam_pwquality (libpwquality).\n\nI have not yet created the mechanism to upgrade the /etc/pam.d/* config files.  (My awk skills are rusty.)  Please send yours."
+                },
+                {
+                    "file": "recipes-extended/pam/libpam/pam.d/common-auth",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "Output wise even though it doesn't matter, it is still better to do pam_fallock.so with preauth, so that password check for locked accounts won't be made in first place."
+                },
+                {
+                    "file": "recipes-extended/pam/libpam/pam.d/common-auth",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Thanks.  I am struggling to understand the best practice for this.  Is the right configuration to use faillock preauth in addition to authsucc, or instead of it?"
+                },
+                {
+                    "file": "recipes-extended/pam/libpam/pam.d/common-auth",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Oops.  This patchset lost the parameters `deny=0 unlock_time=0`!  I will add them back into the next patchset."
+                },
+                {
+                    "file": "recipes-extended/pam/libpam_%.bbappend",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "for firmware update, this file needs to be created along with updating /etc/pam.d/<configuration> files"
+                },
+                {
+                    "file": "recipes-extended/pam/libpam_%.bbappend",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I don't understand this comment.  This code adds /etc/tmpfiles.d/libpam.conf to the updated firmware image, and we agreed that the /etc/pam.d/* files (as they exist in the BMC's overlayfs) need to be updated on the BMC, per your comment in the commit message."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 116,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-extended/pam/libpam/pam.d/common-account",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "recipes-extended/pam/libpam/pam.d/common-auth",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -5
+                },
+                {
+                    "file": "recipes-extended/pam/libpam/pam.d/common-password",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "recipes-extended/pam/libpam_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 9
+        }
+    ]
+}

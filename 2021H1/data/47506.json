@@ -1,0 +1,638 @@
+{
+    "project": "openbmc/phosphor-power",
+    "branch": "master",
+    "id": "I9f788622754604e5feb10cfec1ddc341c04c52a0",
+    "number": 47506,
+    "subject": "psu-ng: Move psu validation to event timer",
+    "owner": {
+        "name": "Adriana Kobylak",
+        "email": "anoo@linux.ibm.com",
+        "username": "anoo1"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-power/+/47506",
+    "commitMessage": "psu-ng: Move psu validation to event timer\n\nDuring a BMC reset at power on, the validation would be performed while\nthe entity manager interfaces are still being added to D-Bus, therefore\ncausing an error log created because the information to determine which\npower supplies may be present is missing from the configuration\ninformation that entity manager publishes on D-Bus.\n\nMove the validation to be called on a timer, so that every time an EM\ninterface is added, the timer resets, and the validation is called once\nno more interfaces are detected.\n\nAlso call the validation through the timer during a power on in case EM\nhas not started yet (this is less common but still possible). The side\neffect is that the validation occurs 2s after it's called during a power\non, but it doesn't delay the power on as it's scheduled through the\ntimer event.\n\nTested with debug traces:\n- Reboot at power on performs validation after the EM interfaces are\n  added and does not log an error.\nOct 05 14:33:52 p10bmc phosphor-psu-monitor[3472]: EM interface added\nOct 05 14:33:52 p10bmc phosphor-psu-monitor[3472]: EM interface added\nOct 05 14:33:53 p10bmc phosphor-psu-monitor[3472]: EM interface added: Start timer\nOct 05 14:33:53 p10bmc phosphor-psu-monitor[3472]: EM interface added\nOct 05 14:33:54 p10bmc phosphor-psu-monitor[3472]: EM interface added\nOct 05 14:33:54 p10bmc phosphor-psu-monitor[3472]: EM interface added: Start timer\nOct 05 14:33:54 p10bmc phosphor-psu-monitor[3472]: EM interface added\nOct 05 14:33:54 p10bmc phosphor-psu-monitor[3472]: EM interface added: Start timer\nOct 05 14:33:56 p10bmc phosphor-psu-monitor[3472]: validateConfig()\nOct 05 14:33:56 p10bmc phosphor-psu-monitor[3472]: validateConfig() validated\n\n- Validation runs when power on is requested.\nOct 05 14:43:31 p10bmc phosphor-host-state-manager[714]: Change to Host State: xyz.openbmc_project.State.Host.HostState.TransitioningToRunning\nOct 05 14:43:31 p10bmc phosphor-psu-monitor[622]: powerOn: Start timer\nOct 05 14:43:33 p10bmc phosphor-psu-monitor[622]: validateConfig\nOct 05 14:43:33 p10bmc phosphor-psu-monitor[622]: validateConfig validated\n\n- Validation runs when the phosphor-psu-monitor service is restarted at\n  power on:\nOct 07 15:15:02 p10bmc phosphor-psu-monitor[19762]: initialize(): Start timer\nOct 07 15:15:04 p10bmc phosphor-psu-monitor[19762]: validateConfig\nOct 07 15:15:04 p10bmc phosphor-psu-monitor[19762]: validateConfig validated\n\nChange-Id: I9f788622754604e5feb10cfec1ddc341c04c52a0\nSigned-off-by: Adriana Kobylak <anoo@us.ibm.com>\n",
+    "createdOn": 1633468519,
+    "lastUpdated": 1633621556,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1633468519,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1633468531,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633468621,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1633469039,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27518/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633470796,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633482166,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1633482177,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633482234,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633482311,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Uploaded patch set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1633482706,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27533/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633551846,
+            "reviewer": {
+                "name": "B. J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)\n\nAside from some nit picky comments on the commit message, the code seems okay."
+        },
+        {
+            "timestamp": 1633552245,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Uploaded patch set 5: Commit message was updated."
+        },
+        {
+            "timestamp": 1633552312,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1633553773,
+            "reviewer": {
+                "name": "B. J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 5: Code-Review+1"
+        },
+        {
+            "timestamp": 1633615037,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 5: Code-Review+1"
+        },
+        {
+            "timestamp": 1633618541,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633620203,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1633620211,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633620272,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633620737,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27726/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633620874,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1633621470,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1633621552,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 6: Code-Review+2"
+        },
+        {
+            "timestamp": 1633621556,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Change has been successfully rebased and submitted as a4d38fad7049a0d1be8de965fc8dfa4154066406 by Shawn McCarney"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "b13f234e680d35c985c9aacd866d7ce6349455ad",
+            "parents": [
+                "4c88a4c2c0420735b737c8641c51b34d1cfbb0c3"
+            ],
+            "ref": "refs/changes/06/47506/1",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1633468519,
+            "author": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -2
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 2,
+            "revision": "1d4b7c24b31f30629e1feca1cc5d026fd2265bd5",
+            "parents": [
+                "4c88a4c2c0420735b737c8641c51b34d1cfbb0c3"
+            ],
+            "ref": "refs/changes/06/47506/2",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1633468621,
+            "author": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "extra semicolon"
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -2
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 3,
+            "revision": "3f3fa627b3ec0217700f3fe32c9a042f42652475",
+            "parents": [
+                "a588eafec450a1efcfd0d14b819f703e0e4e8d8d"
+            ],
+            "ref": "refs/changes/06/47506/3",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1633482166,
+            "author": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 17,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 4,
+            "revision": "19b26e4b6d0931c283667ee6ff42f840689e8154",
+            "parents": [
+                "a588eafec450a1efcfd0d14b819f703e0e4e8d8d"
+            ],
+            "ref": "refs/changes/06/47506/4",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1633482311,
+            "author": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "B. J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Nit: D-Bus"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "B. J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "It is not really that all present power supplies are on D-Bus, is it? It is that the information to determine which power supplies might be present is missing from the the configuration information entity-manager publishes on D-Bus."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Done. Yeah, much better explained, thanks."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "B. J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Nit: traces"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 17,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 5,
+            "revision": "2faac48e192d79a7d9bd8b579bcb183ba3ff3508",
+            "parents": [
+                "a588eafec450a1efcfd0d14b819f703e0e4e8d8d"
+            ],
+            "ref": "refs/changes/06/47506/5",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1633552245,
+            "author": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "line": 87,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Should this use the new timer too?"
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "line": 87,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Done. Yes! missed it, thanks. Added it and updated the commit with testing results."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 17,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 6,
+            "revision": "ce2d44063659e15050ce7423504aa15e8eeb702d",
+            "parents": [
+                "a588eafec450a1efcfd0d14b819f703e0e4e8d8d"
+            ],
+            "ref": "refs/changes/06/47506/6",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1633620203,
+            "author": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 7,
+            "revision": "a4d38fad7049a0d1be8de965fc8dfa4154066406",
+            "parents": [
+                "b837887c2a18ac326764f0c4950bf14ab8b0ce84"
+            ],
+            "ref": "refs/changes/06/47506/7",
+            "uploader": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "createdOn": 1633621556,
+            "author": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "phosphor-power-supply/psu_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 3
+        }
+    ]
+}

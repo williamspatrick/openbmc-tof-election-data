@@ -1,0 +1,655 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "If7f2148d8bbb8a7b420c4abde086272c4320977a",
+    "number": 38475,
+    "subject": "Force HostName property to be read-only per the schema",
+    "owner": {
+        "name": "Johnathan Mantey",
+        "email": "johnathanx.mantey@intel.com",
+        "username": "Howitzer105mm"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/38475",
+    "commitMessage": "Force HostName property to be read-only per the schema\n\nThe ManagerNetworkProtocol schema defines the HostName entry to be\nread-only. Change the doPatch code to prevent updating the hostname\nattribute.\n\nThe DMTF redfish/v1/Managers/bmc/NetworkProtocol is a read-only\nlocation.\n\nThe DMTF approved location for changing the HostName is:\nredfish/v1/Managers/bmc/EthernetInterfaces/<str>\n\nThis change does not impact phosphor-webui, as it uses D-Bus to\nperform all of its work.\nThis change does not impact webui-vue, as it is using the DMTF\napproved API.\n\nThis commit deprecates allowing Read/Write access to the Hostname in\nthe ManagersNetworkProtocol URI. To reduce the impact to Redfish\nclients that rely upon Read/Write access a Meson compile time flag has\nbeen added to allow Read/Write access to be restored. The Meson build\nflag, redfish-allow-deprecated-hostname-patch, can be enabled to\nrestore Read/Write access. The Meson build flag is slated to be\nremoved in Q4 2021 enforcing the read-only state.\n\nTested:\nExplicitly PATCH'd HostName to confirm it cannot be modified.\nEnabled the HostName feature, and confirmed the HostName accepted a\nPATCH command.\nRan Redfish_Service_Validator (deprecated, and re-enabled).\n\nChange-Id: If7f2148d8bbb8a7b420c4abde086272c4320977a\nSigned-off-by: Johnathan Mantey <johnathanx.mantey@intel.com>\n",
+    "createdOn": 1605894646,
+    "lastUpdated": 1615926453,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1605894646,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1605894664,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1605895644,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/8244/ : SUCCESS"
+        },
+        {
+            "timestamp": 1605896671,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nPatchset looks to me like it does what the commit message says, we just need to get better documentation and plan for rollout."
+        },
+        {
+            "timestamp": 1605900876,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nResponding to your questions."
+        },
+        {
+            "timestamp": 1605902125,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 1:\n\nWe have hostname at ethernetinterfaces, https://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_6_2.json and it looks like the webui-vue code uses that \n\n                \"HostName\": {\n                    \"description\": \"The DNS host name, without any domain information.\",\n                    \"longDescription\": \"This property shall contain DNS host name for this interface.\",\n                    \"readonly\": false,\n                    \"type\": [\n                        \"string\",\n                        \"null\"\n                    ]\n\nAnyone know why Redfish has HostName in 2 places?\n                },"
+        },
+        {
+            "timestamp": 1605902290,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1605906520,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> (1 comment)\n\nEd,\nNever in my wildest dreams did I think I would need to write such a volume of text to justify committing a piece of code that meets the published spec. I doubt many committers write anywhere near that amount of information, and the commits go through.\n\nOne of the Redfish users who explicitly DON'T follow the spec are QA and miscreants. Are we going to force QA teams to:\nvar redfishProvider = getRedfishProvider()\nvar hostnameChangeAllowed = writeANewHostname()\nif (redfishProvider == \"OBMC\") {\n   // it's ok to write to this thing\n} else if (redfishProvider == \"AMI\") {\n   // strictly adhere to RO\n} else if (redfishProvider == \"GNU\") {\n   // FSF did some other thing\n}\netc....\nThis is unkind to the people who develop tests. Redfish is supposed to prevent the need for special casing, isn't it?\n\nThose who wear Black Hats look for places to exploit. So they look at a spec and it says this entry is RO, and they say ..... is this spot really RO? Can I attack here? Sometimes the most innocuous places can become big chinks in a programs armor. Now we have two different entries for changing a hostname. Did both pieces of code guarantee to resist tampering? Will one permit arbitrary code execution due to a buffer overrun, while the other does not? Can an attacker spam one interface with hostname change requests, and spam the other one too and get access in some unforeseen way?\n\nWe're not always dealing with people who have our best interests at heart."
+        },
+        {
+            "timestamp": 1605906810,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> We have hostname at ethernetinterfaces, https://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_6_2.json and it looks like the webui-vue code uses that \n> \n>                 \"HostName\": {\n>                     \"description\": \"The DNS host name, without any domain information.\",\n>                     \"longDescription\": \"This property shall contain DNS host name for this interface.\",\n>                     \"readonly\": false,\n>                     \"type\": [\n>                         \"string\",\n>                         \"null\"\n>                     ]\n> \n> Anyone know why Redfish has HostName in 2 places?\n>                 },\n\nI certainly have no idea why it is in two places.\n\nIMO, the correct location for the property is in the NetworkManager layer. I have no idea what it means to set hostname by NIC. I've only seen systems with a single hostname, and everyone else determines the correct IP path to that host using their DNS system."
+        },
+        {
+            "timestamp": 1605923215,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > We have hostname at ethernetinterfaces, https://redfish.dmtf.org/schemas/v1/EthernetInterface.v1_6_2.json and it looks like the webui-vue code uses that \n> > \n> >                 \"HostName\": {\n> >                     \"description\": \"The DNS host name, without any domain information.\",\n> >                     \"longDescription\": \"This property shall contain DNS host name for this interface.\",\n> >                     \"readonly\": false,\n> >                     \"type\": [\n> >                         \"string\",\n> >                         \"null\"\n> >                     ]\n> > \n> > Anyone know why Redfish has HostName in 2 places?\n> >                 },\n> \n> I certainly have no idea why it is in two places.\n> \n> IMO, the correct location for the property is in the NetworkManager layer. I have no idea what it means to set hostname by NIC. I've only seen systems with a single hostname, and everyone else determines the correct IP path to that host using their DNS system.\n\nI suspect it's because ethernet interfaces don't necessarily belong to the same bmc or the same system, and therefore are likely to have different hostnames."
+        },
+        {
+            "timestamp": 1605923910,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > (1 comment)\n> \n> Ed,\n> Never in my wildest dreams did I think I would need to write such a volume of text to justify committing a piece of code that meets the published spec. I doubt many committers write anywhere near that amount of information, and the commits go through.\n\nMost commits aren't breaking things that currently work, even if not part of the standard.  Either you can write the text, or I get to write it when someone asks me why this has broken them.  I'd rather we document it upfront.\n\nIf would also help if you answered some of my inline questions, which it looks like you've omitted in your reply.  That'll help this patchset to move forward.\n\n> \n> One of the Redfish users who explicitly DON'T follow the spec are QA and miscreants. Are we going to force QA teams to:\n> var redfishProvider = getRedfishProvider()\n> var hostnameChangeAllowed = writeANewHostname()\n> if (redfishProvider == \"OBMC\") {\n>    // it's ok to write to this thing\n> } else if (redfishProvider == \"AMI\") {\n>    // strictly adhere to RO\n> } else if (redfishProvider == \"GNU\") {\n>    // FSF did some other thing\n> }\n> etc....\n> This is unkind to the people who develop tests. Redfish is supposed to prevent the need for special casing, isn't it?\n\nObviously writing a generic test harness for Redfish like the above would be nuts.  No disagreement there.\n\nFor what it's worth, the set sensor api, which breaks Redfish in a very similar way (allows PATCH when the protocol species only GET) was built specifically for a QA team, so I'm struggling to see the QA argument here without comparing to that.  If your QA team is trying to build a compliant-to-the-spec Redfish test, state that as your goal, then lets get that sensor override code removed as well so we can be \"spec compliant\" in the truest sense.  If this patch were proposing that, under an option that I can point people to so they get the old  behavior, that would be fine, but as is, you're saying in effect, \"some QA use cases are more important than the protocol, so when QA breaks the protocol on purpose, that's fine\" which I'm struggling to be ok with, because as a policy, I can't apply it to other places in a consistent manner, and I'm sure everyones QA teams have different requirements.\n\n> \n> Those who wear Black Hats look for places to exploit. So they look at a spec and it says this entry is RO, and they say ..... is this spot really RO? Can I attack here? Sometimes the most innocuous places can become big chinks in a programs armor. Now we have two different entries for changing a hostname. Did both pieces of code guarantee to resist tampering? Will one permit arbitrary code execution due to a buffer overrun, while the other does not? Can an attacker spam one interface with hostname change requests, and spam the other one too and get access in some unforeseen way?\n> \n> We're not always dealing with people who have our best interests at heart.\n\nI'm struggling.  I've given you a path forward that gets you strict protocol compliance by either adding an option that developers can disable, and including the other \"strict\" protocol compliance options with it, which avoids the code entirely.  Unless I'm missing something, that removes most of your arguments above about black hats, QA switch statements, and only requires minimal rework to your existing patchset to support, as well as writing a greater than 2 sentence commit message.  The QA team will need to rewrite their Sensor tests, but that's the price we pay for strict protocol compliance, when none of the QA use cases are in the protocol.\n\nMost importantly, the above can be applied as a concrete policy in the future when people ask.\n\nMaybe we could call it a \"bmc deprecated\" flag, and cover some of Gunnars use cases as well?"
+        },
+        {
+            "timestamp": 1606318125,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 1:\n\n> \n> Maybe we could call it a \"bmc deprecated\" flag, and cover some of Gunnars use cases as well?\n\nMy use case was I wanted to switch over in upstream to using the new LED property, LocationIndicatorActive.\n\nAn alternative here, could be to return a deprecated message and a TODO to remove after the next release?\n\nI would be fine with a \"bmc deprecated\" flag. Are the deprecated properties shown by default? Would they ever be dropped totally? or do we have to support this RW hostname property forever? I don't like that even if it is behind a flag."
+        },
+        {
+            "timestamp": 1606321805,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > \n> > Maybe we could call it a \"bmc deprecated\" flag, and cover some of Gunnars use cases as well?\n> \n> My use case was I wanted to switch over in upstream to using the new LED property, LocationIndicatorActive.\n> \n> An alternative here, could be to return a deprecated message and a TODO to remove after the next release?\n\nDeprecated message seems like a reasonable, immediate step we could take.\n\n> \n> I would be fine with a \"bmc deprecated\" flag. Are the deprecated properties shown by default?\n\nI had imagined a \"allow deprecated\" flag could be off by default, but if someone needs it, it can be enabled.  Alternatively, I'd imagined we could have an incrementing \"bmcweb version level\" setting that users could ratchet up as we deprecate/delete code in non-backward compatible ways.  The default would be N.  N-1 would add back the last feature we removed, N-2 would add back the feature before it.  We could track the dates on these versions so we could know when the relevant code can be deleted.\n\nJust thinking out loud a little.\n\n> Would they ever be dropped totally?\n\nThat would be my hope, but IMO would likely be on the order of a year before we could delete things totally.\n\n> or do we have to support this RW hostname property forever? I don't like that even if it is behind a flag.\n\n+1.  With that said, this is one of 3 properties that has a read-only property made read-write, so we probably need to come up with a policy for this kind of thing where someone has intentionally deviated from the protocol."
+        },
+        {
+            "timestamp": 1606764937,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nA small response."
+        },
+        {
+            "timestamp": 1606772608,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1606940059,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Removed reviewer James Feist."
+        },
+        {
+            "timestamp": 1607368621,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1607368641,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1607369577,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9222/ : SUCCESS"
+        },
+        {
+            "timestamp": 1607369951,
+            "reviewer": {
+                "name": "Bruce Mitchell",
+                "email": "bruce.mitchell@linux.vnet.ibm.com",
+                "username": "BMC-Bruce"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1607395912,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\nEd, why do you think clients use this? Could we send something to the mailing list asking if anyone knows of clients PATCHing this? \nIf we don't hear a yes, a follow-up email saying we are removing PATCH support?\n\nYeah, I know this could \"break clients, many of whom aren't connected enough to the mailing list\" ;) but if no one on the mailing knows of your use of this and PATCHing this is against the redfish spec, I find it unlikely we will break anyone or should care (we tried and this was against the spec).\n\nI would be okay with this as is if we sent something to the mailing list."
+        },
+        {
+            "timestamp": 1607450451,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\n> Patch Set 2:\n> \n> Ed, why do you think clients use this?\n\nBecause someone wrote functional code on purpose.  I don't remember the background on this, but presumably they didn't write and test code just for fun?  If there were background from the initial submitter where they claimed that this wasn't used anymore, then that would change the discussion a lot.\n\nI think the bigger argument is that the reason behind this change is \"we break the spec, and we shouldn't do that\" which is a totally valid position, but we need a way to apply it equally across the interfaces, so we're not constantly special casing each little protocol break.\n\n> Could we send something to the mailing list asking if anyone knows of clients PATCHing this? \n> If we don't hear a yes, a follow-up email saying we are removing PATCH support?\n> \n> Yeah, I know this could \"break clients, many of whom aren't connected enough to the mailing list\" ;) but if no one on the mailing knows of your use of this and PATCHing this is against the redfish spec, I find it unlikely we will break anyone or should care (we tried and this was against the spec).\n\nI've suggested in the past we have a timeline for this kind of thing.  We add warnings for a release or two, then remove the code in the release after.  That seems like a much better policy than mailing the list, then waiting an undefined amount of time for an answer, and is also something we can apply universally across the outbound interfaces.\n\n> \n> I would be okay with this as is if we sent something to the mailing list.\n\nAnd waited how long for a reply?  I don't really think that's an adequate path forward, given that a lot of the breakages would occur in people consuming the code, not actively developing the code.  With that said it would be significantly better than how this patch was initially pushed.\n\nI'd like to see this applied as a general policy on how we deprecate backward-incompatible changes.  I don't think the mailing list has enough reach to properly message this, so I'd like to have a deprecation policy, where we give some warning in code before we do stuff like this.\n\nIn the meantime, this can go under the \"strict Redfish compliance\" flag, along with all the other stuff that we do that contradicts the specification if someone needs this level of spec compliance."
+        },
+        {
+            "timestamp": 1607970590,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\nSent something to the mailing list here: https://lists.ozlabs.org/pipermail/openbmc/2020-December/024296.html"
+        },
+        {
+            "timestamp": 1607971371,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1607976970,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\nPart of the comments below are in response to Gunnar. It was hard for me to disambiguate comments to him from comments to the maintainers/community. I've read, and re-read this, in an effort to not cause offense."
+        },
+        {
+            "timestamp": 1608044845,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1610301485,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1615527586,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> Sent something to the mailing list here: https://lists.ozlabs.org/pipermail/openbmc/2020-December/024296.html\n\nThe reply on the mailing list made this seem, this was added on accident and the author didn't know of any clients that used this."
+        },
+        {
+            "timestamp": 1615527702,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\nWhat is wrong with this as is? \nI would think we would want individual options for things we are deprecating."
+        },
+        {
+            "timestamp": 1615561230,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> What is wrong with this as is? \n> I would think we would want individual options for things we are deprecating.\n\nI don't understand the question. \nIs \"this\" the code prior to this commit request?\nIs \"this\" the commit I've submitted for review?\nIs \"this\" the addition of the \"disable/enable the PATCH action\"?\nIs this question to me, to Ed, or all reviewers?"
+        },
+        {
+            "timestamp": 1615563372,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > What is wrong with this as is? \n> > I would think we would want individual options for things we are deprecating.\n> \n> I don't understand the question. \n> Is \"this\" the code prior to this commit request?\n> Is \"this\" the commit I've submitted for review?\n> Is \"this\" the addition of the \"disable/enable the PATCH action\"?\n> Is this question to me, to Ed, or all reviewers?\n\nThe question is really meant for Ed. \"This\" is the commit. Sorry for the confusion."
+        },
+        {
+            "timestamp": 1615564630,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > Sent something to the mailing list here: https://lists.ozlabs.org/pipermail/openbmc/2020-December/024296.html\n> \n> The reply on the mailing list made this seem, this was added on accident and the author didn't know of any clients that used this.\n\nI see that, and that significantly changes the disposition of this patch, considering we're reasonably sure there are no active users, and this patch has sat on all the communication mediums for long enough that clients that care would've seen it and had a chance to comment on it.\n\nLets get a comment added the option saying we're going to remove it in ~4 months (my number is relatively arbitrary and subject to discussion if anyone wants to change it), then I suspect this can be good to merge.\n\nThanks Jonathan."
+        },
+        {
+            "timestamp": 1615565439,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> What is wrong with this as is? \n> I would think we would want individual options for things we are deprecating.\n\nI'm absent on checking in on this, but it was for some good reasons.\n\nInitially, I didn't want to maintain a never ending swath of options, because we're already failing keeping things compiling with the options we have, and doubling the number of compile-time options seems like it's just asking for worse problems.\n\nWith that said, in the meantime since this patch was first pushed, I've had a chance to go look into that and come up with a better plan for how to have lots of compile time options while keeping things relatively sane and build able (see the XSS protection commit that now uses consexpr).  I think that gives us a path forward to be maintaining a lot more options in the future, and even though that work is ~5% done, I can at least see a path that's maintainable.\n\nI still have some concerns over the core thought behind this which is the argument that we will follow the spec to the letter.  We definitely break the spec in places, or add additional features that are outside the resource spec in places where it's convenient.  I have a suspicion that nobody actually wants strict spec compliance, given the things that we'd have to remove or break to accomplish it (cookies, sensor override, ect).  I'm assuming most would prefer something like \"Correctly written clients will see a correct implementation of Redfish, but we may extend it further than the spec allows\" which at least thusfar, seems to be an ok happy medium between building things that work and still matching the intent of the spec.\n\nWith that all said, this patchset isn't important enough to hash that out for.  I'm fine with it in its current form.  Lets get documented when we plan to completely remove it, and this should be good to go."
+        },
+        {
+            "timestamp": 1615575954,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1615575985,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615577001,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 3:\n\nI have added the requested comment for the compile flag. I have chosen Q4 2021 as the timeframe for removal of the compile switch.\n\nEd, as the person who was responsible for making IE 9 work with the web server in Intel BMC generations I'm a little surprised you aren't more enthusiastic about having a uniform, well defined API. Every HTML4 server had some unique behavior requiring each browser to have code specifically crafted for the vagaries.\n\nIt's also odd to me that there are features/operations allowed that aren't part of the RF spec. Those kinds of items, to my perhaps naive thought process, should be exposed in the location RF set aside for them, the OEM blocks. The problem is that OpenBMC guidance is to eschew OEM blocks."
+        },
+        {
+            "timestamp": 1615577469,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13715/ : SUCCESS"
+        },
+        {
+            "timestamp": 1615577678,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> I have added the requested comment for the compile flag. I have chosen Q4 2021 as the timeframe for removal of the compile switch.\n\nGreat.\n\n> \n> Ed, as the person who was responsible for making IE 9 work with the web server in Intel BMC generations I'm a little surprised you aren't more enthusiastic about having a uniform, well defined API. Every HTML4 server had some unique behavior requiring each browser to have code specifically crafted for the vagaries.\n\nHTML is a good example of something that is still a pain today, because someone (microsoft) built an implementation, then people relied on that implementation.  If Microsoft had removed APIs from IE without warning like this patchset will do eventually, lots of things would've broken, and corporate websites would be way more broken than they already are.  That seems worse to me than the way history played out.\n\n> \n> It's also odd to me that there are features/operations allowed that aren't part of the RF spec. Those kinds of items, to my perhaps naive thought process, should be exposed in the location RF set aside for them, the OEM blocks. The problem is that OpenBMC guidance is to eschew OEM blocks.\n\nThe problem here is that some of the things people want to do tend to go to the protocol level, not just the resource level, or have far reaching consequences.  If the OEM blocks were maintained and had sufficient quality, we'd have very different rules, but unfortunately, every one of them breaks the Redfish spec or guidance in subtle ways, hence the policy.  If you're stepping up to fix an maintain those, by all means, but the current policy is mostly there to stop the bleeding for the moment until we can regroup and figure something out that works in the long run.\n\nIf you think a different OEM policy is warranted, this is probably not the place to propose it;  The mailing list or the OEM review might be a good place to start."
+        },
+        {
+            "timestamp": 1615579449,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1615926450,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3: Code-Review+2"
+        },
+        {
+            "timestamp": 1615926453,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 2db77d34ca673f32411621b7e34b039dec948bd3 by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "d924562eca4e42a10d8d2d78f4f60f4f8630b37c",
+            "parents": [
+                "94bda602f00b181befa20a08550439b3c1d3b256"
+            ],
+            "ref": "refs/changes/75/38475/1",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1605894646,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "More details needed here:\n\n1. This is a breaking change to the API.  How do we plan on rolling it out?\n2. What supported resource/API do we expect clients to move to instead?\n3. How will we warn/document that we're breaking the API in this way?\n4. Why are we changing this at all?  \"the protocol says so\" is a mediocre reason IMO.  There's plenty of places we \"break\" the protocol in this way, do you plan on fixing all of them?\n5. What are the dates of the bmcweb instances that were broken?  Was this checked in recently?  Or long enough that we're going to break ancient clients.\n6. (you might have already done this, but just to document it) Does the webui use this functionality, and now needs fixed?\n\n\nYes, supporting PATCH on this is counter to the protocol, but it doesn't really effect our compatibility with well behaving clients.  If there's a specific validator/test we're trying to pass, that would significantly strengthen the argument for making this breaking change."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I'm a little taken aback that this wasn't a rubber stamp Ed.\n1. Redfish API clearly indicates this is RO. The current use is a violation of that API.\n2. Per the Redfish spec HostName is RW from:\n/redfish/v1/Managers/bmc/EthernetInterfaces/eth(x)\n3. The Redfish API is clear, HostName is Read Only from this node. It's documented clearly. IMO no work needs to be done. OBMC breaks things all the time. An example is some recent sdbusplus changes that caused us some significant issues. The change was correct, our use was not. Functionality broke, and we had to figure out why. No one proactively sent out a message to all sdbusplus users saying \"I changed something that might break you.\".\n4. I disagree this is a mediocre reason. Why even have an agreed upon spec at all? This begins/continues a trend toward turning Redfish into multiple versions of IPMI, one for each IPMI vendor. The goal should be for any user of Redfish to read the schema and know what to expect. The goal should be for a computer to do the correct actions based on the schema. Permitting this to be RW breaks the \"rule\" of \"least surprise\". It is my opinion, when a dev finds a mismatch from the spec that a commit be made to follow the spec. OBMC isn't the only Redfish provider. What happens to a set of tests written to OBMC Redfish when they are applied to AMI Redfish? In theory they will all complete with the same results.\n5. Based on my statements in #4, I don't know that it much matters when the spec was violated. In any case, to answer your question, the commit that added this was done 1.75 years ago.\n6. I did not check webui. I am willing to bet it will need to be changed should this commit move forward."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> I'm a little taken aback that this wasn't a rubber stamp Ed.\n\nSorry to disappoint :)\n\n> 1. Redfish API clearly indicates this is RO. The current use is a violation of that API.\n\nCool.  bmcweb goes outside the Redfish specification in a lot of places.  Is your intent to fix all instances of that?  Maybe we need a \"strict redfish compliance\" mode where we disable sensor setting, the dbus api, and mutual TLS support as well as this thing?  If this change were behind an option flag like that, I'd be fine with it, but as is, it's a breaking API change, deleting code that a client might use, with no documentation or discussion.  It should be noted, your reply above is an order of magnitude longer than your commit message, and a lot of what you just typed would be very useful to include in it.\n\n> 2. Per the Redfish spec HostName is RW from:\n> /redfish/v1/Managers/bmc/EthernetInterfaces/eth(x)\n\nCool, that should go in the commit message please.\n\n> 3. The Redfish API is clear, HostName is Read Only from this node. It's documented clearly. IMO no work needs to be done.\n\n> OBMC breaks things all the time.\n\nNot by policy or intentionally.  If you found something broken, point out the patch that broke it, and we'll get it reverted/fixed.\n\n> An example is some recent sdbusplus changes that caused us some significant issues.\n\nDid you post the bug, and suggest reverting it?  That's the correct path if you identified code that broke you.\n\n> The change was correct, our use was not. Functionality broke, and we had to figure out why. No one proactively sent out a message to all sdbusplus users saying \"I changed something that might break you.\".\n\nsdbusplus is an internal-to-openbmc interface.  I can't say I'm happy with the way that change was done, but changes to external interfaces are a different animal entirely than changing an internal API that can be verified to be correct by looking at the openbmc codebase.  With that said, this patchset isn't about sdbusplus.\n\n> 4. I disagree this is a mediocre reason. Why even have an agreed upon spec at all? This begins/continues a trend toward turning Redfish into multiple versions of IPMI, one for each IPMI vendor. The goal should be for any user of Redfish to read the schema and know what to expect. The goal should be for a computer to do the correct actions based on the schema. Permitting this to be RW breaks the \"rule\" of \"least surprise\".\n\nIf a client has read the specification, and is obeying it properly, they would never be able to hit this code, right?  Technically the client has broken the spec in your example, which somewhat defeats the purpose of this patch, and in the eyes of the Redfish spec, makes this unused code, which brings me back around to, why make this change at all if it's going to break (admittedly misbehaving) clients without warning?\n\n> It is my opinion, when a dev finds a mismatch from the spec that a commit be made to follow the spec. OBMC isn't the only Redfish provider. What happens to a set of tests written to OBMC Redfish when they are applied to AMI Redfish? In theory they will all complete with the same results.\n\nAnd if the tests follow the standard, they will never hit this code, so it's not a problem?\n\n> 5. Based on my statements in #4, I don't know that it much matters when the spec was violated. In any case, to answer your question, the commit that added this was done 1.75 years ago.\n\nSo, we've had almost 2 years of clients being possibly coded against that interface.  That's not something to break lightly.  If we'd just broken it a month ago, and hadn't had a formal release since then, that makes it a very different animal.\n\n> 6. I did not check webui. I am willing to bet it will need to be changed should this commit move forward.\n\nCool, that's something I would recommend noting as a TODO in your commit message so I can track it as a dependency.\n\n\nAgain, sorry to be the stick in the mud about this;  If it's any consolation, I did the same thing to Gunnar recently (which resulted in his question to the mailing list about this exact topic)."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "> > I'm a little taken aback that this wasn't a rubber stamp Ed.\n> \n> Sorry to disappoint :)\n> \n> > 1. Redfish API clearly indicates this is RO. The current use is a violation of that API.\n> \n> Cool.  bmcweb goes outside the Redfish specification in a lot of places.  Is your intent to fix all instances of that?  Maybe we need a \"strict redfish compliance\" mode where we disable sensor setting, the dbus api, and mutual TLS support as well as this thing?  If this change were behind an option flag like that, I'd be fine with it, but as is, it's a breaking API change, deleting code that a client might use, with no documentation or discussion.  It should be noted, your reply above is an order of magnitude longer than your commit message, and a lot of what you just typed would be very useful to include in it.\n> \n\nWhy isn't strict Redfish compliance the norm? Why did anything that does not comply get added (i.e set sensor api)? How am I as an average developer, reading the Redfish schema, and specs to know that OBMC Redfish does it's own thing whenever it wants, and where is OBMC Redifsh documenting same, other than in the source code? Tribal lore doesn't scale very well.\n\nIMO, if we're coloring outside the lines then our coloring needs to be done in the DMTF approved location, OEM. Of course, now I add more controversy, as OBMC has a policy against adding OEM section, if I'm not mistaken. \nDMTF basically said they would not approve mTLS. OBMC is using it anyway, which is more tribal lore.\n\nI'm confused as to the \"with no documentation\" comment. The documentation is the Redfish schema for the /redfish/v1/Managers/bmc/NetworkProtocol node. My question is where is the documentation in OBMC saying \"HostName read-only, it ain't so\"?\n\n> > 2. Per the Redfish spec HostName is RW from:\n> > /redfish/v1/Managers/bmc/EthernetInterfaces/eth(x)\n> \n> Cool, that should go in the commit message please.\n\nA reasonable request, since the reviewer may not have ready knowledge of the correct Redfish location for changing hostnames.\n\n> \n> > 3. The Redfish API is clear, HostName is Read Only from this node. It's documented clearly. IMO no work needs to be done.\n> \n> > OBMC breaks things all the time.\n> \n> Not by policy or intentionally.  If you found something broken, point out the patch that broke it, and we'll get it reverted/fixed.\n> \n\nHow do you revert/fix something if the code change made *is* the fix? Reverting the fix, in this case, only continues to mask incorrect use of the API.\n\n> > An example is some recent sdbusplus changes that caused us some significant issues.\n> \n> Did you post the bug, and suggest reverting it?  That's the correct path if you identified code that broke you.\n> \n\nWe reverted the offending change internally until we understood how it broke us. Upon review, it was determined the change was correct, and should stay.\n\n> > The change was correct, our use was not. Functionality broke, and we had to figure out why. No one proactively sent out a message to all sdbusplus users saying \"I changed something that might break you.\".\n> \n> sdbusplus is an internal-to-openbmc interface.  I can't say I'm happy with the way that change was done, but changes to external interfaces are a different animal entirely than changing an internal API that can be verified to be correct by looking at the openbmc codebase.  With that said, this patchset isn't about sdbusplus.\n> \n\nI'm not understanding your point.\nMy use of sdbusplus was as an example of OBMC breaking code. Last time the breakage was sdbusplus, next time may be phosphor-network, or bmcweb, or choose any of the components that make up the OBMC project. Changes happen everywhere in the code base, and whether by design or not, breakage occurs. OBMC devs have to compensate for the fallout.\n\n> > 4. I disagree this is a mediocre reason. Why even have an agreed upon spec at all? This begins/continues a trend toward turning Redfish into multiple versions of IPMI, one for each IPMI vendor. The goal should be for any user of Redfish to read the schema and know what to expect. The goal should be for a computer to do the correct actions based on the schema. Permitting this to be RW breaks the \"rule\" of \"least surprise\".\n> \n> If a client has read the specification, and is obeying it properly, they would never be able to hit this code, right?  Technically the client has broken the spec in your example, which somewhat defeats the purpose of this patch, and in the eyes of the Redfish spec, makes this unused code, which brings me back around to, why make this change at all if it's going to break (admittedly misbehaving) clients without warning?\n> \n\nMy point, from the non-inline response, is that every company with a QA/Validation team will team write tests according to the spec. For this schema HostName is read-only. The QA team must be able to write two tests, that apply to any implementation of Redfish. One that confirms correct behavior, the other that is the negative case. This should not be considered a \"misbehaving client\".\n\nDid test pass if a GET is performed, and the value retrieved matches the previously assigned HostName?\n\nCan the hostname be written from this location? If HostName can be written, test is marked as having failed.\n\n> > It is my opinion, when a dev finds a mismatch from the spec that a commit be made to follow the spec. OBMC isn't the only Redfish provider. What happens to a set of tests written to OBMC Redfish when they are applied to AMI Redfish? In theory they will all complete with the same results.\n> \n> And if the tests follow the standard, they will never hit this code, so it's not a problem?\n> \n\nSee previous section: QA writes a test to confirm correct operation of this RF schema, and the test fails. Now a dev gets a defect, and finds \"OBMC Redfish just does this\". Returns the defect as \"not a bug\". Submitter disagrees, reopens defect. Now a time wasting \"is\"/\"is not\" defect argument ensues for weeks. Multiply by some non-zero number of dev/QA teams.\nI consider that a problem.\n\nOn the converse side, the defect saying \"It used to be writable\" can be easily defended, as \"the spec never said that was a writable node, alter your test configuration, or alter your API interaction\".\n\n> > 5. Based on my statements in #4, I don't know that it much matters when the spec was violated. In any case, to answer your question, the commit that added this was done 1.75 years ago.\n> \n> So, we've had almost 2 years of clients being possibly coded against that interface.  That's not something to break lightly.  If we'd just broken it a month ago, and hadn't had a formal release since then, that makes it a very different animal.\n> \n\nThen in order for the code to not be broken the spec needs to change. I'm advocating for following the existing spec. Does this mean you're going to champion a spec change, for all locations that do not comply, to keep OBMC Redfish in compliance?\n\n> > 6. I did not check webui. I am willing to bet it will need to be changed should this commit move forward.\n> \n> Cool, that's something I would recommend noting as a TODO in your commit message so I can track it as a dependency.\n\nphosphor-webui is d-bus. This change does not affect that code.\nwebui-vue, per Gunnar, uses the correct node.\n\n> \n> \n> Again, sorry to be the stick in the mud about this;  If it's any consolation, I did the same thing to Gunnar recently (which resulted in his question to the mailing list about this exact topic).\n\nIn response to your 20 Nov 2020 comments:\n\n>Obviously writing a generic test harness for Redfish like the above would be nuts.  No disagreement there.\n\n>For what it's worth, the set sensor api, which breaks Redfish in a very similar way (allows PATCH when the protocol species only GET) was built specifically for a QA team, so I'm struggling to see the QA argument here without comparing to that.  If your QA team is trying to build a compliant-to-the-spec Redfish test, state that as your goal, then lets get that sensor override code removed as well so we can be \"spec compliant\" in the truest sense.  If this patch were proposing that, under an option that I can point people to so they get the old  behavior, that would be fine, but as is, you're saying in effect, \"some QA use cases are more important than the protocol, so when QA breaks the protocol on purpose, that's fine\" which I'm struggling to be ok with, because as a policy, I can't apply it to other places in a consistent manner, and I'm sure everyones QA teams have different requirements.\n\nAgain, I don't understand why a non-compliant API was allowed to come into being. Also, don't put words in my mouth that I am not saying.\n\nMy point is that ALL QA/Val teams should have the same interface, and that interface is the DMTF Redfish spec.\n\nIMO, it would be in the OBMC working group to be expecting strict compliance in order to identify places that need to be added to the spec. In addition I would expect it to be in their best interest to be in first level control of an OEM nodes that are being created that the DMTF rejects. This allows the entire community to benefit from the custom features, such as Set Sensor API.\n\n\n\n>>We're not always dealing with people who have our best interests at heart.\n\n>I'm struggling.  I've given you a path forward that gets you strict protocol compliance by either adding an option that developers can disable, and including the other \"strict\" protocol compliance options with it, which avoids the code entirely. \n\nYou aren't the only one struggling Ed. I don't see the advantage to the OBMC community to allow an escape hatch. It prolongs fragmentation between the various server vendors using the OBMC platform."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > \n> \n> Why isn't strict Redfish compliance the norm? Why did anything that does not comply get added (i.e set sensor api)? How am I as an average developer, reading the Redfish schema, and specs to know that OBMC Redfish does it's own thing whenever it wants, and where is OBMC Redifsh documenting same, other than in the source code? Tribal lore doesn't scale very well.\n\nThe lack of \"strict\" redfish compliance fall into several broad categories:\n1. Someone didn't know they were breaking the spec at the time, and reviews/testing didn't catch it.  (this is the case in this commit I believe)\n2. Security was improved by breaking the spec.\n3. Someone needed functionality that wasn't available in the spec, and didn't want to/couldn't standardize it.\n4. The spec deprecated something.\n\nPs, add cookie auth support to the \"strict compliance\" list.  Redfish explicitly disallows it, which I wasn't made aware of until recently.  If we're following strict compliance to the standard, I think we need to rework the webui.\n\nI agree, tribal lore doesn't scale, but neither does making breaking changes to external interfaces when there are known users.\n\n> \n> IMO, if we're coloring outside the lines then our coloring needs to be done in the DMTF approved location, OEM. Of course, now I add more controversy, as OBMC has a policy against adding OEM section, if I'm not mistaken. \n\nWe have several OEM schemas today.  In general, we limit OEM to things that have been proposed and rejected by core redfish, or would only ever apply to OpenBMC.  We do this to avoid adding an OEM schema, then having to break compatibility with it later when it's standardized.\n\n> DMTF basically said they would not approve mTLS. OBMC is using it anyway, which is more tribal lore.\n\nFeel free to talk to your greater Intel team about your concerns, they're the ones that pushed mTLS.  I would've liked to see it standardized, but that wasn't how it went down.  If they are the only user of all the breaking API things that we can find, and they're willing to move their code forward to a compliant interface, that's a very different discussion.\n\n> \n> I'm confused as to the \"with no documentation\" comment. The documentation is the Redfish schema for the /redfish/v1/Managers/bmc/NetworkProtocol node. My question is where is the documentation in OBMC saying \"HostName read-only, it ain't so\"?\n\nThe code isn't documentation.  A well crafted commit message, going through why this breaking change is needed, if you're broken by it, how one can get the old behavior, and what impact one would expect from it is documentation.  IMO, the redfish spec is for redfish documentation, OpenBMC needs to document what it supports and where, which admittedly, we don't do a great job of, but we're working on it, and we certainly do a decent job of it in the case of breaking changes, which we generally try to avoid.  We've been down a similar path with the \"one chassis\" stuff we had previously, which we did eventually get completely removed, but was under an option for some time.\n\n> \n> > \n> > > 3. The Redfish API is clear, HostName is Read Only from this node. It's documented clearly. IMO no work needs to be done.\n> > \n> > > OBMC breaks things all the time.\n> > \n> > Not by policy or intentionally.  If you found something broken, point out the patch that broke it, and we'll get it reverted/fixed.\n> > \n> \n> How do you revert/fix something if the code change made *is* the fix? Reverting the fix, in this case, only continues to mask incorrect use of the API.\n\nYou revert it, then ask the submitter to go fix the \"incorrect\" uses of the API.  If the API allowed it, and it functioned as intended, the use was not \"incorrect\" IMO.\n\n> \n> > > An example is some recent sdbusplus changes that caused us some significant issues.\n> > \n> > Did you post the bug, and suggest reverting it?  That's the correct path if you identified code that broke you.\n> > \n> \n> We reverted the offending change internally until we understood how it broke us. Upon review, it was determined the change was correct, and should stay.\n\nKeep in mind, the above path would've been available to you, which pushes the work to be done on the submitter, not the consumer, but that's water under the bridge.\n\n> \n> > > The change was correct, our use was not. Functionality broke, and we had to figure out why. No one proactively sent out a message to all sdbusplus users saying \"I changed something that might break you.\".\n> > \n> > sdbusplus is an internal-to-openbmc interface.  I can't say I'm happy with the way that change was done, but changes to external interfaces are a different animal entirely than changing an internal API that can be verified to be correct by looking at the openbmc codebase.  With that said, this patchset isn't about sdbusplus.\n> > \n> \n> I'm not understanding your point.\n> My use of sdbusplus was as an example of OBMC breaking code. Last time the breakage was sdbusplus, next time may be phosphor-network, or bmcweb, or choose any of the components that make up the OBMC project. Changes happen everywhere in the code base, and whether by design or not, breakage occurs. OBMC devs have to compensate for the fallout.\n\nMy point is, bmcweb hosts an external (user facing) interface to code we don't have control over.  If breakages happen, we generally wont know about them until someone complains, so we need to be more careful, and make sure we can point to an option when they inevitably ask for it to be reverted.\n\nsdbusplus breakages show up internally, and can be corrected with zero changes to outbound interfaces.\n\nIf breakages in phosphor-network are user facing, they should be reverted IMO, but that's up to that maintainer to actually execute on, so I can't tell you what would happen.\n\n> \n> > > 4. I disagree this is a mediocre reason. Why even have an agreed upon spec at all? This begins/continues a trend toward turning Redfish into multiple versions of IPMI, one for each IPMI vendor. The goal should be for any user of Redfish to read the schema and know what to expect. The goal should be for a computer to do the correct actions based on the schema. Permitting this to be RW breaks the \"rule\" of \"least surprise\".\n> > \n> > If a client has read the specification, and is obeying it properly, they would never be able to hit this code, right?  Technically the client has broken the spec in your example, which somewhat defeats the purpose of this patch, and in the eyes of the Redfish spec, makes this unused code, which brings me back around to, why make this change at all if it's going to break (admittedly misbehaving) clients without warning?\n> > \n> \n> My point, from the non-inline response, is that every company with a QA/Validation team will team write tests according to the spec. For this schema HostName is read-only. The QA team must be able to write two tests, that apply to any implementation of Redfish. One that confirms correct behavior, the other that is the negative case. This should not be considered a \"misbehaving client\".\n> \n> Did test pass if a GET is performed, and the value retrieved matches the previously assigned HostName?\n> \n> Can the hostname be written from this location? If HostName can be written, test is marked as having failed.\n\nIf you have tests that require strict compliance to Read/Write parameters to pass, then add that mode behind an option where we can explicitly document \"We reserve the right to break this at any time to get better Redfish compliance, do not set if you require backward compatibility\"\nMost of openbmc seems to be fine with \"only in cases where it matters\" compliance to the Redfish spec, hence why this code has survived for years without being discovered as being incorrect.\n\n> \n> > > It is my opinion, when a dev finds a mismatch from the spec that a commit be made to follow the spec. OBMC isn't the only Redfish provider. What happens to a set of tests written to OBMC Redfish when they are applied to AMI Redfish? In theory they will all complete with the same results.\n> > \n> > And if the tests follow the standard, they will never hit this code, so it's not a problem?\n> > \n> \n> See previous section: QA writes a test to confirm correct operation of this RF schema, and the test fails. Now a dev gets a defect, and finds \"OBMC Redfish just does this\". Returns the defect as \"not a bug\". Submitter disagrees, reopens defect. Now a time wasting \"is\"/\"is not\" defect argument ensues for weeks. Multiply by some non-zero number of dev/QA teams.\n> I consider that a problem.\n> \n> On the converse side, the defect saying \"It used to be writable\" can be easily defended, as \"the spec never said that was a writable node, alter your test configuration, or alter your API interaction\".\n\n\nAdding strict compliance behind an option would fix this for both cases.\n\nOn the alternate coin \"We rebased to latest, and now setting the hostname doesn't work\" causes far more time wasting triaging from N dev teams than a bug going back and forth.\n\n> \n> > > 5. Based on my statements in #4, I don't know that it much matters when the spec was violated. In any case, to answer your question, the commit that added this was done 1.75 years ago.\n> > \n> > So, we've had almost 2 years of clients being possibly coded against that interface.  That's not something to break lightly.  If we'd just broken it a month ago, and hadn't had a formal release since then, that makes it a very different animal.\n> > \n> \n> Then in order for the code to not be broken the spec needs to change. I'm advocating for following the existing spec. Does this mean you're going to champion a spec change, for all locations that do not comply, to keep OBMC Redfish in compliance?\n\nNo, that means I'm asking you to add an option, so we can have both for the time being.  If someone is willing to champion the spec changes needed I'd be happy to support in DMTF meetings.\n\n> \n> > > 6. I did not check webui. I am willing to bet it will need to be changed should this commit move forward.\n> > \n> > Cool, that's something I would recommend noting as a TODO in your commit message so I can track it as a dependency.\n> \n> phosphor-webui is d-bus. This change does not affect that code.\n> webui-vue, per Gunnar, uses the correct node.\n\nCool.  That would be more great information to put in the commit message.\n\n> \n> > \n> > \n> > Again, sorry to be the stick in the mud about this;  If it's any consolation, I did the same thing to Gunnar recently (which resulted in his question to the mailing list about this exact topic).\n> \n> In response to your 20 Nov 2020 comments:\n> \n> >Obviously writing a generic test harness for Redfish like the above would be nuts.  No disagreement there.\n> \n> >For what it's worth, the set sensor api, which breaks Redfish in a very similar way (allows PATCH when the protocol species only GET) was built specifically for a QA team, so I'm struggling to see the QA argument here without comparing to that.  If your QA team is trying to build a compliant-to-the-spec Redfish test, state that as your goal, then lets get that sensor override code removed as well so we can be \"spec compliant\" in the truest sense.  If this patch were proposing that, under an option that I can point people to so they get the old  behavior, that would be fine, but as is, you're saying in effect, \"some QA use cases are more important than the protocol, so when QA breaks the protocol on purpose, that's fine\" which I'm struggling to be ok with, because as a policy, I can't apply it to other places in a consistent manner, and I'm sure everyones QA teams have different requirements.\n> \n> Again, I don't understand why a non-compliant API was allowed to come into being. Also, don't put words in my mouth that I am not saying.\n\nYou should ask the people involved.  They are members of your extended team.  Sorry to assume your position about the protocol and QA.  I assumed based on this patchset only fixing one minor part of the protocol breakages in bmcweb.  To clarify, would you be fine with removing ALL places we disobeyed the protocol, not just this one, even if it broke some QA testing?\n\n> \n> My point is that ALL QA/Val teams should have the same interface, and that interface is the DMTF Redfish spec.\n\nAs a goal, I completely agree.  \"How do we roll that out in a way that's notdisruptive to the project?\" is what we're trying to solve at this point.\n\n> \n> IMO, it would be in the OBMC working group to be expecting strict compliance in order to identify places that need to be added to the spec. In addition I would expect it to be in their best interest to be in first level control of an OEM nodes that are being created that the DMTF rejects. This allows the entire community to benefit from the custom features, such as Set Sensor API.\n> \n> \n> \n> >>We're not always dealing with people who have our best interests at heart.\n> \n> >I'm struggling.  I've given you a path forward that gets you strict protocol compliance by either adding an option that developers can disable, and including the other \"strict\" protocol compliance options with it, which avoids the code entirely. \n> \n> You aren't the only one struggling Ed. I don't see the advantage to the OBMC community to allow an escape hatch. It prolongs fragmentation between the various server vendors using the OBMC platform.\n\nThe \"escape hatch\" was an easy way to get this patchset moving in a timely manner.  If you'd prefer to wait until we can as a community decide that deleting ANY non-compliant interface is the right path forward, and it should be done without warning, and without documentation or escape hatches, then this patchset needs to take a very different form, and be accompanied by the aforementioned other subsystems being removed, as well.  I'd also like to see a mailing list discussion about all the stuff we're about to break because of Redfish protocol compliance (webui, QA sensor testing, ect), so nobody is surprised when we do it.\n\nI don't have a strong need for either path, so depending on your priorities (speed vs effort) we can go down whichever is your preference."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -25
+                }
+            ],
+            "sizeInsertions": 1,
+            "sizeDeletions": 25
+        },
+        {
+            "number": 2,
+            "revision": "4004828ed70cd8461a6fe891ace56b3b45fa9405",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/75/38475/2",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1607368621,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "meson_options.txt",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'd like to see this be a \"strict compliance\" option, which is much more maintainable in the long run, and gives us a place to put all these compliance breaking things.\n\nAt this point, we've identified at least 4 things that need to go within this option:\n1. Mutual TLS auth\n2. PATCH on sensor value interface\n3. Cookie auth support (and therefore the webui)\n4. PATCH on bmc/NetworkProtocol hostname\n\nI'm fairly certain there's more.\n\nMost of the above are already options to be able to build in, so this new option would just check to see if those are enabled.\n\nAlso, for the moment we need strict compatibility to be disabled by default as we want to give a path forward, and not break all the existing functionality."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "> Most of the above are already options to be able to build in, so this new option would just check to see if those are enabled.\n\nso if webui is enabled, and this strict compliance is set to true? Do we allow the webui?\n\nHow do things get removed from the code and dropped from this list? \n\nI'm not sure I agree with the \"strict compliance\" option. With this, \"redfish-allow-deprecated-hostname-patch\" is an option and then later at some point dropped all together."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Gunnar, I prefer the per item enable/disable, despite the possibility of a sea of such compile switches. Creating this as a single enable/disable implies, to me, that all of these features need to be made compliant to the schemas all in one multi-part, nearly contemporary, commit. This would be necessary to have a single expiry time. I don't think tightening all of the other three (or more) items in the list within a short timeframe to this commit is really practical. OBMC maintainers can't really assign cross-corporate resources to make such a commit set possible.\n\nAs I stated earlier replies I wasn't expecting this to evolve into such an involved issue. I didn't push this because I received a defect. I pushed this because I noticed a deviation from the DMTF spec. The commit was small, and it matched the schema, and my expectation was I'd get a +2 and merge. I didn't sign up to correct everything out of spec in the bmcweb implementation. I only committed to fixing a variance that needed correcting.\n\nAt this point my takeaway for bmcweb as a whole is that I have to ignore any existing code that is non-compliant to the schemas, and to not attempt to make any changes to what is now canon.\nContribution will now only be for items that don't exist in bmcweb, and don't have a built-in conflict due to a pre-existing feature implementation."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "237f67a1b3b5bbdcbaf1ad3cdab0523f7af68709",
+            "parents": [
+                "1d40ef697d61199197214380ac01970b30d5d575"
+            ],
+            "ref": "refs/changes/75/38475/3",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1615575954,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "2db77d34ca673f32411621b7e34b039dec948bd3",
+            "parents": [
+                "75710de2c0708a40a0caf6d513dba9ace033aad7"
+            ],
+            "ref": "refs/changes/75/38475/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1615926453,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 1
+        }
+    ]
+}

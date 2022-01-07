@@ -1,0 +1,536 @@
+{
+    "project": "openbmc/sdbusplus",
+    "branch": "master",
+    "id": "If77b8bc5f75709b59353570a9c14383cac44dcd4",
+    "number": 41761,
+    "subject": "Implement path encoding and decoding",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/sdbusplus/+/41761",
+    "commitMessage": "Implement path encoding and decoding\n\nsdbus has methods for encoding and decoding paths in a lossless way.\nThis commit adds those methods to object_path in such a way that those\nfunctions are called implicitly when building strings, the hope being\nthat any API choosing to use object_path need not write its own escaping\nfunctions, and said escaping will happen implicitly.\n\nThe explicit changes to make this happen are.\n1. filename() now calls into sd_bus_path_decode, rather than writing its\nown method.  This means that the strings returned from the method now no\nlonger need decoding explicitly, and can largely be used as-is.  For\npaths that did not require escaping, the behavior should be identical.\nFor paths that did require escaping, this method will now return the raw\nversion of the path.  Existing usages should remain the same, and impact\nis unlikely, given that most sdbusplus users don't explicitly escape\nstrings, and filename() is relatively new.\n\n2. a operator/ method is added to the object_path object.  Similar to\noperator/ on std::filesystem::path, this allows generating a new\nobject_path from an existing one, by adding a new leaf node to the path.\nFunctionally this allows nearly any value to be escaped into a dbus\npath.  An example of a common usage of this might be\n\nobject_path myPath = \"/\";\nobject_path myNewPath = myPath / \"Foo-bar\";\n\nThe above line will implicitly escape the - in the name.  Overloads for\nboth const std::string& and const char* have been added.\n\nOne motivating example where the above would be useful is to remove the\nescapePathForDbus method in bmcweb.\nhttps://github.com/openbmc/bmcweb/blob/88b3dd12851cd7bdd4b5c065ba99f40feafb775e/include/dbus_utility.hpp#L47\n\nand the similarly named method in dbus-sensors\nhttps://github.com/openbmc/dbus-sensors/blob/6cb732a31b7664089124b00e806311768bc24a87/src/SensorPaths.cpp#L49\nboth written by the same author (not me), and centralize them in\nsdbusplus where they belong.\n\nFunctionally this commit also includes a new utility/memory.hpp, that\nallows for C-style RAII using freep, mfree and the _cleanup_free_\nattributes.  These were largely copied as-is from alloc-util.h in\nsystemd on latest patchset recommendations.\n\nTested:\nUnit tests have been updated to include all new code paths, and some\ncommon items that might need escaped.  Unit tests pass.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: If77b8bc5f75709b59353570a9c14383cac44dcd4\n",
+    "createdOn": 1617237200,
+    "lastUpdated": 1617824623,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1617237200,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1617237216,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617238582,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14676/ : FAILURE"
+        },
+        {
+            "timestamp": 1617244221,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1617246751,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1617246764,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617246840,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1617247364,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14693/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617302317,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1617302329,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617303267,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14745/ : FAILURE"
+        },
+        {
+            "timestamp": 1617305144,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1617305159,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617306065,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14748/ : FAILURE"
+        },
+        {
+            "timestamp": 1617307940,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1617307955,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617309330,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14753/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617309973,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1617824618,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5: Code-Review+2"
+        },
+        {
+            "timestamp": 1617824623,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully merged by Patrick Williams"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "ea0361a5ebc6d479f045068dc2932e83d4d143ef",
+            "parents": [
+                "95874d930f0bcc8390cd47ab3bb1e5e46db45278"
+            ],
+            "ref": "refs/changes/61/41761/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1617237200,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "The manpage suggests that if (r == 0), out is still nullptr."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 153,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Leaked 'out', I think.\n\nWow... it appears like our CI even caught this:\n\n\u001b[1;31m>>> \u001b[0mMALLOC_PERTURB_=171 /home/jenkins-op/workspace/ci-repository/openbmc/sdbusplus/build/test/test-message_types"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 153,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Leaked 'out', I think.\n> \n> Wow... it appears like our CI even caught this:\n> \n> \u001b[1;31m>>> \u001b[0mMALLOC_PERTURB_=171 /home/jenkins-op/workspace/ci-repository/openbmc/sdbusplus/build/test/test-message_types\n\nThat's kinda neat.....  Fixed in latest.\n\nSorry for the noise, I was expecting you had gone home for the day and wanted to make sure this passed CI."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 173,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "It might be clearer to do `this->operator/(extId.c_str())`.  I'm not sure.  I had to think a moment about what type '*this' was and what this ended up doing.  Maybe I'm just being dense."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 173,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I have no strong opinion either way.  Changed."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "It maybe better to do what systemd itself does on this.  There is a subtle case where if 185 throws an exception we end up with a leak.  Not likely to happen though.\n\n\n  static inline void freep(void *p) {\n        *(void**)p = mfree(*(void**) p);\n  }\n\n  #define _cleanup_free_ _cleanup_(freep)\n  #define _cleanup_(x) __attribute__((__cleanup__(x)))\n\nThey're basically defining a C-ish RAII.  I thought we had something like that for file-descriptors already (which could be adopted to free) but I'm not seeing it in this codebase.  I think you'd have to use unique_ptr with a custom deleter class that calls free instead."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I don't fully understand what the above macro is doing, so I'll have to get back to that.\n\nFWIW I did try a custom deleter on  unique_ptr, but I'm not sure how to get a char** from a unique_ptr to pass to the decode method in such a way that actually puts the payload in the unique_ptr.  &(myUniquePtr.get()) returns a compile error."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done.  I've copied verbatim from systemd, and it seems to work.  I can't say I fully understand everything that's going on in those macros, but so long as it works?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 24,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 46,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 2,
+            "revision": "b79067553029bbc29c5b375b4814e30fbf4281ee",
+            "parents": [
+                "95874d930f0bcc8390cd47ab3bb1e5e46db45278"
+            ],
+            "ref": "refs/changes/61/41761/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1617246751,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 48,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 3,
+            "revision": "7498891048420a068ededd8d19436a51586e9eaf",
+            "parents": [
+                "95874d930f0bcc8390cd47ab3bb1e5e46db45278"
+            ],
+            "ref": "refs/changes/61/41761/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1617302317,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/sdbusplus/utility/memory.hpp",
+                    "line": 6,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This was copied verbatim from systemd.  I'm not clear why this even exists, and why freep doesn't call free directly, but maybe there's a good reason?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/sdbusplus/utility/memory.hpp",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 62,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 4,
+            "revision": "4f2c28bab9ae456be855faeb12b3f0bcc567a431",
+            "parents": [
+                "95874d930f0bcc8390cd47ab3bb1e5e46db45278"
+            ],
+            "ref": "refs/changes/61/41761/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1617305144,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/sdbusplus/utility/memory.hpp",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "wasn't quite sure what to call this file.  Open to suggestions if there's a better name you'd prefer."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/sdbusplus/utility/memory.hpp",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 5,
+            "revision": "fa0fa3b0fa5a9d59c37b6edbc53cc21b7c2a16b0",
+            "parents": [
+                "95874d930f0bcc8390cd47ab3bb1e5e46db45278"
+            ],
+            "ref": "refs/changes/61/41761/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1617307940,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/sdbusplus/utility/memory.hpp",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 65,
+            "sizeDeletions": 10
+        }
+    ]
+}

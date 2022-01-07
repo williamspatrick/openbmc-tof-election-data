@@ -1,0 +1,524 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I894361b7729737fb3cd551f05b108777b82ab437",
+    "number": 39272,
+    "subject": "psusensor: Use thread for value and event read",
+    "owner": {
+        "name": "Lei YU",
+        "email": "yulei.sh@bytedance.com",
+        "username": "mine260309"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/39272",
+    "commitMessage": "psusensor: Use thread for value and event read\n\nThe sensor/event read was using async_read_until() in the main thread,\nwhich effectively blocks the main thread.\nIn our system, `busctl tree xyz.openbmc_project.PSUSensor` takes more\nthan 60s to complete.\n\nMove the value and event read into a separat thread so that the main\nthread is not blocked anymore.\n\nThere is no mutex protection between the threads, because\n1. The main thread (event loop) handles the timer and post the whole\n   read-and-update-sensor handler into the read-thread;\n2. The read-thread waits on the async read and update the sensor value.\n\nThe race only happens on the DBus sensor value that the main thread may\nread a value that the read-thread is updating, which is not a real\nproblem.\n\nThe result is:\n* A bit increase of CPU usage by about 3~6% (20+ sensors and 120+\nevents);\n* Significant decrease on `busctl tree xyz.openbmc_project.PSUSensor`,\nfrom 60s+ to about 2s.\n\nTested: Verify the service runs OK, the sensor readings are OK, and\n        busctl tree xyz.openbmc_project.PSUSensor runs a lot faster.\n\nSigned-off-by: Lei YU <yulei.sh@bytedance.com>\nChange-Id: I894361b7729737fb3cd551f05b108777b82ab437\n",
+    "createdOn": 1609223418,
+    "lastUpdated": 1613625877,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1609223418,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1609223448,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1609224339,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10340/ : SUCCESS"
+        },
+        {
+            "timestamp": 1609224497,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\nI'm looking through this, and I don't see any thread safe primitives (std::atomic, mutex, ect).\n\nLike I said on discord, this is one approach to fixing this, but I worry about having to make everything thread safe, and the complexity it brings.  Do you have any plans on adding the appropriate thread safety between the reading sensor and the dbus connection?"
+        },
+        {
+            "timestamp": 1609225486,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> I'm looking through this, and I don't see any thread safe primitives (std::atomic, mutex, ect).\n> \n> Like I said on discord, this is one approach to fixing this, but I worry about having to make everything thread safe, and the complexity it brings.  Do you have any plans on adding the appropriate thread safety between the reading sensor and the dbus connection?\n\nThis is a proof of concept change that moving the sensor readings into a separate thread could improve the main thread and thus the dbus calls.\nComparing to the io_uring replacement, this is kind of \"minor\" change.\n\nBy thread safe stuff, the code that scans hwmon and construct sensors are still in main thread's event loop; only the readings (setupRead() and handleResponse()) are running in thread, where the only use of the dbus connection is to set the value property.\nI assume that's OK because there is no race on updating the sensor value.\nThe only concern is that I am not sure if it's OK to invoke the DBus interface (the dbus connection) simultaneously in two threads."
+        },
+        {
+            "timestamp": 1612431614,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1612431624,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612431701,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11888/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612684532,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1612684551,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612684985,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12019/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612685973,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 4: New patch set was added with same tree, parent, and commit message as Patch Set 3."
+        },
+        {
+            "timestamp": 1612685982,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1612685985,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612686247,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12024/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612734300,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > I'm looking through this, and I don't see any thread safe primitives (std::atomic, mutex, ect).\n> > \n> > Like I said on discord, this is one approach to fixing this, but I worry about having to make everything thread safe, and the complexity it brings.  Do you have any plans on adding the appropriate thread safety between the reading sensor and the dbus connection?\n> \n> This is a proof of concept change that moving the sensor readings into a separate thread could improve the main thread and thus the dbus calls.\n> Comparing to the io_uring replacement, this is kind of \"minor\" change.\n\nAgreed, io_uring is more invasive.\n\n> \n> By thread safe stuff, the code that scans hwmon and construct sensors are still in main thread's event loop; only the readings (setupRead() and handleResponse()) are running in thread, where the only use of the dbus connection is to set the value property.\n\nI'm not following.  The dbus connection object is not thread safe.  With your change, setting the value is happening on another thread without any sort of thread safety synchronizing the sensor value change to the dbus reactor.  it should be noted, handleResponse() calls into the dbus object via set_property().\n\n> I assume that's OK because there is no race on updating the sensor value.\n> The only concern is that I am not sure if it's OK to invoke the DBus interface (the dbus connection) simultaneously in two threads.\n\nIt is not.  dbus connections are not thread safe, and in this context, should all be run from the same thread."
+        },
+        {
+            "timestamp": 1612750354,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 4: Code-Review-1\n\n> Patch Set 4:\n> \n> > Patch Set 1:\n> > \n> > > Patch Set 1:\n> > > \n> > > I'm looking through this, and I don't see any thread safe primitives (std::atomic, mutex, ect).\n> > > \n> > > Like I said on discord, this is one approach to fixing this, but I worry about having to make everything thread safe, and the complexity it brings.  Do you have any plans on adding the appropriate thread safety between the reading sensor and the dbus connection?\n> > \n> > This is a proof of concept change that moving the sensor readings into a separate thread could improve the main thread and thus the dbus calls.\n> > Comparing to the io_uring replacement, this is kind of \"minor\" change.\n> \n> Agreed, io_uring is more invasive.\n> \n> > \n> > By thread safe stuff, the code that scans hwmon and construct sensors are still in main thread's event loop; only the readings (setupRead() and handleResponse()) are running in thread, where the only use of the dbus connection is to set the value property.\n> \n> I'm not following.  The dbus connection object is not thread safe.  With your change, setting the value is happening on another thread without any sort of thread safety synchronizing the sensor value change to the dbus reactor.  it should be noted, handleResponse() calls into the dbus object via set_property().\n> \n> > I assume that's OK because there is no race on updating the sensor value.\n> > The only concern is that I am not sure if it's OK to invoke the DBus interface (the dbus connection) simultaneously in two threads.\n> \n> It is not.  dbus connections are not thread safe, and in this context, should all be run from the same thread.\n\nLet's put this change here and do not merge it.\nAdding thread to psusensor does look weird, because all other xxxsensors and the README specifically indicate that this repo is single-threaded.\nThe intention of this commit is really to provide some information on the performance impact if a system has \"too many\" sensors backed by psusensor, and could be potentially resolved by adding threads."
+        },
+        {
+            "timestamp": 1612790713,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613625852,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613625877,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Abandoned\n\nAbandon this as explained above."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "e48305409ca43818f6be35efd4164cd7066cb5ab",
+            "parents": [
+                "4205f4a9c61223ea0cb2d431bde6509aa287c061"
+            ],
+            "ref": "refs/changes/72/39272/1",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1609223418,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -17
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 78,
+            "sizeDeletions": 44
+        },
+        {
+            "number": 2,
+            "revision": "4987cd11c5831f2d711ea6ccd4f1aa5fcee816c4",
+            "parents": [
+                "a082b2a6d5b5f808a10c5e028a8237fcf18829a7"
+            ],
+            "ref": "refs/changes/72/39272/2",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1612431614,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -17
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 46
+        },
+        {
+            "number": 3,
+            "revision": "279ca39e34e36367c0c2ecd2e977104f9db0bc1e",
+            "parents": [
+                "c972ece4bf3bce8176356869c32b77ee1cbbcb43"
+            ],
+            "ref": "refs/changes/72/39272/3",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1612684532,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -17
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "tests/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 100,
+            "sizeDeletions": 46
+        },
+        {
+            "number": 4,
+            "revision": "81ccfd4f77e47620f89cfa9e7378bf63ba98ed77",
+            "parents": [
+                "8c63bc0a5f09794db6f6d3c9fdf49cb0d662ccce"
+            ],
+            "ref": "refs/changes/72/39272/4",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1612685973,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "NO_CHANGE",
+            "comments": [
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 959,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Is 1 sufficient?  Should this scale based on the number of sensors?\n\nI do find it slightly confusing that the variable is named \u2018readThread\u2019 throughout when the type is a thread_pool.  I\u2019d prefer \u201cpool\u201d be part of the name for readability (and potential future maintainance if we ever change this to a number larger than 1)."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 959,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "Right, readThreadPool is a better name.\nBut this patch itself is not good enough to be upstream\uff1a\n* It has no mutex protection so it has race condition on DBus property's set/get\n* It requires thread support while the whole dbus-sensors specifically does not use thread at all. So it requires (CMakefile before and now) meson.build changes to enable the thread support only for psusensor.\n\nI will abandon this patch."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -17
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "tests/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 100,
+            "sizeDeletions": 46
+        }
+    ]
+}

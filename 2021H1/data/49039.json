@@ -1,0 +1,1215 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "topic": "wip",
+    "id": "If046812c1af625951579c7be2b40838ce2204bb2",
+    "number": 49039,
+    "subject": "wip: build in multiple translation units",
+    "owner": {
+        "name": "Sui Chen",
+        "email": "suichen@google.com",
+        "username": "quadpixels"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/49039",
+    "commitMessage": "wip: build in multiple translation units\n\nAttempting to break bmcweb into multiple translation units\n\nFrom the task manager multiple instances of g++ can be seen during the\nstart of the build process.\n\nWhen tested on a Ryzen 5600X box:\nOriginal Bitbake recipe time: 2:30\nCurrent  Bitbake recipe time: 2:12 ~ 2:19 (-11% ~ -7%)\n\nFrom a waterfall diagram, one can see:\n  - The individual build units for each of the Redfish service is\n    smaller than when they are combined together (up to 30s vs 77s),\n\tthis potentially reduces the length of the critical path\n  - However there are way too many services such that the total\n    work added is way higher than building bmcweb in only 1 build\n\tunit.\n  - The speedup therefore depends on how fast the build machine can\n    finish the smaller build units.\n\nWaterflow graph of an original build that took 2:30:\n                      0s       32s        65s        97s       130s\nboost_asio_ssl.cpp    - 1s       |          |          |          |\nboost_url.cpp         - 2s       |          |          |          |\nboost_asio.cpp        -- 3s      |          |          |          |\nboost_beast.cpp       -- 3s      |          |          |          |\njson_utils.cpp        --- 6s     |          |          |          |\nerror_messages.cpp    --- 6s     |          |          |          |\nwebserver_main.cpp    --------------------------- 77s  |          |\n(Link)                |          |          |   ------------------- 53s\n\nWaterfall graph of a build that took 2:12:\n                                0s    30s      60s     90s     120s\npam_authenticate.cpp            - 1s    |        |       |        |\nasync_resp.cpp                  -- 3s   |        |       |        |\nhttp_response.cpp               -- 4s   |        |       |        |\nsessions.cpp                    -- 6s   |        |       |        |\nhttp_request.cpp                --- 8s  |        |       |        |\njson_utils.cpp                  --- 9s  |        |       |        |\nerror_messages.cpp              --- 9s  |        |       |        |\napp.cpp                         ---- 10s|        |       |        |\nrouting.cpp                     ---- 9s |        |       |        |\nhttp_server.cpp                 ---- 11s|        |       |        |\nredfish.cpp                     |--- 9s |        |       |        |\npersistent_data.cpp             ----- 15s        |       |        |\nhttp_connection.cpp             ------ 19s       |       |        |\nmessage_registries.cpp          |  ---- 12s      |       |        |\nbios.cpp                        | ----- 14s      |       |        |\nopenbmc_dbus_rest.cpp           ------- 23s      |       |        |\nwebsocket.cpp                   |------- 21s     |       |        |\nmemory.cpp                      |  ----- 15s     |       |        |\nmetric_report_definition.cpp    |  ------ 18s    |       |        |\naccount_service.cpp             |-------- 24s    |       |        |\nhealth.cpp                      |     ---- 11s   |       |        |\ncertificate_service.cpp         |  ------- 20s   |       |        |\nboost_beast.cpp                 |       |-- 3s   |       |        |\ntelemetry_service.cpp           |      ---- 12s  |       |        |\nboost_url.cpp                   |       | -- 2s  |       |        |\nboost_asio.cpp                  |       | -- 3s  |       |        |\nchassis.cpp                     | ---------- 30s |       |        |\nboost_asio_ssl.cpp              |       |  - 1s  |       |        |\nmanagers.cpp                    | ---------- 31s |       |        |\nled.cpp                         |       ----- 12s|       |        |\nethernet.cpp                    |   --------- 28s|       |        |\nevent_service.cpp               |    --------- 26s       |        |\nsystems.cpp                     |     -------- 22s       |        |\nsensors.cpp                     |     -------- 26s       |        |\nlog_services.cpp                |       ------- 20s      |        |\nthermal.cpp                     |      -------- 24s      |        |\ntask.cpp                        |       |------ 17s      |        |\nwebserver_main.cpp              |       |  ------ 17s    |        |\n(Link)                          |       |       ----------------- 56s\n\nChange-Id: If046812c1af625951579c7be2b40838ce2204bb2\nSigned-off-by: Sui Chen <suichen6@gmail.com>\n",
+    "createdOn": 1637613698,
+    "lastUpdated": 1638056398,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1637613698,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1637613734,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637613780,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30672/ : FAILURE"
+        },
+        {
+            "timestamp": 1637619249,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1637619263,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637619301,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30691/ : FAILURE"
+        },
+        {
+            "timestamp": 1637689752,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1637689754,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Topic set to wip"
+        },
+        {
+            "timestamp": 1638056335,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1638056350,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638056398,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30836/ : FAILURE"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "08874139f85da8a5f6e40511d38006da7a20120a",
+            "parents": [
+                "021d32cf907222cd72a5b9d2fe2e8159dd4bf083"
+            ],
+            "ref": "refs/changes/39/49039/1",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1637613698,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/app.cpp",
+                    "type": "ADDED",
+                    "insertions": 65,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/app.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -34
+                },
+                {
+                    "file": "http/app_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 92,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.cpp",
+                    "type": "ADDED",
+                    "insertions": 510,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -476
+                },
+                {
+                    "file": "http/http_connection_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_request_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.cpp",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -4
+                },
+                {
+                    "file": "http/http_response_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_server.cpp",
+                    "type": "ADDED",
+                    "insertions": 189,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -151
+                },
+                {
+                    "file": "http/http_server_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 286,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/websocket_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 90,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/async_resp_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 39,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/health.cpp",
+                    "type": "ADDED",
+                    "insertions": 134,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/health.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -126
+                },
+                {
+                    "file": "redfish-core/lib/health_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.cpp",
+                    "type": "ADDED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.cpp",
+                    "type": "ADDED",
+                    "insertions": 97,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -53
+                },
+                {
+                    "file": "redfish-core/lib/sensors_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 2019,
+            "sizeDeletions": 850
+        },
+        {
+            "number": 2,
+            "revision": "48671e9801a83c1a4b015072a901cd130c6b81da",
+            "parents": [
+                "021d32cf907222cd72a5b9d2fe2e8159dd4bf083"
+            ],
+            "ref": "refs/changes/39/49039/2",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1637619249,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Yep.  This is largely why we haven't spent the effort to do it yet, although we should do it anyway.\n\nOnce we do something like:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/37445\n\nAnd the same for the Response object, we should be able to decrease the compile times quite a bit."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/app.cpp",
+                    "type": "ADDED",
+                    "insertions": 65,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/app.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -34
+                },
+                {
+                    "file": "http/app_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 92,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.cpp",
+                    "type": "ADDED",
+                    "insertions": 510,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -476
+                },
+                {
+                    "file": "http/http_connection_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_request_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.cpp",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -4
+                },
+                {
+                    "file": "http/http_response_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_server.cpp",
+                    "type": "ADDED",
+                    "insertions": 189,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -151
+                },
+                {
+                    "file": "http/http_server_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 286,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/websocket_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 90,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/async_resp_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/account_service.cpp",
+                    "type": "ADDED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/bios.cpp",
+                    "type": "ADDED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/health.cpp",
+                    "type": "ADDED",
+                    "insertions": 134,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/health.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -126
+                },
+                {
+                    "file": "redfish-core/lib/health_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.cpp",
+                    "type": "ADDED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.cpp",
+                    "type": "ADDED",
+                    "insertions": 97,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -53
+                },
+                {
+                    "file": "redfish-core/lib/sensors_class_definition.hpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 2038,
+            "sizeDeletions": 852
+        },
+        {
+            "number": 3,
+            "revision": "6eb09106ef7f5d59c7a261f54bd3879ed9687a6d",
+            "parents": [
+                "021d32cf907222cd72a5b9d2fe2e8159dd4bf083"
+            ],
+            "ref": "refs/changes/39/49039/3",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1638056335,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": ".vscode/settings.json",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/app.cpp",
+                    "type": "ADDED",
+                    "insertions": 154,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/app.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -41
+                },
+                {
+                    "file": "http/app_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 108,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.cpp",
+                    "type": "ADDED",
+                    "insertions": 693,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -648
+                },
+                {
+                    "file": "http/http_connection_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_request.cpp",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_request_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_request_class_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.cpp",
+                    "type": "ADDED",
+                    "insertions": 126,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -98
+                },
+                {
+                    "file": "http/http_response_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_server.cpp",
+                    "type": "ADDED",
+                    "insertions": 189,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -151
+                },
+                {
+                    "file": "http/http_server_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.cpp",
+                    "type": "ADDED",
+                    "insertions": 529,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "http/routing_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 1050,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/websocket.cpp",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "http/websocket_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 293,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/async_resp.cpp",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/async_resp.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -15
+                },
+                {
+                    "file": "include/async_resp_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/authorization.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/cors_preflight.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/dbus_monitor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/forward_unauthorized.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/google/google_service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/http_utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/kvm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/login_routes.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/nbd_proxy.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/obmc_console.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.cpp",
+                    "type": "ADDED",
+                    "insertions": 2381,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -2318
+                },
+                {
+                    "file": "include/pam_authenticate.cpp",
+                    "type": "ADDED",
+                    "insertions": 120,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/pam_authenticate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -116
+                },
+                {
+                    "file": "include/persistent_data.cpp",
+                    "type": "ADDED",
+                    "insertions": 256,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -252
+                },
+                {
+                    "file": "include/redfish_v1.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/security_headers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sessions.cpp",
+                    "type": "ADDED",
+                    "insertions": 301,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sessions.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 39,
+                    "deletions": -309
+                },
+                {
+                    "file": "include/vm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/webassets.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -156
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/error_messages.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -1284
+                },
+                {
+                    "file": "redfish-core/include/redfish.cpp",
+                    "type": "ADDED",
+                    "insertions": 410,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -170
+                },
+                {
+                    "file": "redfish-core/include/rf_async_resp.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/json_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/account_service.cpp",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/bios.cpp",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -36
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.cpp",
+                    "type": "ADDED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -11
+                },
+                {
+                    "file": "redfish-core/lib/chassis.cpp",
+                    "fileOld": "redfish-core/lib/chassis.hpp",
+                    "type": "RENAMED",
+                    "insertions": 402,
+                    "deletions": -138
+                },
+                {
+                    "file": "redfish-core/lib/chassis_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.cpp",
+                    "type": "ADDED",
+                    "insertions": 1302,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -900
+                },
+                {
+                    "file": "redfish-core/lib/event_service.cpp",
+                    "type": "ADDED",
+                    "insertions": 1967,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -611
+                },
+                {
+                    "file": "redfish-core/lib/health.cpp",
+                    "type": "ADDED",
+                    "insertions": 196,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/health.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -128
+                },
+                {
+                    "file": "redfish-core/lib/health_class_decl.hpp",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -376
+                },
+                {
+                    "file": "redfish-core/lib/led.cpp",
+                    "type": "ADDED",
+                    "insertions": 224,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/led.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -214
+                },
+                {
+                    "file": "redfish-core/lib/log_services.cpp",
+                    "type": "ADDED",
+                    "insertions": 1953,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 52,
+                    "deletions": -2080
+                },
+                {
+                    "file": "redfish-core/lib/managers.cpp",
+                    "type": "ADDED",
+                    "insertions": 1601,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/managers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": -1576
+                },
+                {
+                    "file": "redfish-core/lib/memory.cpp",
+                    "type": "ADDED",
+                    "insertions": 901,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -884
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.cpp",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.cpp",
+                    "type": "ADDED",
+                    "insertions": 0,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.cpp",
+                    "type": "ADDED",
+                    "insertions": 96,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -290
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -309
+                },
+                {
+                    "file": "redfish-core/lib/power.cpp",
+                    "type": "ADDED",
+                    "insertions": 0,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/redfish_sessions.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/redfish_util.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/roles.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/sensors.cpp",
+                    "type": "ADDED",
+                    "insertions": 513,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -225
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/systems.cpp",
+                    "type": "ADDED",
+                    "insertions": 2927,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -2896
+                },
+                {
+                    "file": "redfish-core/lib/task.cpp",
+                    "type": "ADDED",
+                    "insertions": 354,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -167
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.cpp",
+                    "type": "ADDED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/thermal.cpp",
+                    "type": "ADDED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/thermal.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/crow_getroutes_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/security_headers_middleware_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/webassets_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/webserver_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 160,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 20635,
+            "sizeDeletions": 16519
+        }
+    ]
+}

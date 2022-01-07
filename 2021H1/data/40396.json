@@ -1,0 +1,1595 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "topic": "hyp-state",
+    "id": "Ia7b4e78b7b0d907cc06eb3f20d51ff87b7dde564",
+    "number": 40396,
+    "subject": "hypervisor: add support to turn on",
+    "owner": {
+        "name": "Andrew Geissler",
+        "email": "geissonator@yahoo.com",
+        "username": "geissonator"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/40396",
+    "commitMessage": "hypervisor: add support to turn on\n\nIf the customer has requested the hypervisor stop at its Standby state\nvs. booting all the way to Running, then a mechanism is needed to\nrequest the hypervisor boot to Running. A common use case for IBM is\nthe system user has requested the hypervisor stop at Standby so some\nmanual debug can be performed and then they want to move the hypervisor\ninto the Running state so they can boot their operating system.\n\nAsking the hypervisor to stop at Standby is done via the\nBootSourceOverrideEnabled and BootSourceOverrideTarget properties under\nthe redfish/v1/Systems/system.\n\nUtilize the ComputerSystem.Reset action for this. Similar to how\nredfish/v1/Systems/system/Actions/ComputerSystem.Reset is utilized for\nthe overall system, implement a limited subset of it for the hypervisor\nobject.\n\nTested:\n- Verified when phosphor-hypervisor-state-manager package is not\n  installed that Redfish API returns same info it does currently\n- Verified when phosphor-hypervisor-state-manager was installed that the\n  hypervisor state was returned correctly, the Actions field was filled\n  in, and a post to the Action with ResetType set to \"On\" was correctly\n  propagated to RequestedHostTransition\n- Verified that an invalid ResetType (i.e. \"Off\") returned the\n  appropriate \"invalid parameter\" error message to the Redfish API\n- Verified no new errors logged by Redfish validator on system with this\n  hypervisor package installed\n\n- Verify resource not found when hypervisor not enabled\ncurl -k -H \"X-Auth-Token: $TOKEN\" -X POST https://${BMC_IP}/redfish/v1/Systems/hypervisor/Actions/ComputerSystem.Reset -d '{\"ResetType\": \"On\"}'\n{\n  \"error\": {\n    \"@Message.ExtendedInfo\": [\n      {\n        \"@odata.type\": \"#Message.v1_1_1.Message\",\n        \"Message\": \"The requested resource of type Actions named Reset was not found.\",\n        \"MessageArgs\": [\n          \"Actions\",\n          \"Reset\"\n        ],\n        \"MessageId\": \"Base.1.8.1.ResourceNotFound\",\n        \"MessageSeverity\": \"Critical\",\n        \"Resolution\": \"Provide a valid resource identifier and resubmit the request.\"\n      }\n    ],\n    \"code\": \"Base.1.8.1.ResourceNotFound\",\n    \"message\": \"The requested resource of type Actions named Reset was not found.\"\n  }\n}\n\n- Verify ResourceNotFound returned when hypervisor not enabled\ncurl -k -H \"X-Auth-Token: $TOKEN\" -X GET https://${BMC_IP}/redfish/v1/Systems/hypervisor/ResetActionInfo\n{\n  \"error\": {\n    \"@Message.ExtendedInfo\": [\n      {\n        \"@odata.type\": \"#Message.v1_1_1.Message\",\n        \"Message\": \"The requested resource of type hypervisor named ResetActionInfo was not found.\",\n        \"MessageArgs\": [\n          \"hypervisor\",\n          \"ResetActionInfo\"\n        ],\n        \"MessageId\": \"Base.1.8.1.ResourceNotFound\",\n        \"MessageSeverity\": \"Critical\",\n        \"Resolution\": \"Provide a valid resource identifier and resubmit the request.\"\n      }\n    ],\n    \"code\": \"Base.1.8.1.ResourceNotFound\",\n    \"message\": \"The requested resource of type hypervisor named ResetActionInfo was not found.\"\n  }\n}\n\n- Verify input parameters validated\ncurl -k -H \"X-Auth-Token: $TOKEN\" -X POST https://${BMC_IP}/redfish/v1/Systems/hypervisor/Actions/ComputerSystem.Reset -d '{\"ResetTypeInvalid\": \"On\"}'\n{\n  \"ResetTypeInvalid@Message.ExtendedInfo\": [\n    {\n      \"@odata.type\": \"#Message.v1_1_1.Message\",\n      \"Message\": \"The property ResetTypeInvalid is not in the list of valid properties for the resource.\",\n      \"MessageArgs\": [\n        \"ResetTypeInvalid\"\n      ],\n      \"MessageId\": \"Base.1.8.1.PropertyUnknown\",\n      \"MessageSeverity\": \"Warning\",\n      \"Resolution\": \"Remove the unknown property from the request body and resubmit the request if the operation failed.\"\n    }\n  ]\n}\n\ncurl -k -H \"X-Auth-Token: $TOKEN\" -X POST https://${BMC_IP}/redfish/v1/Systems/hypervisor/Actions/ComputerSystem.Reset -d '{\"ResetType\": \"OnInvalid\"}'\n{\n  \"ResetType@Message.ExtendedInfo\": [\n    {\n      \"@odata.type\": \"#Message.v1_1_1.Message\",\n      \"Message\": \"The value OnInvalid for the property ResetType is not in the list of acceptable values.\",\n      \"MessageArgs\": [\n        \"OnInvalid\",\n        \"ResetType\"\n      ],\n      \"MessageId\": \"Base.1.8.1.PropertyValueNotInList\",\n      \"MessageSeverity\": \"Warning\",\n      \"Resolution\": \"Choose a value from the enumeration list that the implementation can support and resubmit the request if the operation failed.\"\n    }\n  ]\n}\n\nChange-Id: Ia7b4e78b7b0d907cc06eb3f20d51ff87b7dde564\nSigned-off-by: Andrew Geissler <geissonator@yahoo.com>\n",
+    "createdOn": 1612826112,
+    "lastUpdated": 1614272930,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1612826112,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1612826128,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612826151,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Topic set to hyp-state"
+        },
+        {
+            "timestamp": 1612826183,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1612827140,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12118/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612997827,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1612997845,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612998888,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12283/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613058934,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2:\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1613064689,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(4 comments)\n\nCouple minor questions/concerns, then this should be good to go."
+        },
+        {
+            "timestamp": 1613075101,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1613075101,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1613075115,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613076124,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12325/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613171727,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 3:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1613172131,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1613172157,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4: Patch Set 3 was rebased"
+        },
+        {
+            "timestamp": 1613172171,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613173435,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12420/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613582265,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613589658,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1613589658,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 5:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1613589674,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613589706,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1613589724,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613589727,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/12563/ : ABORTED"
+        },
+        {
+            "timestamp": 1613589784,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 6: Code-Review-1\n\nI've been able to do some basic QEMU testing with this latest patch set (and added test results to commit message) but I can't do another end to end test due to test hardware outages here in Austin. Giving myself a -1 until I can retest but any feedback appreciated."
+        },
+        {
+            "timestamp": 1613590029,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/12565/ : FAILURE"
+        },
+        {
+            "timestamp": 1613592530,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1613592530,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613592544,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613593918,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12568/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613594390,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1613608941,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1613608941,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1613608956,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613609864,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12572/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613667474,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 8: Code-Review-1\n\nI've been able to do some basic QEMU testing with this latest patch set (and added test results to commit message) but I can't do another end to end test due to test hardware outages here in Austin. Giving myself a -1 until I can retest but any feedback appreciated."
+        },
+        {
+            "timestamp": 1613674455,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n(6 comments)\n\nA bunch of super minor stuff, then this should be good to go."
+        },
+        {
+            "timestamp": 1613678574,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613687369,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1613687369,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 9:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1613687385,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613687417,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 9: Code-Review-1\n\nEnd to end testing still needed."
+        },
+        {
+            "timestamp": 1613688292,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12657/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614129494,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 9: -Code-Review\n\nok, verified Redfish validator didn't pop any errors on the hypervisor/ API's and the function still worked as expected."
+        },
+        {
+            "timestamp": 1614130929,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 9: Code-Review+1\n\n(2 comments)\n\nNice code, good commit msg, good testing."
+        },
+        {
+            "timestamp": 1614181369,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 9: Code-Review-1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1614184654,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 9: -Code-Review\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614190646,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1614197902,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1614197902,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 10:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1614197919,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614198029,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 10:\n\nSorry, had a rebase on bmcweb master mixed with this so it makes the diff from patchset 9-10 a bit more complex to look at. My only changes were around the comments."
+        },
+        {
+            "timestamp": 1614198844,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12998/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614203605,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 10: Code-Review+1"
+        },
+        {
+            "timestamp": 1614204954,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 11: Patch Set 10 was rebased."
+        },
+        {
+            "timestamp": 1614204970,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614205896,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13009/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614206281,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11:\n\nLGTM"
+        },
+        {
+            "timestamp": 1614206284,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11: Code-Review+2"
+        },
+        {
+            "timestamp": 1614272930,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Change has been successfully merged by Andrew Geissler"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "561e0b498e4e68a36ef99d639bf027d8dfcead0e",
+            "parents": [
+                "d2dd1f7b140a864094b92259a09131874d6e7617"
+            ],
+            "ref": "refs/changes/96/40396/1",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1612826112,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 156,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 158,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "43c96cbb5c1980a9874ca2a1e23570cd60b0fb59",
+            "parents": [
+                "4f94a5d6f87244f5f55839c38cac5958c2b0f7d3"
+            ],
+            "ref": "refs/changes/96/40396/2",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1612997827,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "s needs checked against nullptr before dereferencing."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done, removed with move to mapper call"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 125,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This seems a little odd that you're using a Get to determine if the property/interface exists?  wouldn't you just call the mapper?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 125,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1027,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You can only turn it on, not off?  Should we be getting this list of allowable values from dbus somehow?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1027,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Yeah, we had some debates back and forth in the PDI review on whether to create a new interface for the Hypervisor or to just utilize the existing Host interface. The decision there was to utilize the Host one instead of creating something new. That means we only support a subset of it though. I'm not sure of anyway to make that clear on D-Bus. We could allow them all in bmcweb and get the \"Unsupported\" error back from the D-Bus object? I'd prefer what we have here but let me know."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1028,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Don't use res.end() in new code (even in simple cases like this, where it's obviously correct)."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1028,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 156,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 158,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "2d2973662338caf92bb6c55c9f88631916880d2e",
+            "parents": [
+                "4f94a5d6f87244f5f55839c38cac5958c2b0f7d3"
+            ],
+            "ref": "refs/changes/96/40396/3",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613075101,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "but the client posted this action.\nI think we need to fail, otherwise the client is going to get a 200/204 back and think it worked.\n\nmessage::ActionNotSupported ?\nEd thoughts?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This isn't part of an action, this is part of a GET request, so it not existing isn't an issue.\n\nI suspect this needs to be called \"getHypervisorActions\" or something similar to avoid the naming issue."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done. Yeah, was thinking we're \"setting\" the response but get makes more sense."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 118,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "message::ActionNotSupported ?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 118,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "if objInfo.size() > 1 it should be internal error."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 118,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 192,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I should have paid more attention but this confused me.. Can this be getHypervisorActions ?\nspecially since the one above is getHypervisorState?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1022,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "not all systems support hypervisors.  This info can't be populated if we're on a system that doesn't."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1022,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I was thinking since we only put ResetActionInfo in the response to a GET on /redfish/v1/Systems/hypervisor that we'd be ok. But yeah, if someone doesn't utilize the dynamic discovery of Redfish and hard codes (i.e. REDFISH.md) a GET on ResetActionInfo, this would pop up on unsupported systems. I'll add a check to make sure it's available."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1068,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "shouldn't we check first if we have ResetType ?\nIf not return ActionParameterMissing ?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1068,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "> shouldn't we check first if we have ResetType ?\nhmm, something more then the above code?\n\n> If not return ActionParameterMissing ?\nYep, let me add this to the return"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1077,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I know you got this from https://github.com/openbmc/bmcweb/blob/1a2a14379d515c393cc134ea719d56efbae2116e/redfish-core/lib/systems.hpp#L1976\nbut I feel \n\nPropertyValueNotInList (probably my pick)\nActionParameterValueFormatError\nhttps://redfish.dmtf.org/registries/Base.1.9.0.json\nare better.\n\nReally Redfish needs another message here for ActionParameterValueNotInList\n\nI opened https://github.com/DMTF/Redfish/issues/4437 \n\nBecause this is really talking about if a client were to pass \"Resett\" with the action (note the extra t)\n\n        \"ActionParameterUnknown\": {\n            \"Description\": \"Indicates that an action was submitted but a parameter supplied did not match any of the known parameters.\",\n            \"LongDescription\": \"This message shall be used to indicate that an action was submitted but a parameter supplied did not match any of the known parameters.\",\n            \"Message\": \"The action %1 was submitted with the invalid parameter %2.\","
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1077,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done. Thanks for opening the issue!\nI think the PropertyValueNotInList error reads the most clean here. \"\"The value \" + arg1 + \" for the property \" + arg2 + \"is not in the list of acceptable values.\""
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1091,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Also needs to handle 404 if the hypervisor object doesn't exist at all."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1091,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "ok, I'm not super familiar with this. Should I just utilize the resourceNotFound error or do I need something more specific for an action not being found? I'll put some code up for input."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1095,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "remove."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1095,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I guess you want the \"return\" statement in both the if/else clauses vs. just one like this to hit the whole if(ec) code?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 162,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "7186b61693e50618e8c7a74c9f2cad2b84ccf519",
+            "parents": [
+                "87dcf4a095637cc0027e7b964ca2183e28f341e1"
+            ],
+            "ref": "refs/changes/96/40396/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1613172157,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 162,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "e605a1f88729d42a2b2c022c145e6b0c43f1beee",
+            "parents": [
+                "aeee4528c06725348d79bf8824d55ff0dbef1d2e"
+            ],
+            "ref": "refs/changes/96/40396/5",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613589658,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 92,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 211,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 213,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "9193a3ee9a47161ac70c2c454cd975843e962c4b",
+            "parents": [
+                "22806058f957d9716e83b40815864811ebdbaf5d"
+            ],
+            "ref": "refs/changes/96/40396/6",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613589706,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1142,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "error: do not use 'else' after 'return' [readability-else-after-return,-warnings-as-errors]"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 92,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 211,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 213,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 7,
+            "revision": "b31c5ad7ea17f5da26e1912abd35f25807b3664a",
+            "parents": [
+                "22806058f957d9716e83b40815864811ebdbaf5d"
+            ],
+            "ref": "refs/changes/96/40396/7",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613592530,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1033,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Typically it is \nstd::shared_ptr<AsyncResp> asyncResp"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1033,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1114,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Don't you need asyncResp->res in there?\n\n            messages::actionParameterMissing(asyncResp->res, \"ComputerSystem.Reset\", \"ResetType\");\n\nBelow as well."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1114,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "whoops! Let me add this path to the commit message tests."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 92,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 209,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 211,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 8,
+            "revision": "8c6d007bd0906230231d74877a6f970df7a79214",
+            "parents": [
+                "22806058f957d9716e83b40815864811ebdbaf5d"
+            ],
+            "ref": "refs/changes/96/40396/8",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613608941,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 202,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Shouldn't both of these go on line 194?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 202,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1023,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Have you checked this against the privilege registry?"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1023,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "https://redfish.dmtf.org/registries/Redfish_1.1.0_PrivilegeRegistry.json\n\nThere isn't a ComputerSystem.Reset or ActionInfo so I think these would all fall under ComputerSystem.. Matches so should be good. \n\"\n       {\n            \"Entity\": \"ComputerSystem\",\n            \"OperationMap\": {\n                \"GET\": [\n                    {\n                        \"Privilege\": [\n                            \"Login\"\n                        ]\n                    }\n                ],\n                \"HEAD\": [\n                    {\n                        \"Privilege\": [\n                            \"Login\"\n                        ]\n                    }\n                ],\n                \"PATCH\": [\n                    {\n                        \"Privilege\": [\n                            \"ConfigureComponents\"\n                        ]\n                    }\n                ],\n                \"POST\": [\n                    {\n                        \"Privilege\": [\n                            \"ConfigureComponents\"\n                        ]\n                    }\n                ],\n                \"PUT\": [\n                    {\n                        \"Privilege\": [\n                            \"ConfigureComponents\"\n                        ]\n                    }\n                ],\n                \"DELETE\": [\n                    {\n                        \"Privilege\": [\n                            \"ConfigureComponents\"\n                        ]\n                    }\n                ]\n            }\n        },\n\""
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1023,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Thanks Gunnar"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1082,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "as a side note, this is the right way to detect the presence of the hypervisor.  All the other code that looks for the hostname param is wrong and should be fixed.\n\nWith that said, not a problem in your commit:  Good work."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1082,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I'll add it onto my TODO cleanup list"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1115,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "as written, this will post 2 error codes to the message.  What you want is to declare resetType as a std::optional<std::string>, then have a presence check below to check for existence and return this error code."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1115,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1130,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: can you invert this check for readability, and get rid of the else?\n\nsomething like\n\n        if (resetType != \"On\")\n        {\n            messages::propertyValueNotInList(asyncResp->res, resetType,\n                                             \"ResetType\");\n            return;\n        }\n\n        std::string command = \"xyz.openbmc_project.State.Host.Transition.On\";"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1130,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1145,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I would've expected this to have a specific error code value it checked before declaring 404.  For example, if the dbus connection failed, this should return internal error, not resource not found."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1145,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "ok, I did a bit of testing and found when the object is not there we get a EHOSTUNREACH(host_unreachable) error back so I'll specifically look for that."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 114,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 210,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 212,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 9,
+            "revision": "8842de416a7b0a33a98367daa6b1cb886e222a12",
+            "parents": [
+                "3ec0049be0c65b0cc7dd06f482f7f6c3f4d8f9ad"
+            ],
+            "ref": "refs/changes/96/40396/9",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613687369,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I saw your comment but always best to put the validator in the commit msg. (I could have missed it)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Yeah, a bit confusing. I have it below in bullet 4. I just was unable to re-run after addressing my code review comments until yesterday."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Not sure this one makes sense, would think 404 here, I'll let Ed weigh in."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I wanted to retest this but when I rebuild my code based off of latest bmcweb master the hypervisor object is gone all together. I'm not sure what's going on so back to a -1 until I can get to the bottom of it."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "ok, I had just lost my patch that adds the hypervisor settings object which is needed to have this object show up. Ed, let me know if you'd prefer a 404 here. The thinking was that it's an optional object based on whether the hypervisor state package is installed so I just returned nothing."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Yep.  I'd expect 404 here if the hypervisor isn't present.  A 200 error code when the operation failed doesn't really seem valid."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1043,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "you can't just return an empty object if the route isn't supported.  We need to return 404 and 500 here in the two cases."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1043,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1162,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: technically could be std::move(command)."
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "line": 1162,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 97,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 219,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 221,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 10,
+            "revision": "71b5309aedd4970a041c397c6b1cb98898ee3104",
+            "parents": [
+                "16056bd6b368d07b686f4c57ee85a45e07e5f5c8"
+            ],
+            "ref": "refs/changes/96/40396/10",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1614197902,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 116,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 219,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 221,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 11,
+            "revision": "4fbaf64a931675f57382eef9cf1c6cd88c75ad1e",
+            "parents": [
+                "cc0bb6f29171b8afb09bd663767ba36793110d5d"
+            ],
+            "ref": "refs/changes/96/40396/11",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1614204954,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 116,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 219,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 221,
+            "sizeDeletions": 0
+        }
+    ]
+}

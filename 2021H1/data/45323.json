@@ -1,0 +1,1346 @@
+{
+    "project": "openbmc/openpower-vpd-parser",
+    "branch": "master",
+    "id": "Iab1b099fe0352c08327e70aa8c2e33fc213cc40f",
+    "number": 45323,
+    "subject": "DD2:  Enable Dimms",
+    "owner": {
+        "email": "alpu8007@gmail.com",
+        "username": "Alpana07"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openpower-vpd-parser/+/45323",
+    "commitMessage": "DD2:  Enable Dimms\n\nThis commit checks for the chip version , if it is DD2 or higher then bind the device driver\nfor all the Dimms(supported in vpd json)\n\nTest-\nTested on HW with DD2 processor.\nrain135bmc\nroot@rain135bmc:/sys/bus/i2c/drivers/at24# ls\n0-0051   10-0050  6-0053   7-0050   8-0050   8-0051   9-0050   bind     uevent   unbind\n\n===================after execution============================================================\n\nroot@rain135bmc:/sys/bus/i2c/drivers/at24# ls\n0-0051    111-0050  311-0050  6-0053    8-0050    9-0050    uevent\n10-0050   202-0050  402-0050  7-0050    8-0051    bind      unbind\n\nroot@rain135bmc:/sys/bus/i2c/devices# ls\n0-0020   11-0051  4-0049   5-0051   7-0040   8-0011   9-004d   i2c-110  i2c-14   i2c-203  i2c-300  i2c-4    i2c-417\n0-0051   13-0050  4-004a   6-0048   7-0048   8-0032   9-0050   i2c-111  i2c-15   i2c-210  i2c-301  i2c-402  i2c-5\n10-004c  14-0050  4-0050   6-004a   7-0050   8-0048   i2c-0    i2c-112  i2c-16   i2c-211  i2c-310  i2c-403  i2c-6\n10-004d  15-0050  4-0051   6-004b   7-0051   8-004a   i2c-1    i2c-113  i2c-17   i2c-214  i2c-311  i2c-410  i2c-7\n10-0050  3-0061   4-0052   6-0050   7-0052   8-0050   i2c-10   i2c-114  i2c-18   i2c-215  i2c-312  i2c-411  i2c-8\n11-0048  3-0068   5-0048   6-0051   7-0061   8-0051   i2c-100  i2c-115  i2c-19   i2c-216  i2c-313  i2c-414  i2c-9\n11-0049  3-0069   5-0049   6-0052   7-0076   8-0061   i2c-101  i2c-12   i2c-2    i2c-217  i2c-314  i2c-415\n11-0050  4-0048   5-0050   6-0053   7-1062   9-004c   i2c-11   i2c-13   i2c-202  i2c-3    i2c-315  i2c-416\nroot@rain135bmc:/sys/bus/i2c/devices#\n\n===================Executing patch============================================================\n\nroot@rain135bmc:/tmp# ./ibm-read-vpd -f /sys/bus/spi/drivers/at25/spi12.0/eeprom\n\n===================after execution============================================================\n\nroot@rain71bmc:/sys/bus/i2c/devices# ls\n0-0020    111-0050  214-0050  313-0050  411-0050  6-0050    8-0011    i2c-10    i2c-14    i2c-215   i2c-4     i2c-8\n0-0051    112-0050  215-0050  314-0050  414-0050  6-0051    8-0032    i2c-100   i2c-15    i2c-216   i2c-402   i2c-9\n10-004c   113-0050  216-0050  315-0050  415-0050  6-0052    8-0048    i2c-101   i2c-16    i2c-217   i2c-403\n10-004d   114-0050  217-0050  4-0048    416-0050  6-0053    8-004a    i2c-11    i2c-17    i2c-3     i2c-410\n10-0050   115-0050  3-0061    4-0049    417-0050  7-0040    8-0050    i2c-110   i2c-18    i2c-300   i2c-411\n100-0050  13-0050   3-0068    4-004a    5-0048    7-0048    8-0051    i2c-111   i2c-19    i2c-301   i2c-414\n101-0050  14-0050   3-0069    4-0050    5-0049    7-0050    8-0061    i2c-112   i2c-2     i2c-310   i2c-415\n11-0048   15-0050   300-0050  4-0051    5-0050    7-0051    9-004c    i2c-113   i2c-202   i2c-311   i2c-416\n11-0049   202-0050  301-0050  4-0052    5-0051    7-0052    9-004d    i2c-114   i2c-203   i2c-312   i2c-417\n11-0050   203-0050  310-0050  402-0050  6-0048    7-0061    9-0050    i2c-115   i2c-210   i2c-313   i2c-5\n11-0051   210-0050  311-0050  403-0050  6-004a    7-0076    i2c-0     i2c-12    i2c-211   i2c-314   i2c-6\n110-0050  211-0050  312-0050  410-0050  6-004b    7-1062    i2c-1     i2c-13    i2c-214   i2c-315   i2c-7\nroot@rain135bmc:/sys/bus/i2c/devices#\nAlso, vpd got collected for all these Dimms-\n\nroot@rain135c:/tmp# busctl introspect  xyz.openbmc_project.Inventory.Manager  /xyz/openbmc_project/inventory/system/chassis/motherboard/dimm22| grep -e MemorySizeInKB -e  Present -e PrettyName -e Model  -e PartNumber  -e SerialNumber\n.Model                                                property  s         \"327A\"                                   emits-change writable\n.PartNumber                                           property  s         \"78P6574\"                                emits-change writable\n.SerialNumber                                         property  s         \"YH30MS04N004\"                           emits-change writable\n.SparePartNumber                                      property  s         \"\"                                       emits-change writable\n.SubModel                                             property  s         \"\"                                       emits-change writable\n.Present                                              property  b         true                                     emits-change writable\n.PrettyName                                           property  s         \"Memory DIMM\"                            emits-change writable\n.MemorySizeInKB                                       property  u         33554432                                 emits-change writable\n\nroot@rain135c:/tmp# busctl introspect  xyz.openbmc_project.Inventory.Manager  /xyz/openbmc_project/inventory/system/chassis/motherboard/dimm31| grep -e MemorySizeInKB -e  Present -e PrettyName -e Model  -e PartNumber  -e SerialNumber\n.Model                                                property  s         \"327A\"                                   emits-change writable\n.PartNumber                                           property  s         \"78P6574\"                                emits-change writable\n.SerialNumber                                         property  s         \"YH301T9CH022\"                           emits-change writable\n.SparePartNumber                                      property  s         \"\"                                       emits-change writable\n.SubModel                                             property  s         \"\"                                       emits-change writable\n.Present                                              property  b         true                                     emits-change writable\n.PrettyName                                           property  s         \"Memory DIMM\"                            emits-change writable\n.MemorySizeInKB                                       property  u         33554432                                 emits-change writable\nroot@rain135c:/tmp#\n\nChange-Id: Iab1b099fe0352c08327e70aa8c2e33fc213cc40f\nSigned-off-by: Alpana Kumari <alpankum@in.ibm.com>\n",
+    "createdOn": 1627449222,
+    "lastUpdated": 1631627078,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1627449222,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1627449243,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627449623,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23033/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627450694,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1627450723,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627450876,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23037/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627453122,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1627493046,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1627541610,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 3: Code-Review-1\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1627541894,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)\n\nThe test results don't look right"
+        },
+        {
+            "timestamp": 1627541922,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 3:\n\nAlso why is this commit based on top of the BR keyword change?"
+        },
+        {
+            "timestamp": 1628189428,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)\n\n> Patch Set 3:\n> \n> Also why is this commit based on top of the BR keyword change?\n\nI am using one of the utility which was done as part of BR keyword commit.\nNow , this commit is also based on Dimm size commit as you want to see the keyword MemorySizeInKb to be reflected in this test."
+        },
+        {
+            "timestamp": 1628574342,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1628574411,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628668984,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1628669000,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628669024,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/24202/ : FAILURE"
+        },
+        {
+            "timestamp": 1630475438,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 5: Patch Set 4 was rebased"
+        },
+        {
+            "timestamp": 1630475455,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630475489,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/25405/ : FAILURE"
+        },
+        {
+            "timestamp": 1630559860,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1630559891,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630560018,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25492/ : SUCCESS"
+        },
+        {
+            "timestamp": 1630944123,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 6: Code-Review-1\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1631085001,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 6:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1631085024,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1631085039,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631085155,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25893/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631086766,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1631086779,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631086811,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/25895/ : FAILURE"
+        },
+        {
+            "timestamp": 1631086836,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 8: Code-Review-1\n\n(1 comment)\n\nPlease fix the CI error too"
+        },
+        {
+            "timestamp": 1631087685,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1631087700,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631087815,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25896/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631104306,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1631104332,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 11: Patch Set 10 was rebased"
+        },
+        {
+            "timestamp": 1631104360,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631104563,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25913/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631519078,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 11: Code-Review-1\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1631529467,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1631529499,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631529622,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/26210/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631624470,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 12: Code-Review+1"
+        },
+        {
+            "timestamp": 1631624637,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 12: Code-Review+2"
+        },
+        {
+            "timestamp": 1631624650,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 13: Patch Set 12 was rebased"
+        },
+        {
+            "timestamp": 1631624662,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631624982,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/26291/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631627078,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Change has been successfully merged by Santosh Puranik"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "2a049d63cde0124de24d1ace367b16bba8ebe126",
+            "parents": [
+                "f1e00cab319734273767a38ace5c4bab7e89e911"
+            ],
+            "ref": "refs/changes/23/45323/1",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1627449222,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 119,
+                    "deletions": -2
+                },
+                {
+                    "file": "json/50001000.json",
+                    "type": "ADDED",
+                    "insertions": 1426,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1545,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 2,
+            "revision": "e91330a597999ca540a14eda7869fb2705f188a5",
+            "parents": [
+                "961c7665119674904a12c47995937602254c07a5"
+            ],
+            "ref": "refs/changes/23/45323/2",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1627450694,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -1
+                },
+                {
+                    "file": "json/50001000.json",
+                    "type": "ADDED",
+                    "insertions": 1426,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1518,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "8777f73d51acb63c3059499e62dc1df31a9cbf4b",
+            "parents": [
+                "961c7665119674904a12c47995937602254c07a5"
+            ],
+            "ref": "refs/changes/23/45323/3",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1627453122,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "This should have been set to true if VPD got collected"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 76,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "checking again with correct json"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Still 0? Why?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 89,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "populate Dimm size commit is not part of it. so not updated here.\n\nwill rebase it to dimm size commit and then test."
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 749,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "will add this info"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 749,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 783,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "will add this info"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 783,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 804,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "This breaks when what we want is not exactly at index 6."
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 804,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "code changed"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 817,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "I need to remove this."
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 817,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Please move this comment to line 807"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 817,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 866,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Why the TODO? I don't think we need to define consts for those."
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 866,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 96,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -1
+                },
+                {
+                    "file": "json/50001000.json",
+                    "type": "ADDED",
+                    "insertions": 1426,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1518,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "199ba11df5b94c350e5dcc8d4d55d4e8400e7ede",
+            "parents": [
+                "d0c1e5565396b8321e762cc02859869c97c9219b"
+            ],
+            "ref": "refs/changes/23/45323/4",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1628668984,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 96,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 119,
+                    "deletions": -2
+                },
+                {
+                    "file": "json/50001000.json",
+                    "type": "ADDED",
+                    "insertions": 1426,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1545,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 5,
+            "revision": "85debf106489acce953826ec9884a70717efe341",
+            "parents": [
+                "85a96a6b84a162a62578eb51e7035a4d4e601043"
+            ],
+            "ref": "refs/changes/23/45323/5",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1630475438,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 96,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 119,
+                    "deletions": -2
+                },
+                {
+                    "file": "json/50001000.json",
+                    "type": "ADDED",
+                    "insertions": 1426,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1545,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 6,
+            "revision": "a43c1971b9d3020c3a42491d85ea91cce6a120fe",
+            "parents": [
+                "d0c1e5565396b8321e762cc02859869c97c9219b"
+            ],
+            "ref": "refs/changes/23/45323/6",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1630559860,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 57,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "I am still looking for an updated commit message that shows a DIMM D-Bus object with some real values."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 57,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 954,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Please remove"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 954,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 961,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Please remove"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 961,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1282,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Remove this newline"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1282,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "json/50001000.json",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Please do not add a whole new file, update the existing JSON"
+                },
+                {
+                    "file": "json/50001000.json",
+                    "line": 1,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 134,
+                    "deletions": -2
+                },
+                {
+                    "file": "json/50001000.json",
+                    "type": "ADDED",
+                    "insertions": 1427,
+                    "deletions": 0
+                },
+                {
+                    "file": "types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 1564,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 7,
+            "revision": "2af21b5d852b422ebd58bde99c22ecadead45cf1",
+            "parents": [
+                "d0c1e5565396b8321e762cc02859869c97c9219b"
+            ],
+            "ref": "refs/changes/23/45323/7",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1631085024,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 65,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "This looks wrong. The property indicates size in KBytes. I believe these are 32GB DIMMs, so you need to convert that accordingly before placing it on D-Bus."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 121,
+                    "deletions": -2
+                },
+                {
+                    "file": "types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 124,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 8,
+            "revision": "2238a64ed8349315a8dbdaf0c93d2bed66324900",
+            "parents": [
+                "cfa5d9f5d920406c3805c16e0f34c6833d6e1425"
+            ],
+            "ref": "refs/changes/23/45323/8",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1631086766,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 168,
+                    "deletions": -7
+                },
+                {
+                    "file": "types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 9,
+            "revision": "b88dc9322e212139e80e02784d4611f7077de411",
+            "parents": [
+                "32b97ae1ba54ad0c381026c2998c8402280ce14a"
+            ],
+            "ref": "refs/changes/23/45323/9",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1631087685,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 122,
+                    "deletions": -5
+                },
+                {
+                    "file": "ibm_vpd_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -11
+                }
+            ],
+            "sizeInsertions": 184,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 10,
+            "revision": "e28f21049d475a59349cf0e866751772226d9325",
+            "parents": [
+                "2d831ee35c3c023f2824b7724699ecebfaf8063e"
+            ],
+            "ref": "refs/changes/23/45323/10",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1631104306,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 122,
+                    "deletions": -5
+                },
+                {
+                    "file": "ibm_vpd_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -11
+                }
+            ],
+            "sizeInsertions": 184,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 11,
+            "revision": "bf54b8c4eb4acc28e7ff71e7b6e9557a2f5c4982",
+            "parents": [
+                "6dfbccc313d94ba91b4389090e8529c8d08f5f13"
+            ],
+            "ref": "refs/changes/23/45323/11",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1631104332,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "NO_CHANGE",
+            "comments": [
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 284,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Please avoid adding whitespace changes unrelated to your commit."
+                },
+                {
+                    "file": "ibm_vpd_utils.cpp",
+                    "line": 557,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "You don't need this here. It is already in the header file."
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "line": 214,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Nit: fetches"
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Empty string if record/keyword combination is not found."
+                },
+                {
+                    "file": "types.hpp",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Why was this needed?"
+                },
+                {
+                    "file": "types.hpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Why have these been rearranged?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 122,
+                    "deletions": -5
+                },
+                {
+                    "file": "ibm_vpd_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -11
+                }
+            ],
+            "sizeInsertions": 184,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 12,
+            "revision": "79ac293274653b83335ece5d3a8ab5645935fadc",
+            "parents": [
+                "2d831ee35c3c023f2824b7724699ecebfaf8063e"
+            ],
+            "ref": "refs/changes/23/45323/12",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1631529467,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 120,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 157,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 13,
+            "revision": "7ce68724414f4c7eb9786379be9bf991e98261e2",
+            "parents": [
+                "3ab26a74c68da014af3860c7c070b617d6195bd7"
+            ],
+            "ref": "refs/changes/23/45323/13",
+            "uploader": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "createdOn": 1631624650,
+            "author": {
+                "name": "alpana07",
+                "email": "alpana07@gfw289.aus.stglabs.ibm.com",
+                "username": ""
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 120,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 157,
+            "sizeDeletions": 1
+        }
+    ]
+}

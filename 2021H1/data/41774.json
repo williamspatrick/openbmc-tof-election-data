@@ -1,0 +1,2254 @@
+{
+    "project": "openbmc/phosphor-led-manager",
+    "branch": "master",
+    "id": "I36c47198168028ea2b55804cf66d0285847afbd4",
+    "number": 41774,
+    "subject": "fault-monitor: Add OperationalStatus Functional monitoring",
+    "owner": {
+        "name": "George Liu",
+        "email": "liuxiwei@inspur.com",
+        "username": "lxwinspur"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-led-manager/+/41774",
+    "commitMessage": "fault-monitor: Add OperationalStatus Functional monitoring\n\nCurrently, the default way is to update the Asserted property of\nthe LedManager by monitoring the `/xyz/openbmc_project/logging`\nobject path.\n\nThe intent behind this commit is to add another way to monitor the\n`xyz.openbmc_project.State.Decorator.OperationalStatus` interface\nof the Inventory D-Bus object, and check whether the Inventory\nD-Bus object is associated with the LED group D-Bus object, and\nthen update the Asserted property of the LedManager.\n\nSince both these methods handle the faults differently,\nOnly ONE of these 2 methods can be enabled and NOT both.\n\nThe first way is supported by default. To turn OFF the default way\nAND turn ON this second way, Enable monitor-operational-status.\n\nTested:\n- enable `monitor-operational-status` in bbappend file, built successfully.\n\n- Before changing the `OperationalStatus` interface:\n  busctl get-property xyz.openbmc_project.Inventory.Manager\n  /xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply1\n  xyz.openbmc_project.State.Decorator.OperationalStatus Functional\n  b true\n\n  busctl get-property xyz.openbmc_project.LED.GroupManager\n  /xyz/openbmc_project/led/groups/powersupply1_fault\n  xyz.openbmc_project.Led.Group Asserted\n  b false\n\n  busctl get-property xyz.openbmc_project.LED.Controller.front_psu\n  /xyz/openbmc_project/led/physical/front_psu xyz.openbmc_project.Led.Physical State\n  s \"xyz.openbmc_project.Led.Physical.Action.Off\"\n\n- After changing the `OperationalStatus` interface:\n  busctl set-property xyz.openbmc_project.Inventory.\n  /xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply1\n  xyz.openbmc_project.State.Decorator.OperationalStatus Functional b false\n\n  busctl get-property xyz.openbmc_project.Inventory.Manager\n  /xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply1\n  xyz.openbmc_project.State.Decorator.OperationalStatus Functional\n  b false\n\n  (\n\tIf we have more than 1 LED Group D-Bus object:\n\tLike: The system/chassis/motherboard/powersupply1 path contains\n\t      two sets of LEDGroup\n\t{\n        \"types\":\n        {\n            \"rType\": \"fru\",\n            \"fType\": \"fault_led_group\"\n        },\n        \"paths\":\n        [\n            \"/xyz/openbmc_project/led/groups/powersupply0_fault\",\n            \"/xyz/openbmc_project/led/groups/powersupply1_fault\"\n        ]\n    }\n  busctl get-property xyz.openbmc_project.LED.GroupManager\n  /xyz/openbmc_project/led/groups/powersupply0_fault xyz.openbmc_project.Led.Group Asserted\n  b true\n  )\n\n  busctl get-property xyz.openbmc_project.LED.GroupManager\n  /xyz/openbmc_project/led/groups/powersupply1_fault xyz.openbmc_project.Led.Group Asserted\n  b true\n\n  busctl get-property xyz.openbmc_project.LED.Controller.front_psu\n  /xyz/openbmc_project/led/physical/front_psu xyz.openbmc_project.Led.Physical State\n  s \"xyz.openbmc_project.Led.Physical.Action.Blink\"\n\nSigned-off-by: George Liu <liuxiwei@inspur.com>\nChange-Id: I36c47198168028ea2b55804cf66d0285847afbd4\n",
+    "createdOn": 1617266491,
+    "lastUpdated": 1618206806,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1617266491,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1617266506,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617266619,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14708/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617267426,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1617267439,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617267545,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14709/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617779860,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 2:\n\n(23 comments)"
+        },
+        {
+            "timestamp": 1617789936,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1617789949,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617789971,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 2:\n\n(23 comments)"
+        },
+        {
+            "timestamp": 1617790078,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14960/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617793416,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 3:\n\n(12 comments)\n\nAlso, please consider adding GTEST"
+        },
+        {
+            "timestamp": 1617830664,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 3:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1617846205,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1617846218,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617846359,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15021/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617847118,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 4:\n\n(16 comments)"
+        },
+        {
+            "timestamp": 1617880027,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 4:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1617883327,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1617883346,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617883366,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 4:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1617883551,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15071/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617883940,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 5:\n\nLooks good.. I will wait for Matt's feedback on multiple Associations question and then close it.."
+        },
+        {
+            "timestamp": 1617899004,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617938658,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1617938669,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617938685,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617938892,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15161/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617945600,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 6:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1617950134,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1617950150,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617950185,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 7:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1617950259,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 8: Commit message was updated."
+        },
+        {
+            "timestamp": 1617950542,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15165/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617950617,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1617950867,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1617950878,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617950878,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 9:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1617951092,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15166/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617951321,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1617951333,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617951548,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15167/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617962978,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 11: Commit message was updated."
+        },
+        {
+            "timestamp": 1617962994,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 11: Code-Review+1"
+        },
+        {
+            "timestamp": 1617963379,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 12: Commit message was updated."
+        },
+        {
+            "timestamp": 1617984309,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 12: Code-Review+1"
+        },
+        {
+            "timestamp": 1618206762,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 12: Code-Review+2"
+        },
+        {
+            "timestamp": 1618206806,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Change has been successfully merged by Vishwanatha Subbanna"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "328bf1a0bb2ea1b8aa715eea24ad7478a5821565",
+            "parents": [
+                "52ad07b2a2d58c9c9cf7c9999fd8d5ced95b090b"
+            ],
+            "ref": "refs/changes/74/41774/1",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617266491,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 48,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 127,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 238,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "c0a4f43f5e58ed333fe67d3a577025554919b392",
+            "parents": [
+                "52ad07b2a2d58c9c9cf7c9999fd8d5ced95b090b"
+            ],
+            "ref": "refs/changes/74/41774/2",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617267426,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "phosphor::led::oper::status::monitor::Monitor operStatus(bus) ?"
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "objectPath --> invObjectPath ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "why is this a pointer ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Because we use `std::get_if` to get bool value.\nand the return value is a pointer to the value stored in the pointer to the variant, or a null pointer in case of an error."
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please capture the Inventory path here"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 43,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please capture Object paths here also"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 43,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I would call path --> invObjectPath"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "hmm.. service should be ObjectMapper tho !\n\nbusctl get-property  xyz.openbmc_project.ObjectMapper  /xyz/openbmc_project/led/physical/cffps1_69/inventory xyz.openbmc_project.Association  endpoints\n`as 1 \"/xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply0\"`\n\nbusctl get-property  xyz.openbmc_project.ObjectMapper  /xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply0/leds  xyz.openbmc_project.Association  endpoints\n`as 1 \"/xyz/openbmc_project/led/physical/cffps1_69\"`"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 62,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please put a line spacing after this and also a comment on what the objectPath is"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 62,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 65,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "we don't need the entire associations to be traversed.. we can just look at the fault_led_group by reading the property"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 65,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please capture Object path info here"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please put a comment on why we have !value here"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please use mapper to get the service name than hardcoded Led.GroupManager"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 6,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "why is this needed ?."
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 6,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Removed"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Function --> Functional"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please leave a line spacing"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "This implements methods for watching OperationalStatus interface of Inventory D-Bus object and then assert corresponding LED Group D-Bus objects."
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "This seems a misnomer. I would just call it \"class Monitor\""
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Please leave a line spacing between these 2. The comment applies generically to all the files in this commit"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 65,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "matchHandler ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 65,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please specify which association is being looked for."
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "path -> inventoryPath ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 75,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "(const std:string& inventoryPath) const ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 75,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "updateAssertedProperty ?\n\npath --> ledGroupPath"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 48,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 129,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 247,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "07e4aeb0674148c3db815f47a6c8da4d81ade775",
+            "parents": [
+                "52ad07b2a2d58c9c9cf7c9999fd8d5ced95b090b"
+            ],
+            "ref": "refs/changes/74/41774/3",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617789936,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "these are not needed since this is provided by utils.cpp"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Removed"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "https://github.com/openbmc/phosphor-led-manager/blob/master/utils.cpp#L15"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Get all the properties of \"xyz.openbmc_project.State.Decorator.OperationalStatus\" interface"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 87,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "nit: spelling"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 87,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "static constexpr"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Removed these"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 106,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "Similar to what Vishwa mentioned about getService, you also have a getProperty in the utils file.  Maybe include that file in this app too so you can use all those functions?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 106,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 107,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please consider a line spacing fore readability"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 107,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Removed these"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 118,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please leave a line spacing"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 118,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 127,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "fruInstancePath --> groupPath"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 127,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "it looks like you could simplify this whole thing down to:\nif (endpoints.empty())\n{\n   return std::string{};\n}\nelse\n{\n    return endpoints[0];\n}\n\nor do the '?' ternary operator thing and do it in one line."
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 127,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 127,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Good point"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 140,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "static constexpr auto"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 140,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Removed"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 153,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "nit: missing space"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 153,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 158,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "please leave a line spacing"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 158,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Removed"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Is this not a part of dbusHandler utils ?\n\nhttps://github.com/openbmc/phosphor-led-manager/blob/master/utils.cpp#L15"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Yes.\nThe original idea was: these are two daemons, and I do not want to use methods that are not related to this daemon.\n\nUpdated"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Callback handler that gets invoked when the PropertiesChanged signal is caught by this app. Message is scanned for Inventory D-Bus object path and if OperationalStatus :: Functional is changed, then corresponding LED Group D-Bus object is called to assert."
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "From the Inventory D-Bus object, obtains the associated LED group D-Bus object, where the association name is \"fault_led_group\""
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 48,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 173,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 104,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 305,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "39a805469b111506dfbc545adda1ba8d95d9dfe0",
+            "parents": [
+                "52ad07b2a2d58c9c9cf7c9999fd8d5ced95b090b"
+            ],
+            "ref": "refs/changes/74/41774/4",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617846205,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "configure.ac",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I think Oper is not very meaningful. I think we can expand it and call \n\nWANTS_OPERATIONAL_STATUS\n\n--enable-monitor-operational-status"
+                },
+                {
+                    "file": "configure.ac",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "operational-status-monitor.cpp/hpp"
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "phosphor::led::OperationalStatus::monitor::Monitor monitor(bus)"
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "In one of the commits where we were watching for InterfacesAdded signal from EntityManager, the code was checking (if interface == <InterfacesAdded> ).. I believe that is not the case here ?.. do we ONLY get notified if it's coming from \n\nInventory-Manager + OperationalStatus + PropertiesCHanged ?\n\njust wonder why we had to do that check in that commit.."
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "> do we ONLY get notified if it's coming from \n\nYes"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "this is not faultLedGrouPath.. \n\nhow about \"faultLedAssociation\" ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "hmm. Do we need to see a case where there can be more than 1 associations with same fault_led_group ?. Is that even valid ?.. Matt ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I spoke to Matt and it's technically possible to express that in Associations. Although I don't foresee more than 1 LED D_Bus objects for Inventory, we probably not want to have that restriction here. So. can this return array of LED D-Bus objects if there are more than 1 end points ?"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Sure\nDone"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Operational"
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 48,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 108,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/oper-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 237,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 5,
+            "revision": "a7b68127b52a0419fb1a3fa50007995d64cdc83e",
+            "parents": [
+                "4b06201049f5f1199128c7a373df5f065cf11301"
+            ],
+            "ref": "refs/changes/74/41774/5",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617883327,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 48,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 238,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 6,
+            "revision": "839550cc6296c033728d4d35f475ea2f22db6f22",
+            "parents": [
+                "4b06201049f5f1199128c7a373df5f065cf11301"
+            ],
+            "ref": "refs/changes/74/41774/6",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617938658,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "line": 42,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I would prefer 'auto'"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "line": 42,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "hmm.. does just having it make it work or should we walk the endpoint and pack ?. Can we please have more than 1 LED Group D-Bus object and put that in Tested section of Commit Message ?"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "> does just having it make it work or should we walk the endpoint and pack ?\n\nhere we should walk the endpoint and pack\n\n> Can we please have more than 1 LED Group D-Bus object and put that in Tested section of Commit Message ?\n\nAck"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "hmm.. where are we walking the endpoints ?.. are you saying, we need to walk in the updateAsserted?"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Yes"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 79,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Inventory D-Bus object path"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 79,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "getLedGroupPaths ( just plural )"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 94,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "ledGroupPaths ( Just made it plural.. please change this and also the description )"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 94,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 48,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 113,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 101,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 245,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 7,
+            "revision": "ec2a90bbbed5379fd7269773916eb20307e5678d",
+            "parents": [
+                "445b00b22b1c46b2d6e954bbaff64884b5c068c7"
+            ],
+            "ref": "refs/changes/74/41774/7",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617950134,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 113,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 244,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 8,
+            "revision": "6065f2d1605a04dd2ac2c2b36794105a42eebde5",
+            "parents": [
+                "445b00b22b1c46b2d6e954bbaff64884b5c068c7"
+            ],
+            "ref": "refs/changes/74/41774/8",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617950259,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "It is not \"All\". We can just put this :\n \nLED Group D-Bus object Paths"
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 113,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 244,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 9,
+            "revision": "4f727697d841cf28c922dcd662dc2449b5b643f1",
+            "parents": [
+                "445b00b22b1c46b2d6e954bbaff64884b5c068c7"
+            ],
+            "ref": "refs/changes/74/41774/9",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617950867,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 113,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 244,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 10,
+            "revision": "bce943720c86146bac1c661f104a11fe18cf841a",
+            "parents": [
+                "445b00b22b1c46b2d6e954bbaff64884b5c068c7"
+            ],
+            "ref": "refs/changes/74/41774/10",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1617951321,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 113,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 243,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 11,
+            "revision": "74a96e13a80d6587572284fa60adbf6931d2bb68",
+            "parents": [
+                "445b00b22b1c46b2d6e954bbaff64884b5c068c7"
+            ],
+            "ref": "refs/changes/74/41774/11",
+            "uploader": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "createdOn": 1617962978,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 113,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 243,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 12,
+            "revision": "ee1c19e5ab5f349fda590c320923dcb9ab543a57",
+            "parents": [
+                "445b00b22b1c46b2d6e954bbaff64884b5c068c7"
+            ],
+            "ref": "refs/changes/74/41774/12",
+            "uploader": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "createdOn": 1617963379,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 83,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "fault-monitor/monitor-main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.cpp",
+                    "type": "ADDED",
+                    "insertions": 113,
+                    "deletions": 0
+                },
+                {
+                    "file": "fault-monitor/operational-status-monitor.hpp",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 243,
+            "sizeDeletions": 1
+        }
+    ]
+}

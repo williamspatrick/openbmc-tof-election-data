@@ -1,0 +1,157 @@
+{
+    "project": "openbmc/phosphor-debug-collector",
+    "branch": "master",
+    "id": "Iad8b35c6ae4596035aa3546fa4e9ab14848e5de5",
+    "number": 46260,
+    "subject": "Ignore error 11 (EAGAIN) from select() and proceed",
+    "owner": {
+        "name": "Sui Chen",
+        "email": "suichen@google.com",
+        "username": "quadpixels"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-debug-collector/+/46260",
+    "commitMessage": "Ignore error 11 (EAGAIN) from select() and proceed\n\nFrom my experiments, the following select() syscall will always give\nerror code 11 (EAGAIN) on the QEMU-emulated AST2500 EVB, and not on a\ndesktop Linux:\n\nretVal = select(numOfFDs, &readFD, NULL, NULL, &timeVal)\n\nAlthough the select() call throws the error code, if the program is\ngiven a chance to do the select() again and when a client has connected\nto the socket, the select() call will succeed, and the remaining logic\nin requestOffload() will work as expected.\n\nTested: tested with a small program that first sends a DBus method call\nequivalent to \"busctl xyz.openbmc_project.Dump.Manager\n/xyz/openbmc_project/dump/bmc/entry/DUMP_ID xyz.openbmc_project.Dump.Entry\nInitiateOffload SOCKET_PATH where DUMP_ID.\n\nConsole log:\n\nroot@evb-ast2500:/tmp# ./dumptest_bmc offload 44 /tmp/my_socket1\nWelcome to the Dump Test Tool!\nFile obmcdump_44 already exists; it will be overwritten during dump offload.\nWill use socket \"/tmp/my_socket1\" to offload a dump from the Dump Manager.\nDump ID: 44, output file name: obmcdump_44\nWaiting for socket_path \"/tmp/my_socket1\" to show up\nWaiting for another 2s\nRead 508 B from server, total 147508 B read\ndone\nroot@evb-ast2500:/tmp# tar xf obmcdump_44\nroot@evb-ast2500:/tmp# ls obmcdump_44_* -l\n-rw-r--r--    1 root     root             0 Jan  3 07:07 alt-fw-printenv.log\n-rw-r--r--    1 root     root            49 Jan  3 07:07 bmc-state.log\n-rw-r--r--    1 root     root            53 Jan  3 07:07 chassis-state.log\n-r--r--r--    1 root     root           303 Jan  3 07:07 cpuinfo\n-rw-r--r--    1 root     root           772 Jan  3 07:06 disk-usage.log\n-rw-r--r--    1 root     root          1182 Jan  3 07:07 dreport.log\n-rw-r--r--    1 root     root           463 Jan  3 07:06 failed-services.log\n-rw-r--r--    1 root     root           123 Jan  3 07:07 fw-printenv.log\n-rw-r--r--    1 root     root            49 Jan  3 07:07 host-state.log\n-rw-r--r--    1 root     root           311 Jan  3 07:07 hostnamectl.log\n-rw-r--r--    1 root     root          1643 Jan  3 07:07 inventory.log\n-rw-r--r--    1 root     root           760 Jan  3 07:07 ipaddr.log\n-rw-r--r--    1 root     root           392 Jan  3 07:07 iplink.log\n-rw-r--r--    1 root     root       1752178 Jan  3 07:06 journal-pretty.log\n-r--r--r--    1 root     root          1064 Jan  3 07:07 meminfo\n-rw-r--r--    1 root     root           297 Jan  3 07:07 os-release\n-rw-r--r--    1 root     root           213 Jan  3 07:06 summary.log\n-rw-r--r--    1 root     root          6601 Jan  3 07:07 top.log\n-rw-r--r--    1 root     root            60 Jan  3 07:07 uptime.log\n\nSigned-off-by: Sui Chen <suichen@google.com>\nChange-Id: Iad8b35c6ae4596035aa3546fa4e9ab14848e5de5\n",
+    "createdOn": 1630053910,
+    "lastUpdated": 1630054161,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1630053910,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1630053923,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630053955,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/25198/ : FAILURE"
+        },
+        {
+            "timestamp": 1630054017,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Patch Set 1:\n\nThe program used for testing is as follows:\n\n    // For testing phosphor-debug-collector's dump creation and\n    // dump offload functionalities\n    #include <sdbusplus/bus.hpp>\n    #include <sdbusplus/message.hpp>\n    #include <sdbusplus/asio/connection.hpp>\n    #include <boost/asio/io_service.hpp>\n    #include <iostream>\n    #include <fstream>\n    #include <filesystem>\n    #include <cstring>\n    #include <thread>\n    \n    int main(int argv, char** argc) {  // (:\n      printf(\"Welcome to the Dump Test Tool!\\n\");\n      if (argv < 2) {\n        printf(\"Usage #1: %s create                 --> Create a dump.\\n\", argc[0]);\n        printf(\"Usage #2: %s offload X [SocketPath] --> Offload dump #X to file \\\"obmcdump_X\\\" in the current folder.\\n\", argc[0]);\n        printf(\"                                        If no SocketPath is set, /tmp/my_socket will be used.\\n\", argc[0]);\n        exit(0);\n      }\n    \n      // Get system bus\n      boost::asio::io_context io;\n      sdbusplus::bus::bus bus = sdbusplus::bus::new_default();\n      sdbusplus::asio::connection cxn(io);\n      \n      if (!strcmp(argc[1], \"create\")) {  // Create a Dump.\n        cxn.async_method_call(\n          [](const boost::system::error_code ec,\n             const sdbusplus::message::object_path& d) { // o\n              std::string dumpPath = d.str;\n            printf(\"[CreateDump] ec=%s\\n\", std::to_string(ec.value()).c_str());\n            printf(\"[CreateDump] dumpPath=%s\\n\", dumpPath.c_str());\n            uint32_t dumpId = static_cast<uint32_t>(std::atoi(dumpPath.substr(dumpPath.rfind(\"/\") + 1U).c_str()));\n            if (ec)\n            {\n              std::cerr << \"CreateDump resp_handler got error \" << ec;\n              return;\n            }\n            std::cerr << \"Dump Created. Id: \" << dumpId;\n      \n            // Open a socket for accepting dump contents\n            const std::string socket_name = \"/tmp/my_socket1\";\n            \n          },\n          \"xyz.openbmc_project.Dump.Manager\",\n          \"/xyz/openbmc_project/dump/bmc\",\n          \"xyz.openbmc_project.Dump.Create\", \"CreateDump\",\n          std::map<std::string, std::variant<std::string, uint64_t>>()\n        ); // a{sv}\n      } else if (!strcmp(argc[1], \"offload\")) {\n        if (argv < 3) {\n          printf(\"Please input a Dump ID.\");\n          exit(0);\n        }\n        int dumpId = std::atoi(argc[2]);\n        std::string fn_out = \"obmcdump_\" + std::to_string(dumpId);\n        if (std::filesystem::exists(fn_out)) {\n          printf(\"File %s already exists; it will be overwritten during dump offload.\\n\",\n            fn_out.c_str());\n        }\n        std::string socket_path = \"/tmp/my_socket\";\n        if (argv >= 4) {\n          socket_path = argc[3];\n        }\n        \n        printf(\"Will use socket \\\"%s\\\" to offload a dump from the Dump Manager.\\n\", socket_path.c_str());\n        printf(\"Dump ID: %d, output file name: %s\\n\", dumpId, fn_out.c_str());\n        \n        // This waiting thread should run concurrently with the DBus request\n        auto blah = [socket_path, fn_out](){\n          printf(\"Waiting for socket_path \\\"%s\\\" to show up\\n\", socket_path.c_str());\n          while (!std::filesystem::exists(socket_path)) {\n            printf(\"socket_path, %s does not exist, waiting for 1s\\n\", socket_path.c_str());\n            sleep(1);\n          }\n          printf(\"Waiting for another 2s\\n\");\n          sleep(2);\n          \n          struct sockaddr_un addr;\n          char buf[1000];\n          int fd = socket(AF_UNIX, SOCK_STREAM, 0);\n          if (fd == -1) {\n            printf(\"Cannot create socket\\n\");\n            exit(1);\n          }\n          memset(&addr, 0, sizeof(addr));\n          addr.sun_family = AF_UNIX;\n          strncpy(addr.sun_path, socket_path.c_str(), sizeof(addr.sun_path)-1);\n          \n          while (true) {\n            if (connect(fd, (struct sockaddr*)&addr, sizeof(addr)) == -1) {\n              printf(\"Cannot connect to socket\\n\");\n            } else break;\n            sleep(1);\n          }\n          \n          // Read from socket\n          int rc = -999, tot_read_nbytes = 0;\n          std::ofstream ofs(fn_out, std::ios::out | std::ios::trunc);\n          while (true) {\n            rc = read(fd, buf, sizeof(buf));\n            if (rc > 0) {\n              tot_read_nbytes += rc;\n              printf(\"\\rRead %d B from server, total %d B read   \", rc, tot_read_nbytes);\n              fflush(stdout);\n              for (int i=0; i<rc; i++) { ofs << buf[i]; }\n            } else {\n              printf(\"\\n\");\n              printf(\"done\\n\");\n              break;\n            }\n          }\n          ofs.close();\n        };\n        std::thread polling_thd(blah);\n        \n        cxn.async_method_call(\n          [fn_out, socket_path](const boost::system::error_code ec) {  // no return value\n          printf(\"ec=%d\\n\", ec);\n        },\n        \"xyz.openbmc_project.Dump.Manager\",\n        (\"/xyz/openbmc_project/dump/bmc/entry/\" + std::to_string(dumpId)).c_str(),\n        \"xyz.openbmc_project.Dump.Entry\", \"InitiateOffload\",\n        socket_path.c_str()\n        );\n        \n        polling_thd.join();\n      }\n    \n      io.run_one();  // There will only be 1 work item so run_one\n    }"
+        },
+        {
+            "timestamp": 1630054090,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1630054103,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630054161,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25199/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "dfd0d841dc29a41617caaf60a7cbcca57ac8cd92",
+            "parents": [
+                "f4694d714f2cef97edce01ae47f8a3da13d8a895"
+            ],
+            "ref": "refs/changes/60/46260/1",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1630053910,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "dump_offload.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -57
+                }
+            ],
+            "sizeInsertions": 60,
+            "sizeDeletions": 57
+        },
+        {
+            "number": 2,
+            "revision": "d297cc1fec9e7143815d6eeeb0215acb4ef96560",
+            "parents": [
+                "f4694d714f2cef97edce01ae47f8a3da13d8a895"
+            ],
+            "ref": "refs/changes/60/46260/2",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1630054090,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "dump_offload.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -55
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 55
+        }
+    ]
+}

@@ -1,0 +1,2340 @@
+{
+    "project": "openbmc/openpower-debug-collector",
+    "branch": "master",
+    "id": "Ibfe7cc6619cd99f303c6106e617bc636632d0940",
+    "number": 47497,
+    "subject": "Watchdog timeout support in SBE boot window",
+    "owner": {
+        "name": "Shantappa Teekappanavar",
+        "email": "shantappa.teekappanavar@ibm.com",
+        "username": "sbteeks"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openpower-debug-collector/+/47497",
+    "commitMessage": "Watchdog timeout support in SBE boot window\n\nAdded support to handle SBE boot failure when watchdog\ntimes out in the SBE boot window. FFDC information from SBE\nis captured using libphal provided API, and the SBE specific\nPEL for a valid FFDC is created. In case the error is related\nto SBE timeout or no FFDC data then SBE dump to capture additional\ndebug data is initiated.\n\nTested: verified PEL log\nroot@p10bmc:~# peltool -l\n{\n    \"0x50000332\": {\n        \"SRC\":                  \"BD123504\",\n        \"Message\":              \"timeout reported during SBE boot\nprocess\",\n        \"PLID\":                 \"0x50000332\",\n        \"CreatorID\":            \"BMC\",\n        \"Subsystem\":            \"Processor Chip Cache\",\n        \"Commit Time\":          \"10/04/2021 18:25:27\",\n        \"Sev\":                  \"Unrecoverable Error\",\n        \"CompID\":               \"0x3500\"\n    }\n}\n\n- Verified SBE dump was collected\n  Steps used:\n  1. obmcutil poweroff\n  2. istep -s0\n  3. systemctl start org.open_power.Dump.Manager.service\n  4. systemctl start openpower-debug-collector-watchdog@0.service\n  5. Check journal log to see SBE dump requested, dump entry created\n     and the dump is completed\n     journalctl -f -t watchdog_timeout\n  6. Verify the SBE dump:\n     ls /var/lib/phosphor-debug-collector/sbedump/<dump-entry-id>\n\n- Verified Hostboot dump was collected\n  Steps Used:\n  1. obmcutil poweroff\n  2. istep -s0..6\n  3. systemctl start org.open_power.Dump.Manager.service\n  4. systemctl start openpower-debug-collector-watchdog@0.service\n  5. Check journal log to see Hostboot dump requested, dump entry\n     created and the dump is completed\n     journalctl -f -t watchdog_timeout\n  6. Verify the SBE dump:\n     ls /var/lib/phosphor-debug-collector/hostbootdump/<dump-entry-id>\n\nSigned-off-by: Shantappa Teekappanavar <sbteeks@yahoo.com>\nChange-Id: Ibfe7cc6619cd99f303c6106e617bc636632d0940\n",
+    "createdOn": 1633454363,
+    "lastUpdated": 1634788003,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1633454363,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1633454370,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633454397,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/27492/ : FAILURE"
+        },
+        {
+            "timestamp": 1633454406,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1633454543,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 1:\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1633454922,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1633618603,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 1:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1633979601,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1633979626,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633979745,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/28083/ : FAILURE"
+        },
+        {
+            "timestamp": 1633980704,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1633980716,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633980842,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/28086/ : FAILURE"
+        },
+        {
+            "timestamp": 1633981036,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 3:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1634081213,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1634081227,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634081412,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28171/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634081891,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1634081902,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634082081,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28173/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634133104,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1634139299,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 5:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1634147457,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 5:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1634180355,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1634266776,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1634266790,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634266849,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28320/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634266900,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 6:\n\n(12 comments)"
+        },
+        {
+            "timestamp": 1634273338,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1634273350,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634273395,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28325/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634274537,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1634274550,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634274596,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28326/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634274961,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1634274985,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634275024,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28327/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634313348,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 9:\n\nReady for the review..."
+        },
+        {
+            "timestamp": 1634581530,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 10: Commit message was updated."
+        },
+        {
+            "timestamp": 1634581603,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 10:\n\nUpdated commit message with testing details"
+        },
+        {
+            "timestamp": 1634646269,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 10: Verified-1\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1634670607,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1634670629,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634670682,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28539/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634670750,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 12: Commit message was updated."
+        },
+        {
+            "timestamp": 1634673798,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 12:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1634732873,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 12:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1634747496,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1634747510,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634747550,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28638/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634748374,
+            "reviewer": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "message": "Patch Set 13:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1634751166,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634751362,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634751783,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 13: Code-Review+1"
+        },
+        {
+            "timestamp": 1634787972,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 13: Code-Review+2"
+        },
+        {
+            "timestamp": 1634788003,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Change has been successfully merged by Jayanth Othayoth"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "fa9a0e91cce9f46e208a77be59cf660f2d38a05e",
+            "parents": [
+                "9b6f8474a4e33dbfda233dedceedf4c030ffd0ec"
+            ],
+            "ref": "refs/changes/97/47497/1",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1633454363,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "meson.build",
+                    "line": 52,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Will take care of extra space at the end of each in the next commit..."
+                },
+                {
+                    "file": "meson.build",
+                    "line": 52,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "meson.build",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "CI fails for this with the following error message:\nmeson.build:49:0: ERROR: C++ shared or static library 'libdt-api' not found\n\nNeed help!"
+                },
+                {
+                    "file": "meson.build",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Not required this lib."
+                },
+                {
+                    "file": "meson.build",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Refer https://gerrit.openbmc-project.xyz/c/openbmc/openpower-proc-control/+/47613/1"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "I'm assuming it is changing the function name, if so it is done."
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Change name specific to SBE?"
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "This name seems to be not valid now , collecting both hostboot/sbe dumop right?"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "libphal provides api to init pdbg."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Still do not have init(...) available in the latest SDK (10/7 built). \n\nMaybe a version bump needed for libphal?"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 70,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "This event type is good only for SBE window.  refer https://gerrit.openbmc-project.xyz/c/openbmc/openpower-proc-control/+/47613"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 70,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "WatchdogTimeout error seems more reasonable, so using this. If not, would like to know the generic error/event type to be used."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 70,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "make it generic , refer https://gerrit.openbmc-project.xyz/c/openbmc/openpower-proc-control/+/47613"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Removed SRC6"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 102,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "\"Hostboot boot timeout\" ?"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 102,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 107,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "SBE Boot timeout?"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 107,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 69,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 87,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 286,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "9229a61c88ede7d4ceb561b24d32637a1e7928b1",
+            "parents": [
+                "9b6f8474a4e33dbfda233dedceedf4c030ffd0ec"
+            ],
+            "ref": "refs/changes/97/47497/2",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1633979601,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -3
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -5
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 80,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 94,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 345,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 3,
+            "revision": "87cb14614ef5f18b68b147e52e6439430f867ef4",
+            "parents": [
+                "9b6f8474a4e33dbfda233dedceedf4c030ffd0ec"
+            ],
+            "ref": "refs/changes/97/47497/3",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1633980704,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -3
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -5
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 80,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 343,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 4,
+            "revision": "24efcbd5dd0dae271a205f3bf6450fb70bcf0da4",
+            "parents": [
+                "9b6f8474a4e33dbfda233dedceedf4c030ffd0ec"
+            ],
+            "ref": "refs/changes/97/47497/4",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634081213,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 48,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -7
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 87,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 317,
+            "sizeDeletions": 23
+        },
+        {
+            "number": 5,
+            "revision": "66f15fa59fb5682c5f2e6e28046a04b9488e5204",
+            "parents": [
+                "9b6f8474a4e33dbfda233dedceedf4c030ffd0ec"
+            ],
+            "ref": "refs/changes/97/47497/5",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634081891,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "meson.build",
+                    "line": 88,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Build flag name chnaged changed to WATCHDOG_xxx?"
+                },
+                {
+                    "file": "meson.build",
+                    "line": 88,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Not sure I get the question here. It was HOSTBOOT_DUMP_COLLECTION to control whether to build in code that will generate hostboot dump (using phal) on a watchdog timeout. Now he's added SBE to the compile flag since it will now generate SBE or Hostboot dump."
+                },
+                {
+                    "file": "meson.build",
+                    "line": 88,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "This is confusing. New watchdog app is developed based on PHAL features supportde systems. right? like in the non-phal based systems , using the existing watchdog app?\nThat is the one reason requested toi use generic build flag name . like old vs new one."
+                },
+                {
+                    "file": "meson.build",
+                    "line": 88,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Using WATCHDOG_DUMP_COLLECTION flag... Hope this is OK. If not, please provide the string to be used!"
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Can throw exception"
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "phal library will be used. Deleted this function"
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I see this unitId added for the call of a SBE dump but seems like it's not set anywhere? What's it for?"
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "set in watchdog_main.cpp:L98\nDumpParameters dumpParameters = {pelId, index, DumpType::SBE};\n\nI believe it is a chip position (index), used as failing unit id.\n\nNow initializing explicitly..."
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Add timeout parameter here , that wiill simplify"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "This function trigger dump only if there is no FFDC info . Change name to Handle SBE failure?"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 63,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Lets put some info logs in here (and in next else block). Watchdog timeouts are rare so no need to worry about filling journal. It will be useful to know which path we are taking."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 63,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "if sbe vital attention is present , hw diags will be handling , no need of collecting dump \nuse isSbeVitalAttnActive(struct pdbg_target *proc);\nAlso if need to check the SBE state , to see dumop collection is required? bool isDumpAllowed(struct pdbg_target *proc);\nlog an informational message and skip dump collection."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Init to nullptr and then line 60 is not needed. Inefficient to set it to nullptr every time until you find primary."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "LIne 60 is required , procTarget is updated with processor target in each iteration. . seting nullPtr to indicate not found primary proc."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Now using phal API to get procTarget; no longer valid..."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "This can throw an exception. Not sure if we want to catch. May depend on whether we want to try and continue on error paths (assuming hostboot dump)"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "phal library used, comment not valid any more"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Jayanth, if we have a situation where all processors are guarded/deconfigured or some other error path here. Would it be better to just try and get a hostboot dump in this error path? We didn't need a primary proc for that before right? I'm worried the times we need dumps the most is when we're going to have issues finding the primary proc."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Correct , libphal api already handle this."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "I'm assuming I've nothing here for me to address..."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Unless we want this service to be restarted, and all this tried again, best to just return a success. We've logged the error, there's nothing else to do. We don't want to hang up the power off and generate multiple errors."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "replace with libphal . struct pdbg_target *getPrimaryProc();"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 91,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Same comment as above on exiting and appropriate error path."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 91,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "not valid any more..."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Same comment as above on exiting and appropriate error path."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Using phal library, and returning EXIT_STATUS..."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "replace with bool isIPLDone();"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Replaced with isPrimaryIplDone()"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 48,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -7
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 87,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 304,
+            "sizeDeletions": 23
+        },
+        {
+            "number": 6,
+            "revision": "9b71907e1d9cfe1a13c781d7207917de02db5bc3",
+            "parents": [
+                "9b6f8474a4e33dbfda233dedceedf4c030ffd0ec"
+            ],
+            "ref": "refs/changes/97/47497/6",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634266776,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": -15
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -3
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 117,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 61,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 290,
+            "sizeDeletions": 32
+        },
+        {
+            "number": 7,
+            "revision": "1934040a149e7baef11e9ad172ff25de610f9e02",
+            "parents": [
+                "09cf37962a1c0b53e226a6a04bdf2d0f1b4d77e8"
+            ],
+            "ref": "refs/changes/97/47497/7",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634273338,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "watchdog/watchdog_common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": -15
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -3
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 61,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 281,
+            "sizeDeletions": 33
+        },
+        {
+            "number": 8,
+            "revision": "84bed99f8ac63bc414fe1edf9b89db80a335ff5c",
+            "parents": [
+                "09cf37962a1c0b53e226a6a04bdf2d0f1b4d77e8"
+            ],
+            "ref": "refs/changes/97/47497/8",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634274537,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": -15
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -3
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 61,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 274,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 9,
+            "revision": "fabe8a14a80aa601f66542b1b3a26af51c3d2ed7",
+            "parents": [
+                "09cf37962a1c0b53e226a6a04bdf2d0f1b4d77e8"
+            ],
+            "ref": "refs/changes/97/47497/9",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634274961,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": -15
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -4
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 61,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 275,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 10,
+            "revision": "c3e0fd164682b8a1d4ccee91f1ffb86a84596fe7",
+            "parents": [
+                "09cf37962a1c0b53e226a6a04bdf2d0f1b4d77e8"
+            ],
+            "ref": "refs/changes/97/47497/10",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634581530,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Update required : \"Watchdog timoeut support in SBE boot window.\"\nBased on ffdc data , wither collect sbe dump or create PEls. not always collect dump."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "line": 166,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Need to handle dsiabled case , that is not error . \n constexpr auto ERROR_DUMP_DISABLED =\n            \"xyz.openbmc_project.Dump.Create.Error.Disabled\";\n       if (e.name() == ERROR_DUMP_DISABLED)\nLog info message instead of error."
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "line": 166,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Not required this condition check here. not amking an=y sbe chipop here."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "This check was based on the issue here:\nhttps://github.com/ibm-openbmc/dev/issues/3297\n\nFixed code as per this comment...\n\n@jayanth Is \"org.open_power.Processor.Error.SbeBootTimeout\" an appropriate/valid event name for \"No FFDC data?\""
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "sorry, i was wrong. need this ."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Added it back..."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "update log message with meaningful message , \"  another collection in progress, skipping  dump collection\""
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "this should be dump specific timeout?"
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Yes, it is for requestDump timeout in case the progress status remains in 'InProgress\"."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "the value seems to be high 25 minutes , usually sbe dump takes less than minute."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "This timeout value is for both SBE dump and Hostboot dump, and can be passed as command line argument. Per @Dhruv the max timeout value is 20 minutes for Hostboot dump collection. I added another 5 minutes to it to be safe. If SBE dump takes less than a minute, it will come out immediately after the dump is collected - doesn't wait 25 minutes for every collection. So, I don't see it as a problem in general unless something really went bad and the status did not change in which case it waits for 25 minutes.\n\nIf you want me to add hardcoded value for SBE specific dump, I can do that. Just let me know how long it should wait for SBE dump collection. \n\nI prefer to leave it the way it is now, but open make the change..."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "@andrewg can comment on this , for me looks like this can impact overall ipl time , for sbe failure scenario. The timeout usally happens, due to issue with dump application crashs. I prefer to have shorter timeout for sbe dump collection case."
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I prefer big timeouts vs. constantly increasing them as new use cases and new dump content is added. Is there a better number that accounts for all of that Jayanth on SBE dumps? I don't really mind the IPL hang because we've already hit 2 failures, an SBE fail, and a failure collecting the SBE dump."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "this is also c file move to line 8"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "better define as a meaningfull name insetad of hard coding."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "exception is not restricted to this function. .update the log message."
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "Shantappa Teekappanavar",
+                        "email": "shantappa.teekappanavar@ibm.com",
+                        "username": "sbteeks"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": -15
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -4
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 61,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 275,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 11,
+            "revision": "4378ce3354dc33efd217562f2544df0194572101",
+            "parents": [
+                "09cf37962a1c0b53e226a6a04bdf2d0f1b4d77e8"
+            ],
+            "ref": "refs/changes/97/47497/11",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634670607,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": -17
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -4
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 298,
+            "sizeDeletions": 39
+        },
+        {
+            "number": 12,
+            "revision": "c1423f52cf6a4a8a71d465921c03c7e536a5cd9a",
+            "parents": [
+                "09cf37962a1c0b53e226a6a04bdf2d0f1b4d77e8"
+            ],
+            "ref": "refs/changes/97/47497/12",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634670750,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": -17
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -4
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 298,
+            "sizeDeletions": 39
+        },
+        {
+            "number": 13,
+            "revision": "41d507e52356d4f9d0b4ef963697a19145f0e56d",
+            "parents": [
+                "09cf37962a1c0b53e226a6a04bdf2d0f1b4d77e8"
+            ],
+            "ref": "refs/changes/97/47497/13",
+            "uploader": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "createdOn": 1634747496,
+            "author": {
+                "name": "Shantappa Teekappanavar",
+                "email": "shantappa.teekappanavar@ibm.com",
+                "username": "sbteeks"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -6
+                },
+                {
+                    "file": "watchdog/watchdog_common.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": -17
+                },
+                {
+                    "file": "watchdog/watchdog_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -4
+                },
+                {
+                    "file": "watchdog/watchdog_logging.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                },
+                {
+                    "file": "watchdog/watchdog_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 108,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog/watchdog_main.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "watchdog_timeout.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 299,
+            "sizeDeletions": 39
+        }
+    ]
+}

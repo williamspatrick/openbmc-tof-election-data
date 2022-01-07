@@ -1,0 +1,81 @@
+{
+    "project": "openbmc/intel-ipmi-oem",
+    "branch": "master",
+    "id": "I38be71604cc68e6837f664d862f61f27662cfd8a",
+    "number": 47094,
+    "subject": "Corrected the response for event status command.",
+    "owner": {
+        "email": "shamima@ami.com",
+        "username": "shamim-ali"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/intel-ipmi-oem/+/47094",
+    "commitMessage": "Corrected the response for event status command.\n\nFor Get sensor Event Status Command:\nIn 2nd byte - 7th bit(All Event Messages disabled from this sensor)\nand 6th bit(Sensor scanning disabled) needs to be \"1\" for all the sensors.\nShould get response as \"c0\" for all the sensors.\nin case of discrete sensors,if reading of the sensor is not supported the response should be \"e0\"\n\nTested:\nroot@AMIB4055D8CB94B:~# ipmitool sdr elist\nSystem Event Log | 00h | ok  |  6.1 |\nFan 4            | 01h | ok  | 29.5 | 7840 RPM\nFan 5            | 02h | ok  | 29.6 | 8232 RPM\nFan 6            | 03h | ok  | 29.7 | 7840 RPM\nFan 7            | 04h | ok  | 29.8 | 8232 RPM\nBMC watchdog     | 05h | ok  |  7.1 |\nP0 Mem Threm Tri | 06h | ok  | 32.0 | Uncorrectable ECC\nP1 Mem Threm Tri | 07h | ok  | 32.1 |\nCPU Power        | 08h | ns  |  9.2 | No Reading\nMemory Power     | 09h | ns  |  9.3 | No Reading\nP0 PCIe PWR Out  | 0Ah | ok  |  7.8 | 0 Watts\nP0 VCCD PWR Out  | 0Bh | ok  |  7.1 | 11.80 Watts\nP1 PCIe PWR Out  | 0Ch | ok  |  7.1 | 0 Watts\nP1 VCCD PWR Out  | 0Dh | ok  |  7.2 | 11.80 Watts\nTotal Power      | 0Eh | ns  |  9.1 | No Reading\nP0 status        | 0Fh | ok  |  3.13 | Thermal Trip\nP1 status        | 10h | ok  |  3.14 | Thermal Trip, Presence detected\nSys ACPI Stat    | 11h | ok  |  7.1 |\nBB Inlet1 Temp   | 12h | ok  | 40.1 | 29 degrees C\nBB Inlet2 Temp   | 13h | ok  | 40.2 | 30 degrees C\nBB Inlet3 Temp   | 14h | ok  | 40.3 | 28 degrees C\nBB Outlet M Temp | 15h | ok  | 40.4 | 28 degrees C\nBB Outlet R Temp | 16h | ok  | 40.5 | 28 degrees C\nBB Outlet Temp   | 17h | ok  | 40.6 | 28 degrees C\nICM Inlet Temp   | 18h | ok  | 16.1 | 31 degrees C\nICM M2 Area Temp | 19h | ok  | 16.1 | 33 degrees C\nICM Outlet Temp  | 1Ah | ok  | 16.1 | 31 degrees C\nP0 Mem Hot       | 1Bh | ok  |  3.4 | State Asserted\nP0 PVDDQ VRHot   | 1Ch | ok  |  3.8 |\nP0 Riser Temp    | 1Dh | ok  | 16.1 | 28 degrees C\nP0 VCCD VR Temp  | 1Eh | ok  | 42.1 | 29 degrees C\nP1 Mem Hot       | 1Fh | ok  |  3.6 | State Asserted\nP1 PVDDQ VRHot   | 20h | ok  |  3.9 |\nP1 Riser Temp    | 21h | ok  | 16.2 | 27 degrees C\nP1 VCCD VR Temp  | 22h | ok  | 42.2 | 0 degrees C\nP0 P12V PCIe     | 23h | ok  |  7.8 | 13 Volts\nP0 PVCCD HV      | 24h | ucr |  7.1 | 13 Volts\nP0 PVNN Main     | 25h | lcr |  7.6 | 0 Volts\nP0 PVPP HBM      | 26h | lcr |  7.5 | 0 Volts\nP1V05 PCH STBY   | 27h | ok  |  7.8 | 1.09 Volts\nP1V0 BMC STBY    | 28h | ok  |  7.2 | 1.01 Volts\nP1V2 STBY        | 29h | ok  |  7.4 | 1 Volts\nP1V2 STBY ICM    | 2Ah | ok  |  7.3 | 1.17 Volts\nP1V8 PCH STBY    | 2Bh | lcr |  7.5 | 1.56 Volts\nP1 P12V PCIe     | 2Ch | ok  |  7.1 | 13 Volts\nP1 PVCCD HV      | 2Dh | lcr |  7.2 | 0 Volts\nP1 PVPP HBM      | 2Eh | lcr |  7.7 | 0 Volts\nP2V5 STBY        | 2Fh | lcr |  7.3 | 2 Volts\nP2V5 STBY ICM    | 30h | ucr |  7.1 | 10.37 Volts\nP3V3             | 31h | lcr |  7.6 | 2.81 Volts\nP3V3 STBY        | 32h | lcr |  7.2 | 2 Volts\nP3V BAT          | 33h | lcr |  7.7 | 0 Volts\nP5V STBY         | 34h | lcr |  7.1 | 2 Volts\nP12V STBY        | 35h | lnc |  7.4 | 10.37 Volts\nIPMI Watchdog    | 36h | ok  |  7.12 |\nroot@AMIB4055D8CB94B:~#\n\nroot@AMIB4055D8CB94B:~#\nroot@AMIB4055D8CB94B:~# ipmitool raw 0x04 0x2b 0x01\n c0 00 00 00 00\nroot@AMIB4055D8CB94B:~# ipmitool raw 0x04 0x2b 0x02\n c0 00 00 00 00\nroot@AMIB4055D8CB94B:~# ipmitool raw 0x04 0x2b 0x0\n e0 00 00 00 00\nroot@AMIB4055D8CB94B:~# ipmitool raw 0x04 0x2b 0x04\n c0 00 00 00 00\nroot@AMIB4055D8CB94B:~# ipmitool raw 0x04 0x2b 0x11\n e0 00 00 00 00\nroot@AMIB4055D8CB94B:~#\n\nSigned-off-by: Shamim Ali <shamima@ami.com>\nChange-Id: I38be71604cc68e6837f664d862f61f27662cfd8a\n",
+    "createdOn": 1632300109,
+    "lastUpdated": 1632301593,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1632300109,
+            "reviewer": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1632300124,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632300399,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/26741/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c21505cc1fa5dbe36899b86c127d1e20544db30d",
+            "parents": [
+                "98cb6186e77fb820dd26666118964897d36730be"
+            ],
+            "ref": "refs/changes/94/47094/1",
+            "uploader": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "createdOn": 1632300109,
+            "author": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 2
+        }
+    ]
+}

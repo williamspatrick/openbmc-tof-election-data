@@ -1,0 +1,889 @@
+{
+    "project": "openbmc/phosphor-logging",
+    "branch": "master",
+    "topic": "SBEErrorHandl",
+    "id": "Id94d8e10b3e0f82cb61d40bab9ef8b3f4a3beff9",
+    "number": 43835,
+    "subject": "PEL: enable SBE FFDC support in pel log",
+    "owner": {
+        "name": "Jayanth Othayoth",
+        "email": "ojayanth@gmail.com",
+        "username": "ojayanth"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-logging/+/43835",
+    "commitMessage": "PEL: enable SBE FFDC support in pel log\n\n FFDC Package structure and definitions are based on the\n SBE chip-op spec.\n FFDC packet Starts with a header word (Word 0) that has\n an unique magic identifier code of 0xFFDC followed by the\n length of the FFDC package including the header itself.\n Word 1 contains a sequence id , command-class and command\n fields. The sequence id field is ignored on the BMC side.\n Word 2 contains a 32 bit Return Code which acts like the\n key to the contents of subsequent FFDC Data Words (0-N).\n\n A FFDC package can typically contain debug data from either:\n   1. A failed hardware procedure (e.g. local variable values\n      at point of failure) or\n   2. SBE firmware\n        (e.g. traces, attributes and other information).\n    ___________________________________________________________\n   |        |  Byte 0   |  Byte 1  |  Byte 2    |    Byte 3   |\n   |----------------------------------------------------------|\n   | Word 0 | Magic Bytes : 0xFFDC | Length in words (N+4)    |\n   | Word 1 | [Sequence ID]        | Command-Class | Command  |\n   | Word 2 |           Return Code 0..31                     |\n   | Word 3 |           FFDC Data \u2013 Word 0                    |\n   |  ...                                                     |\n   | Word N+3 |  FFDC Data \u2013 Word N                           |\n    -----------------------------------------------------------\n\nThis commit enables SBE FFDC packet parsing for packet type\nmentioned in option 1 (A failed hardware procedure). Other case\nSBE provided tool based parsing is required. Not enabled in\nthis patch.\n\nSBE FFDC file data added as part of PEL user data section for\nfuture SBE tool based parsing.\n\nTested: Manually created SBE error with No core available for\n        Boot use case.\n\n\"User Data 2\": {   --> Raw SBE FFDC data\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"203\",\n    \"Created by\":               \"0x3500\",\n    \"Data\": [\n        \"FF DC 00 12 00 00 A1 01  00 8E CE 72 00 00 FF FE\n        \"00 00 00 04 00 00 00 00  00 00 00 04 00 00 00 00\n        \"00 00 00 00 00 00 00 01  00 00 00 00 00 00 00 02\n        \"00 00 00 04 00 00 00 00  00 00 00 00 00 00 00 04\n        \"00 00 00 00 00 00 00 00\n    ]\n},\n\"User Data 3\": {   -->  callout details\n    \"Section Version\": \"1\",\n    \"Sub-section type\": \"1\",\n    \"Created by\": \"0x2000\",\n    \"Data\": [\n        {\n            \"Deconfigured\": false,\n            \"Guarded\": false,\n            \"LocationCode\": \"Ufcs-P0-C24\",\n            \"MRUs\": [\n                {\n                    \"ID\": 65536,\n                    \"Priority\": \"H\"\n                }\n            ],\n            \"Priority\": \"H\"\n        }\n    ]\n},\n\"User Data 4\": {   -->  User Debug data.\n    \"Section Version\": \"1\",\n    \"Sub-section type\": \"3\",\n    \"Created by\": \"0x2000\",\n    \"Data\": [\n        \"HWP_RC = RC_SBE_SELECT_EX_INSUFFICIENT_ACTIVE_CORES_ERROR\",\n        \"HWP_RC_DESC = The requested active cores were\n         not able to be configured.\",\n        \"HWP_FFDC_CHIP = 6b3a7570 306e3a30 3a30733a 00323070\n         00000000 00000000 00000000 00000000 00000000 00000000\n         00000000 00000000 00000000 00000000 00000000 00000000\",\n        \"HWP_FFDC_CORE_CONFIG = 00000000\",\n        \"HWP_FFDC_ATTR_ACTIVE_CORES_NUM = 02\",\n        \"HWP_FFDC_ACTIVE_CORES_NUM = 00000000\",\n        \"HWP_FFDC_ACTIVE_CORES_VEC = 00000000\",\n        \"HWP_CDG_TGT_01_LOC_CODE = Ufcs-P0-C24\",\n        \"HWP_CDG_TGT_01_PHYS_PATH = physical:sys-0/node-0/proc-2\",\n        \"HWP_CDG_TGT_01_CO_REQ = true\",\n        \"HWP_CDG_TGT_01_CO_PRIORITY = HIGH\",\n        \"HWP_CDG_TGT_01_DECONF_REQ = false\",\n        \"HWP_CDG_TGT_01_GUARD_REQ = false\",\n        \"HWP_CDG_TGT_01_GUARD_TYPE = GARD_Fatal\"\n    ]\n}\n\nSigned-off-by: Jayanth Othayoth <ojayanth@in.ibm.com>\nChange-Id: Id94d8e10b3e0f82cb61d40bab9ef8b3f4a3beff9\n",
+    "createdOn": 1623068928,
+    "lastUpdated": 1623765867,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1623068928,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1623068957,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623068969,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Topic set to SBEErrorHandl"
+        },
+        {
+            "timestamp": 1623069149,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/18866/ : FAILURE"
+        },
+        {
+            "timestamp": 1623069437,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1623069459,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623070531,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/18870/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623092527,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1623157188,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1623157198,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1623157220,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623158067,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/18984/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623210179,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1623234184,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1623234217,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623234278,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 4:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1623235086,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19108/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623323062,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 5: Patch Set 4 was rebased."
+        },
+        {
+            "timestamp": 1623323094,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623323279,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/19261/ : FAILURE"
+        },
+        {
+            "timestamp": 1623324366,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1623324401,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623325289,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19266/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623328310,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1623333364,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 7: Patch Set 6 was rebased."
+        },
+        {
+            "timestamp": 1623333392,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623334262,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19281/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623350529,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 7: Code-Review+2"
+        },
+        {
+            "timestamp": 1623383634,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 8: Patch Set 7 was rebased."
+        },
+        {
+            "timestamp": 1623383664,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623384353,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19464/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623763939,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1623763978,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623764986,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19762/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623765756,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 9: Code-Review+2"
+        },
+        {
+            "timestamp": 1623765867,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Change has been successfully merged by Jayanth Othayoth"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "0db111492bff2f1ad16e560301fdc23f44e9105f",
+            "parents": [
+                "78dff7644f7d353b600203604f30953ed3e9f216"
+            ],
+            "ref": "refs/changes/35/43835/1",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623068928,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 133,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "2424a1724aad3d6a89d02da21ce19ae3985e5ce1",
+            "parents": [
+                "c408bf0252842d48072f07dc2d1d28cb69f7be78"
+            ],
+            "ref": "refs/changes/35/43835/2",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623069437,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "?  I don't think this is skipping anything?"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "typo , fixed."
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 134,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "was this just a debug printf?  you already printed fapirc above"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 134,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 137,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "could you add a comment on the meaning of SEE_DATA - why it doesn't need to be processed?"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 137,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 133,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "625c233c2ed2540792686daede0603d0fa7fa117",
+            "parents": [
+                "35f7bf2a0399061890b28151b92ed04cec1dd496"
+            ],
+            "ref": "refs/changes/35/43835/3",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623157188,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "Do we really need this trace in info level?\nIf something for debug purpose, please use DEBUG level."
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "This is the log information FFDC files contains valid SBE FFDC format file. will help for general debug."
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 100,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "Please use c++ style casting."
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 100,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "You can use c++ style memory allocation so, that you can avoid type casting"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 125,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "please use c++ style casting"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "line": 125,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "Looks you are using inside parse function, please move this into that function if scope limited to that function."
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Jayanth Othayoth",
+                        "email": "ojayanth@gmail.com",
+                        "username": "ojayanth"
+                    },
+                    "message": "Agrred your point. Since these constants are derived from SBE spec/code it is better to keep in header file  for future tracking ."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 134,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "15283e69f5b711f4dca04a8f4e080db9ffa56df6",
+            "parents": [
+                "f5634a5f3f1db1e5daf3eb79fe22c8692bb41e8f"
+            ],
+            "ref": "refs/changes/35/43835/4",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623234184,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 134,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 5,
+            "revision": "4dc7713038fbb8cc3b0d1c20ff261ff3da969634",
+            "parents": [
+                "817e930dba72cf01c0d580fd9b25b5dc999492f0"
+            ],
+            "ref": "refs/changes/35/43835/5",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623323062,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 134,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 6,
+            "revision": "cc57ba2e9d0ba2959fca5e9a48003da9a2c2ff9b",
+            "parents": [
+                "fd8fc3d4c50bcfd059ef4f8630eb67dfe9518673"
+            ],
+            "ref": "refs/changes/35/43835/6",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623324366,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 134,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 7,
+            "revision": "667164eee0898e37dd177b3ab14f504d9569f3da",
+            "parents": [
+                "649dc5c92ba3836aef19b59a7f3c1b61d8b51b0b"
+            ],
+            "ref": "refs/changes/35/43835/7",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623333364,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 134,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 8,
+            "revision": "fd4180fb43eccaaab97dc97d8bb74200551c08e4",
+            "parents": [
+                "69b42df146cc5ce5511b2caf4a66ba738c55b5f9"
+            ],
+            "ref": "refs/changes/35/43835/8",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623383634,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 134,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 9,
+            "revision": "0866c3fc66b9c0074fa4f86d06da879a6bba2f7a",
+            "parents": [
+                "c74c22028694a3eba0aaf5819fd611ffbf300b1c"
+            ],
+            "ref": "refs/changes/35/43835/9",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1623763939,
+            "author": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -1
+                },
+                {
+                    "file": "extensions/openpower-pels/sbe_ffdc_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 134,
+            "sizeDeletions": 1
+        }
+    ]
+}

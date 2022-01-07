@@ -1,0 +1,4620 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "Ibb45691f139916ba2954da37beda9d4f91c7cef3",
+    "number": 40731,
+    "subject": "EventService : Fix retry handling for http-client",
+    "owner": {
+        "name": "Sunitha Harish",
+        "email": "sunithaharish04@gmail.com",
+        "username": "sunharis"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/40731",
+    "commitMessage": "EventService : Fix retry handling for http-client\n\nWhen the event send/receive is failed, the bmcweb does not handle\nthe failure to tear-down the complete connection and start a fresh\n\nThe keep-alive header from the event listener is read to update\nthe connection states, so that the connection will be kept alive\nor closed as per the subscriber's specifications\n\nUpdated the connection state machine to handle retry logic properly.\nAvoided multiple simultaneous async calls which crashes the bmcweb. So\nadded few \"InProgress\" flags which protects simultaneous async calls.\n\nChanged buffer type from flat_buffer to flat_static_buffer and\nimposed an upper limit on total size avoiding heap allocations.\nAlso changed the requestDataQueue from std::queue to\ncircular_buffer_space_optimized which allocates memory as needed\nand dynamically controls size.\n\nUsed boost http response parser as parser for producing the response\nmessage. Set the parser skip option to handle the empty response message\nfrom listening server. On reception of response, the response code in\nthe header is checked to determine success/failure and trigger retry\nin the case of failure.\n\nTested by:\n  - Subscribe for the events at BMC using DMTF event listener\n  - Generate an event and see the same is received at the listener's console\n  - Update the listner to change the keep-alive to true/false and\n    observe the http-client connection states at bmcweb\n  - Changed listener client to return non success HTTP status code\n    and observed retry logic gets trigrred in http-client.\n  - Gave wrong fqdn and observed async resolve failure and retry logc.\n  - Stopped listener after connect and verified timeouts on http-client\n    side.\n\nChange-Id: Ibb45691f139916ba2954da37beda9d4f91c7cef3\nSigned-off-by: Sunitha Harish <sunithaharish04@gmail.com>\nSigned-off-by: AppaRao Puli <apparao.puli@linux.intel.com>\nSigned-off-by: P Dheeraj Srujan Kumar <p.dheeraj.srujan.kumar@intel.com>\n",
+    "createdOn": 1613723282,
+    "lastUpdated": 1633024963,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1613723282,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1613723297,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613723450,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/12686/ : FAILURE"
+        },
+        {
+            "timestamp": 1613723933,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1613723946,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613724971,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12688/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613979427,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 2:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1613983718,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 2:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1613985107,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1613985123,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613986027,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12766/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613995029,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1613995048,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613995950,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12772/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614059140,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 4:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1614064164,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 4:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1614182525,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1614182543,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614183462,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12981/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614184055,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614226483,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614250370,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1614250386,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614250490,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 6:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1614251354,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13036/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614325708,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1614325730,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614326649,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13093/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614580474,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614585127,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1614585156,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614615411,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1614615429,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614616355,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13161/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614672347,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1614672383,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614672412,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/13186/ : FAILURE"
+        },
+        {
+            "timestamp": 1614681547,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1614681567,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614681686,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 10:\n\n(22 comments)"
+        },
+        {
+            "timestamp": 1614682494,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13200/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614795547,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1614797870,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1614797890,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614797988,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1614798823,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13265/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614826924,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 11:\n\nThanks Appu"
+        },
+        {
+            "timestamp": 1614854287,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1614854320,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614854653,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/13312/ : FAILURE"
+        },
+        {
+            "timestamp": 1614856798,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1614856819,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614857747,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13316/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614933230,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1614933248,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614933589,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/13396/ : FAILURE"
+        },
+        {
+            "timestamp": 1614936818,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 15: Patch Set 14 was rebased."
+        },
+        {
+            "timestamp": 1614936838,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614937765,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13401/ : SUCCESS"
+        },
+        {
+            "timestamp": 1615182593,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 16: Patch Set 15 was rebased."
+        },
+        {
+            "timestamp": 1615182612,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615183548,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13455/ : SUCCESS"
+        },
+        {
+            "timestamp": 1615215403,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 16: Code-Review+1"
+        },
+        {
+            "timestamp": 1615270242,
+            "reviewer": {
+                "name": "Suryakanth Sekar",
+                "email": "suryakanth.sekar@linux.intel.com",
+                "username": "htnakayrus"
+            },
+            "message": "Patch Set 16: Code-Review+1"
+        },
+        {
+            "timestamp": 1615286319,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 16:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1615303671,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 16:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1615526511,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 16: Code-Review-1\n\nHas comments that need addressed"
+        },
+        {
+            "timestamp": 1615544828,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 16:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1615869798,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 16:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1615892706,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 16:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616006661,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 16: -Code-Review\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1616009373,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 17."
+        },
+        {
+            "timestamp": 1616011110,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616011714,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616012184,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13935/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616046915,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 17:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616071800,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 17:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616178162,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1616178183,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616178202,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 18:\n\n(6 comments)\n\nAll comments are addressed, Please review."
+        },
+        {
+            "timestamp": 1616178609,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14058/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616476824,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Patch Set 18: Code-Review+1"
+        },
+        {
+            "timestamp": 1616656158,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 18:\n\nHi Ed, Do you have any further comments on this. If not, can we proceed with +2?"
+        },
+        {
+            "timestamp": 1616689356,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 18:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1616689498,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 18:\n\n> Patch Set 18:\n> \n> Hi Ed, Do you have any further comments on this. If not, can we proceed with +2?\n\nThe patchset is still incorrect, so no, it will not be +2ed until all comments have been addressed."
+        },
+        {
+            "timestamp": 1617129426,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1617129442,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617129661,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 19:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1617130130,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14589/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617216438,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 19:\n\n(2 comments)\n\nHaven't reviewed the latest in the series yet.  Let me know when all of the comments have been addressed and I'll re-review it."
+        },
+        {
+            "timestamp": 1619724826,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 19:\n\nIs this patchset still being worked?"
+        },
+        {
+            "timestamp": 1619948522,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 19:\n\n> Patch Set 19:\n> \n> Is this patchset still being worked?\n\nYes Ed, I will address the comments and reload new one this week."
+        },
+        {
+            "timestamp": 1619953096,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Uploaded patch set 20: Patch Set 19 was rebased."
+        },
+        {
+            "timestamp": 1619953117,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619953542,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16548/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624351587,
+            "reviewer": {
+                "name": "Krzysztof Grobelny",
+                "email": "krzysztof.grobelny@intel.com",
+                "username": "krzysztof-i"
+            },
+            "message": "Patch Set 21: Patch Set 20 was rebased"
+        },
+        {
+            "timestamp": 1624351604,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624352019,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20332/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624962322,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 21:\n\nHi @Appu, do you have further work on this commit to be pushed as rework ?"
+        },
+        {
+            "timestamp": 1625050080,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 21:\n\n> Patch Set 21:\n> \n> Hi @Appu, do you have further work on this commit to be pushed as rework ?\n\nHi Sunitha,\n   There was on comment from Ed related to handling \"Http status\" after receiving response from Listener. We had code for handling that. Dheeraj will load new patch set with fix."
+        },
+        {
+            "timestamp": 1625136287,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 21:\n\n> Patch Set 21:\n> \n> > Patch Set 21:\n> > \n> > Hi @Appu, do you have further work on this commit to be pushed as rework ?\n> \n> Hi Sunitha,\n>    There was on comment from Ed related to handling \"Http status\" after receiving response from Listener. We had code for handling that. Dheeraj will load new patch set with fix.\n\nThank you!"
+        },
+        {
+            "timestamp": 1625158660,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 21:\n\n(8 comments)\n\nI've left the latest round of comments because it seems like this is being worked again.  I haven't done a complete review."
+        },
+        {
+            "timestamp": 1625262723,
+            "reviewer": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "message": "Uploaded patch set 22."
+        },
+        {
+            "timestamp": 1625262759,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625263193,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/21336/ : SUCCESS"
+        },
+        {
+            "timestamp": 1625263244,
+            "reviewer": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "message": "Patch Set 22:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1625571287,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 22: Code-Review+1\n\nThank you Dheeraj. I did a round of testing on the latest patch-set. Things are working good at our system."
+        },
+        {
+            "timestamp": 1625751833,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 22:\n\n(2 comments)\n\nOne comment, other code lgtm"
+        },
+        {
+            "timestamp": 1625755019,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 22:\n\n(11 comments)\n\nLooking closer."
+        },
+        {
+            "timestamp": 1625766203,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 22:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627501283,
+            "reviewer": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "message": "Uploaded patch set 23."
+        },
+        {
+            "timestamp": 1627501305,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627501755,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23102/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627504802,
+            "reviewer": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "message": "Patch Set 23:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1627505538,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1627505706,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1627506698,
+            "reviewer": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "message": "Patch Set 23:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1627507187,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1627932700,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1628433076,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 23:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1628551876,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628551959,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628551983,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628581779,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 24."
+        },
+        {
+            "timestamp": 1628581800,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 24: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628582126,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 24: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/24118/ : FAILURE"
+        },
+        {
+            "timestamp": 1628582149,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 24:\n\n(4 comments)\n\nI have moved part of the code from this commit to 45761 as per Ed's comment. https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/45761 is the new commit"
+        },
+        {
+            "timestamp": 1628582821,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 25."
+        },
+        {
+            "timestamp": 1628582840,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 25: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628583260,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 25: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24128/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628592428,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 26."
+        },
+        {
+            "timestamp": 1628592447,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 26: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628592632,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 26:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1628592987,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 26: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24134/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629149243,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 26: Code-Review+1"
+        },
+        {
+            "timestamp": 1629791737,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 27: Patch Set 26 was rebased."
+        },
+        {
+            "timestamp": 1629791754,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 27: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629792170,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 27: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24872/ : SUCCESS"
+        },
+        {
+            "timestamp": 1630270163,
+            "reviewer": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "message": "Patch Set 27: Code-Review+1"
+        },
+        {
+            "timestamp": 1631606586,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 28."
+        },
+        {
+            "timestamp": 1631606606,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 28: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631606684,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 28: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/26281/ : FAILURE"
+        },
+        {
+            "timestamp": 1631607251,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 29."
+        },
+        {
+            "timestamp": 1631607269,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 29: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631607324,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 29:\n\nhi Reviewers, I removed the prereq commit https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/45761 as that seems to be a abandon candidate. Votes are lost after this rebase. Please re-vote and get this to merge"
+        },
+        {
+            "timestamp": 1631607705,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 29: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/26282/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631875963,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 30: Patch Set 29 was rebased"
+        },
+        {
+            "timestamp": 1631875980,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 30: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631876666,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 30: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/26514/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631900897,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 30:\n\n(4 comments)\n\nThis is looking very close;  Just a couple more things to resolve."
+        },
+        {
+            "timestamp": 1631903654,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 30:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1631903683,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 30:\n\n> Patch Set 30:\n> \n> (4 comments)\n> \n> This is looking very close;  Just a couple more things to resolve.\n\nBTW, sorry I didn't catch these in the last round.  I probably should've"
+        },
+        {
+            "timestamp": 1632236564,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 30:\n\n> Patch Set 30:\n> \n> > Patch Set 30:\n> > \n> > (4 comments)\n> > \n> > This is looking very close;  Just a couple more things to resolve.\n> \n> BTW, sorry I didn't catch these in the last round.  I probably should've\n\nSure Ed. No Problem! I will work on these and push the changes soon"
+        },
+        {
+            "timestamp": 1632993743,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 31."
+        },
+        {
+            "timestamp": 1632993775,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 31: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632994305,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 31: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27235/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632995143,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 31:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1633016228,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 31:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633024960,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 31: Code-Review+2\n\nI'm going to merge this under the premise that while I think it still has bugs, it has fewer and less severe bugs than it did before, and therefore is \"better\".  Lets keep discussing the last thing, but there's no reason to hold this up any longer"
+        },
+        {
+            "timestamp": 1633024963,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 6eaa1d2f43612cddb2312e657455d0ef2bc5fd93 by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "11e148dd987a548cb5efdd76d51029feb05fc737",
+            "parents": [
+                "55277ede959950a6fad61e4c73776cfab19fa636"
+            ],
+            "ref": "refs/changes/31/40731/1",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1613723282,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 141,
+                    "deletions": -126
+                }
+            ],
+            "sizeInsertions": 141,
+            "sizeDeletions": 126
+        },
+        {
+            "number": 2,
+            "revision": "ea13398572fe72ac77bba9662f2f7100ee17f7ae",
+            "parents": [
+                "55277ede959950a6fad61e4c73776cfab19fa636"
+            ],
+            "ref": "refs/changes/31/40731/2",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1613723933,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Thanks Sunith for separating this retry logic from original commit (https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/31735). I see some issues with this change and i am currently addressed some and planning to load new patch set here."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "common error."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "method removed !"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "This is closing the connection which is done in doClose(). So this doesn't make sense to make it as doInit()"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Appu, As we are reusing this connection for our retry logic.\n\nI am hoping what is being done here is to make sure that close the existing connection, I agree that doClose should have been called."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "method removed"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Don't we need conn.expires_after here?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "No. We wait for the response here"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 206,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Send failure means, its should fall under retry logic,  not direct Init."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 206,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Yes, Change the state sendFailed."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 206,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 219,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "I understand the intent here, but I feel that we shouldn't pop_front, Untill we get the HTTP 201 from the client.\nWhat we can do:\n   We shouldn't allow other messages to be send until we complete this transaction."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 219,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 236,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "same Here, It should fall under retry logic."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 236,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 340,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Better to init the connection when there is data in request queue. Add below code before init()\n                if (requestDataQueue.empty())\n                {\n                    BMCWEB_LOG_DEBUG << \"requestDataQueue is empty\";\n                    return;\n                }"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 340,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 340,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 358,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Better to call connect when there is data in request queue().\nif (requestDataQueue.empty())\n                {\n                    BMCWEB_LOG_DEBUG << \"requestDataQueue is empty\";\n                    return;\n                }"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 358,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This state is removed now"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 424,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can we rename this to \"addHeaders\" now that it's not just setting them?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 424,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 431,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "why was this changed?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 431,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This change was done as part of the initial rework on the parent commit 31735"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -126
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 126
+        },
+        {
+            "number": 3,
+            "revision": "8193e17459386b6158bef30a2a9253ad5a846eaa",
+            "parents": [
+                "03e125b2df862e2bb38b0123ae1284358b799b7e"
+            ],
+            "ref": "refs/changes/31/40731/3",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1613985107,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 187,
+                    "deletions": -148
+                }
+            ],
+            "sizeInsertions": 187,
+            "sizeDeletions": 148
+        },
+        {
+            "number": 4,
+            "revision": "74d13fe802a6c0187b2672c8bcb0e6d3683a5e7f",
+            "parents": [
+                "03e125b2df862e2bb38b0123ae1284358b799b7e"
+            ],
+            "ref": "refs/changes/31/40731/4",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1613995029,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Having a single flag is also good"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 219,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Setting retry is fine. But retry should try fresh connection establishment."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 219,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "yes, It does re-establish the connection."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 219,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 263,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "When the abortConnection state is set, doClose is called. So with this change, client will again start with doResolve since you are setting the ConnState::closed here. This is not the desired behavior"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 263,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "When event listener not set the keep-alive, This will close the connection and make sure to re-establish the connection for sending remaining data in queue. We should  NOT stop/abort the sending event. It just need to abort connection and re-establish in that case. So we are good."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 263,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 322,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This will keep calling the retry action again and again until the max attempts. We should change the ConnState here to get this to try the fresh connection - starting from resolving the host\n\nNote: self->state = ConnState::initialized; from the patch set 1 is removed here."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 322,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "No need to change the connection state here. When control falls under retry logic, It will close existing connection and state will transition to ConnState::closed. So after wait timeout, It starts the fresh connection.\n\nBut i didn't noticed that doClose() call is removed in this patch which was there in original patch. I will add it back."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 322,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 171,
+                    "deletions": -148
+                }
+            ],
+            "sizeInsertions": 171,
+            "sizeDeletions": 148
+        },
+        {
+            "number": 5,
+            "revision": "f924c7f803805f111fa72ce0aca63f949c0b261a",
+            "parents": [
+                "23c39cfc19adee600ec265d22ef15e7eeb322a94"
+            ],
+            "ref": "refs/changes/31/40731/5",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614182525,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 323,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "@Appu - While i was testing this latest changes with two event subscribers - i was able to receive the events at only one subscriber. Other subscriber was unable to receive the events , and the \"Async operation is already in progress\" hits. So this does not work as expected"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 323,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "connBusy is private member variable in HttpClient class and each subscription will have its own httpCLient object. So theoretically, It will not impact with increasing subscriptions. May be you need to check once from Listener side which is failing. I will also look at the any corner cases, where we are not resetting this flag. If you can enable debug logs and send it, that will be helpful."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 323,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "I found that there is case in doResolve(), missed to reset connBusy flag which might be reason for above specified issue. Its corrected now. Do check with latest code."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 323,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 171,
+                    "deletions": -148
+                }
+            ],
+            "sizeInsertions": 171,
+            "sizeDeletions": 148
+        },
+        {
+            "number": 6,
+            "revision": "fd57187d5abdd772927883ee10925d71e9034a36",
+            "parents": [
+                "9783097f944d0d1177b6b4d697ae775aed280b3f"
+            ],
+            "ref": "refs/changes/31/40731/6",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1614250370,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 174,
+                    "deletions": -148
+                }
+            ],
+            "sizeInsertions": 174,
+            "sizeDeletions": 148
+        },
+        {
+            "number": 7,
+            "revision": "e82c7351542cab9f8285e43f0ff12bfa4f01ad69",
+            "parents": [
+                "9f7e3b27f92d5fece0e64352f5835ff6dc2f64b5"
+            ],
+            "ref": "refs/changes/31/40731/7",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614325708,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 206,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is not true.  We need to check the response was in the 200 range, and retry if it wasn't."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 206,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 213,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This should be a value, not a reference."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 213,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Duplicate code. This is already done 247 & 248 Lines."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "In case of error, the parser will not have any content. So we should not process further and check the header for the keep_alive flag, release call etc"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Tested this"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "For correct state machine check, return immediately after calling handleConnState()[This has some async calls]. We may end up on unknown issues if we process data even after calling handleConState(In below case, state value is changed from retry to idle/abort)."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 227,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I know this was here before, but please just remove the bytes Transferred from the callback signature."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 227,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "bytesTransferred is a required parameter to the asyc_read"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 321,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "errors that aren't operation_aborted should not be ignored, and should be passed to the higher scope."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 321,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ed, What is higher scope ? Can you please elaborate the comment?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 401,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This isn't needed."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 401,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 407,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please use the overload that allows setting some of these in the constructor, instead of constructing them immediately overriding.\n\nmessage(\n    verb method,\n    string_view target,\n    unsigned version,\n    BodyArg&& body_arg,\n    FieldsArg&& fields_arg);"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 407,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 414,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Shouldn't this be retried?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 414,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "No. State suspended means - the subscriber is not interested in receiving events. Terminated state indicates that the connection is not available to send events."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 173,
+                    "deletions": -148
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 148
+        },
+        {
+            "number": 8,
+            "revision": "7f09aae0addfbbb686ce5657207d5bc73f779483",
+            "parents": [
+                "ad9d327149086bc3d06f514d948bfb5d4fad3c2a"
+            ],
+            "ref": "refs/changes/31/40731/8",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614615411,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 173,
+                    "deletions": -148
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 148
+        },
+        {
+            "number": 9,
+            "revision": "45887e9518170197eaa48f0fdac67701dcb07d67",
+            "parents": [
+                "725dc0667872d220e496dbd1131100bde8128091"
+            ],
+            "ref": "refs/changes/31/40731/9",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614672347,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 182,
+                    "deletions": -157
+                }
+            ],
+            "sizeInsertions": 182,
+            "sizeDeletions": 157
+        },
+        {
+            "number": 10,
+            "revision": "23b5c755243dbf073b80c8dde64ce5faf18686e0",
+            "parents": [
+                "b66b6588688d2f1dc0f9841db3c15074ef519c4e"
+            ],
+            "ref": "refs/changes/31/40731/10",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614681547,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 407,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "uri is empty at this point. Need to use destUri"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 407,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 173,
+                    "deletions": -152
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 174,
+            "sizeDeletions": 153
+        },
+        {
+            "number": 11,
+            "revision": "b561d67732b39727db6597ef5ff81714930d72ad",
+            "parents": [
+                "6a3b49940ab66644ab38fba349a1a7cf5024bc26"
+            ],
+            "ref": "refs/changes/31/40731/11",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1614797870,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 166,
+                    "deletions": -146
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 167,
+            "sizeDeletions": 147
+        },
+        {
+            "number": 12,
+            "revision": "2ce2a732e24d4754950b0fc93eb32a268dda6179",
+            "parents": [
+                "b0ebfd7d7076c56188f7ba22fd97ba6510b56965"
+            ],
+            "ref": "refs/changes/31/40731/12",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614854287,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 163,
+                    "deletions": -143
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 144
+        },
+        {
+            "number": 13,
+            "revision": "ec2cc8e2ec6ef2b42ff51a6916f989d9c7ef9acf",
+            "parents": [
+                "0999a602524159d64cc29e2ce664197755404fa7"
+            ],
+            "ref": "refs/changes/31/40731/13",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614856798,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 163,
+                    "deletions": -143
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 144
+        },
+        {
+            "number": 14,
+            "revision": "28d528a425030beba46fc41ca088a79812bca256",
+            "parents": [
+                "1167586092fd11477c550d36a18c0d10595fa144"
+            ],
+            "ref": "refs/changes/31/40731/14",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614933230,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 163,
+                    "deletions": -143
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 144
+        },
+        {
+            "number": 15,
+            "revision": "8b7c9633bb7226893c64b27f6c4cb3027236f652",
+            "parents": [
+                "2bbbc76e70fa4b061d8a656c17875b65e57c8db2"
+            ],
+            "ref": "refs/changes/31/40731/15",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1614936818,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 163,
+                    "deletions": -143
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 144
+        },
+        {
+            "number": 16,
+            "revision": "303ae23d5d3762859114a363cf84e7782d6e03d5",
+            "parents": [
+                "29a82b08abd4bb1435cf5b18b3d7638b6be0cc63"
+            ],
+            "ref": "refs/changes/31/40731/16",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1615182593,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Isn't this what the state flag is already for.  This is http1.1, so there is not need for multiple state flags, only one thing can be happening at a time."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "State and connBusy are two different things.\n - ConnBusy: It is used specifically  for tracking  \"async operation in progress\" or not( Any async operation is in progress which is making connection busy)\n\n  - State: It is used donate the actual state of connection and stages of state transition  Like Resolved, Connected, Idle, closed, retry etc.."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> State and connBusy are two different things.\n>  - ConnBusy: It is used specifically  for tracking  \"async operation in progress\" or not( Any async operation is in progress which is making connection busy)\n> \n>   - State: It is used donate the actual state of connection and stages of state transition  Like Resolved, Connected, Idle, closed, retry etc..\n\nThere's no difference between those two.  Both are tracking the state of the connection.  \"Waiting for data\" is a perfect example of a state that the connection can be in.  in what I'm requesting, \"Connected\" just becomes \"ConnectedWaitingForData\" and \"ConnectedSendingData\" which can still track the async state, but also keeps it the same as the error state.  I think that's simpler."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Initially it was done most similar way, All states like connected/send/recv etc.. has \"InProgress\" tag attached states when associated async operation is in progress like connectInProgress, sendInProgress etc... But that is making little complex.(Example: Code has to verify for all \"<xyz>InProgress\" states, before proceeding call for next state transition. So bit of optimization made with this busy flag.\nIdeally both does job here but if it makes more sense to make under single state enum, I will change it accordingly."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "See comment in the commit message.  It's not clear why this was bifurcated."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 204,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Even though you've removed this comment, it's still happening.  If we get a non 200 error code, we need to retry."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "How did we reach at this number?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm assuming it's arbitrary and small, as we should only be getting trivial payloads.\n\nIt probably should be 8192 just to be a power of 2, but other than that, this is small enough that it shouldn't cause a memory issue."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: Why was this moved?  I'm not seeing an obvious reason for it to be the last thing initialized."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Just to order the initializer list during construction. Anyway moved it back to original with change order of constructor initializer list.\nDone"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Instead of keeping the connBusy in this class and checking in every function.\n\nHow about in every state function there should be a precondition like.\n\nIf state == Idle || state = <some other state> then allow otherwise not. I am hoping the intention to keep this var to not allow/server other event while the current once has not completed."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "That is first approach we took but changed it later, because those two are two different things and also having it separate makes it simple instead of having may state.\n - ConnBusy: It is used specifically  for tracking  \"async operation in progress\" or not( example: The resolve/connect/write/read/close async operation is in progress which is making connection busy)\n\n  - State: It is used donate the actual state of connection Like Resolved, Connected, Idle, closed, retry etc.."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "See prior comment, I don't believe it makes it simpler, and makes it much easier to accidentally not put things in the right state on error conditions."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Replied on other place."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, this is duplicated in both sides of the conditional."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 96,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "We are directly calling the doConnect function here, Shouldn't we change the state and call handleConnState which should call the respective function depending on the state.\n\nWe did the same in the doConnect and recvMessage\n\nbut in the rest of the functions\n\n* Failure case: call the handleConnState\n* Success case: Call the next state function."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 96,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "I agree, Our initial code does same. Everything is handled though handleConnState() API. But later changed. Let me check and move it back to handleConnState()"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 96,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Yes. This change was done as per Ed's comment."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 96,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If you want to start a fresh connection, you need to actually create a fresh connection.  I suspect the core of this here is that we need to separate this class into two classes, an HttpClientConnection class, and a HttpClient class.  When we go into retry, the HttpClientConnection class can be completely destroyed and re-initialized.  Keeping them separate will ensure that we destroy the correct state, and can keep the details of things like keepalive separate from the details of retries."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This seems to be a good design Ed. But having spent a lot of rework & testing on this commit, i think, we can go ahead with the current approach for now. \nThis commit is tested multiple times, and we have the good path & some obvious bad paths working as expected. New design may cover even the corner cases, which can be taken up as new work. \n\nAppu/Ratan, please share your views."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Any comments on this please ?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "I am fine with staged approach but the decision lies with Ed :)"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Currently we are setting state to retry and following the fresh connection process. As Ed suggested, other approach of having connection class and implementation class separate may be better.\nAgree with Ratan. Can we move on with current approach?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 191,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Recieve??"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 191,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The send is not successful at this point, you need to check return codes."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 191,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Ratan, basically after write some data, we read response from webserver and confirm, Event is successfully delivered. So its confirming Event is successfully sent.\n\nEd, Will check status code"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 191,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Current ec is checked for failure. Not quite sure how to check HTTP status in this case. I will check and add as new commit later."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 233,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "why we are putting the state change under the condition? \nat line no 229 we know that there is no error during shutdown so we could have changed the state over there."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 233,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Basically when we exhaust all retries and the retryPOlicy is set to suspended/terminated, We should stop handleConnState()  keep state as suspended/terminated only."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 369,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "We set keepalive, but we don't seem to actually implement it properly.  I see no checking of the keep alive headers from the response."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 369,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "We are checking keep-alive response in recvMessage function and appropriately move connection state. Its done at line no: 203"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 163,
+                    "deletions": -143
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 144
+        },
+        {
+            "number": 17,
+            "revision": "d0a97cbe3e08e0454017bac473aedbfca4a90661",
+            "parents": [
+                "7ea79e5e15814eb8566f3e6799f2d7eee23527a6"
+            ],
+            "ref": "refs/changes/31/40731/17",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1616009373,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 162,
+                    "deletions": -142
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 163,
+            "sizeDeletions": 143
+        },
+        {
+            "number": 18,
+            "revision": "eacb42392f18075d5daf8ec655c4fc8c845d4792",
+            "parents": [
+                "6c9a279eeec173dd64bf4866beec90839f1a1a42"
+            ],
+            "ref": "refs/changes/31/40731/18",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1616178162,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is not adequate tests.  Please simulate server failures, server timeouts, dns failures, and 400/500 server responses, as all take different paths through this code."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Doesn't look used, and shadows other variables with the same name.  I'm surprised the compiler didn't complain."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 107,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "At this point, we know that the resolve succeeded, we can call directly to doConnect, right?\n\nThis would also mean that we can just pass endpoints in as an argument to doConnect, rather than having to store it in this object, thus simplifying the state machine here.\n\nThis is the pattern that httpConnection follows, which I'd like to keep at least in part, because we know it works."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 107,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "This is place we went back and forth but i see both side in either of approach. I prefer the approach of storing resolved endpoint on this object:\n\n It gives provision for some performance improvements. As i did observed Resolving host name is taking more time and may become bottle neck for some companies who is running slow processor. Keep this way, Makes doResolve isolated from connect. So it can be optimized in future.\nexample: \nIf Send/recv fails -> Instead of starting from resolve, it can start from Connect.\nIf connect fails, Then it will start from Resolve.\n\nAlso with it all actions on connection are handlers via handleCOnnection(),"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 107,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> This is place we went back and forth but i see both side in either of approach. I prefer the approach of storing resolved endpoint on this object:\n> \n>  It gives provision for some performance improvements. As i did observed Resolving host name is taking more time and may become bottle neck for some companies who is running slow processor. Keep this way, Makes doResolve isolated from connect. So it can be optimized in future.\n\nI'm not following that, any optimization could be done regardless of how the code is organized.  Also, at such time as the optimization is done, we could reorganize the code to make it simpler.\n\n> example: \n> If Send/recv fails -> Instead of starting from resolve, it can start from Connect.\n\nI wouldn't be in favor of this.  This would have bad behavior for failover and load balancing, where a server may have failed, and need to call a different server, in which case resolve would be requred.\n\n> If connect fails, Then it will start from Resolve.\n> \n> Also with it all actions on connection are handlers via handleCOnnection(),"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 174,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Still incorrect."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 174,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Removed."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Still need to check the resulting message for failures."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "I tried to find some references for this but couldn't find. More ever, When i changed listener to return non success return code(other than 20x status code), I see its async_read failure and retry loop gets triggered. May be need to improve on this which can be taken as separate commit.\n(2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":130] Connected to: xx.xx.xx.xx:5002\n(2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":140] sendMessage(): xx.xx.xx.xx:5002\n(2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":158] sendMessage() bytes transferred: 131\n(2021-03-30 18:24:44) [ERROR \"http_client.hpp\":183] recvMessage() failed: bad version\n(2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":279] Attempt retry after 0 seconds. RetryCount = 2"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> I tried to find some references for this but couldn't find.\n\nPlease look harder.  Http return codes are well documented.\n\n> More ever, When i changed listener to return non success return code(other than 20x status code), I see its async_read failure and retry loop gets triggered. May be need to improve on this which can be taken as separate commit.\n\nThis would generally imply that your server is giving bad responses, or you're parsing those responses incorrectly.  This should be root caused before this commit merges.\n\nFeel free to stack another commit on top of this one, but this commit (which claims to fix retry handling) won't be merged until it's correct.\n\n> (2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":130] Connected to: xx.xx.xx.xx:5002\n> (2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":140] sendMessage(): xx.xx.xx.xx:5002\n> (2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":158] sendMessage() bytes transferred: 131\n> (2021-03-30 18:24:44) [ERROR \"http_client.hpp\":183] recvMessage() failed: bad version\n> (2021-03-30 18:24:44) [DEBUG \"http_client.hpp\":279] Attempt retry after 0 seconds. RetryCount = 2"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 214,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This doesn't transfer the response to anyone....."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 214,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 299,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "FWIW, I'm really not liking this pattern of calling handleConnState() seemingly randomly, just to be able to get to another member method.  If we need to call another method, we can call it directly, the only connection state check we really need is for things being added to the output queue.\n\nWith that said, this was here before, so it's ok for the moment."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 299,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Ok Ed, We can think of improvement here future commits. I will keep it my Todo list for future improvements."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 165,
+                    "deletions": -130
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 166,
+            "sizeDeletions": 131
+        },
+        {
+            "number": 19,
+            "revision": "621253fa1c445ddc9d92f9f5d81fa5a0bb540986",
+            "parents": [
+                "4df1bee0bdc9d71043b51872875d3d22b26ab68f"
+            ],
+            "ref": "refs/changes/31/40731/19",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1617129426,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 164,
+                    "deletions": -130
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 131
+        },
+        {
+            "number": 20,
+            "revision": "3d6c3b3e91c04ff8f10bff49bcf2a7d7206c53df",
+            "parents": [
+                "d3d26ba270b55ad0d76b45816fbc8fb6a8cd4489"
+            ],
+            "ref": "refs/changes/31/40731/20",
+            "uploader": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@linux.intel.com",
+                "username": "apuli1"
+            },
+            "createdOn": 1619953096,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 164,
+                    "deletions": -130
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 131
+        },
+        {
+            "number": 21,
+            "revision": "f74393a9bca899e353be3d0e2dc5c224539fe432",
+            "parents": [
+                "54d1355fdcaea8a9b83c8fd5d7aac9b244a6146b"
+            ],
+            "ref": "refs/changes/31/40731/21",
+            "uploader": {
+                "name": "Krzysztof Grobelny",
+                "email": "krzysztof.grobelny@intel.com",
+                "username": "krzysztof-i"
+            },
+            "createdOn": 1624351587,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 162,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The connection timer got deleted?  This wasn't mentioned in the commit message."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 162,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Added back. I guess it was missed by chance."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This change seems unrelated to the patch?  I'm not against it (it seems better) but needs a separate commit message as to why it's being done."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is the same thing as above.  I don't have a problem with using circular_buffer here over std::queue, but it deserves its own commit."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "When the handleConnState() method is cleaned up, this member variable will no longer be needed, and can be passed directly to doConnect."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 142,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Doesn't the request object need to be cleared somewhere?  It could contain headers from the last request."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 142,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "I guess it wouldn't be required, as each time sendMessage is called, the body would be replaced by new data, and req.prepare_payload() would make necessary correctios to header if required.\nThe remaining part of the header remains common for every event sent, which can be configured by calling addHeaders()."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 174,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Like was discussed on previous patches, this is incorrect, and needs fixed."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 193,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As was discussed previously, we need to check on the status of the response object that was returned."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 193,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 214,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As was discussed previously, we need to check on the status of the response object that was returned."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 164,
+                    "deletions": -130
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 131
+        },
+        {
+            "number": 22,
+            "revision": "a64b4f9ea4318f6d9e6089a8c1a4fd49e3d89d5c",
+            "parents": [
+                "1981771bbd8aac1d689a9c5e258a99e655a76b29"
+            ],
+            "ref": "refs/changes/31/40731/22",
+            "uploader": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "createdOn": 1625262723,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This too has nothing to do with retries, in another commit please."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "This is being used to define the buffer (Line 67 which is called out in the commit message). And the buffer is used in async_read."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Right.... the buffer change on line 67 also needs to be in its own commit."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 198,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "nit: invert the condition.\nif (!self->parser->is_done() || !self->parser->is_header_done())\n{\n    self->state = ConnState::recvFailed;\n    self->handleConnState();\n    return;\n}"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 198,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Isn't this check redundant?  If the request is done, the headers are definitely done.  I suspect we can remove the is_header_done part.\n\n\nActually, reading this more, I'm not sure this check is required at all.  if the request never completed, then the async_read would return an error in ec, and we would end on line 190.  I suspect this whole branch can be removed."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 198,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Inversion of condition is done, and also removed the redundant is_header_done() check."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 198,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@linux.intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "Event listener can also send response without content like 204 - Empty data. Also in way we can consider 201(Created), 202(Accepted) also success cases.  So you can add check for those as well( IMO, We can treat any 2xx code should be successful)."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1\n\nTechnically per HTTP we should also handle redirects, but I'm not sure how important that is for a bmc, and definitely should be part of another patchset."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "if we do it at all."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Done. Added condition to treat success for all 2XX response codes."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 243,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Do we need to do this?  The parser needs reconstructed on each request anyway, releasing it should do nothing (i think)"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 243,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 315,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please capture operation_aborted and make sure it prints at debug level.  Not all timer errors are functional errors."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 315,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "I think LOG_ERROR is chosen as it is actually trying to log timer error.\nAll timer errors may not be functional errors, but irrespective of the error we would be closing the connection either ways, and also ec.message()  would give us the needed info on what happened to the timer."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 315,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> I think LOG_ERROR is chosen as it is actually trying to log timer error.\n\nNot all errors are should be printed at error level.   The way you're using the timer, operation aborted is not an error.\n\n> All timer errors may not be functional errors, but irrespective of the error we would be closing the connection either ways,\n\nThis is not correct.  operation aborted means that we canceled the timer because the operation succeeded.  We should not be closing the connection if the operation succeeded.\n\n> and also ec.message()  would give us the needed info on what happened to the timer.\n\nI'm less worried about the actual prints, more that you've ignored the golden path here."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 315,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "I think, in this context we wouldn't be cancelling the timer right?\nThis timer is just to add a timeout between timeouts. so there would be no success case to cancel this timer. \nEither the timer times out or some other issue occurred, and hence the retry."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 315,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> I think, in this context we wouldn't be cancelling the timer right?\n\noperation aborted will trigger on shutdowns or any time this class is destructed.\n\n> This timer is just to add a timeout between timeouts. so there would be no success case to cancel this timer. \n\nIf bmcweb is shut down while this is working, this will fire.\n\n> Either the timer times out or some other issue occurred, and hence the retry."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 315,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 317,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This seems wrong.  If the timer fails, we should destroy the whole connection and start over.  I suspect you did this to handle the operation aborted case, but once that's handled, timer failures should only happen on bmcweb shutdown, or other extreme cases."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 317,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Yes. Line 322 initiates close and starts over again from resolving state.\nI think the comment means to say, irrespective of the error, lets close the connection and start over again."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 317,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Right, which is incorrect.  We should not be retrying the operation if the error is operation_aborted."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 317,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "This timer is not being cancelled anywhere. So i guess this condition shouldn't arise."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 317,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Gotit, I did misunderstand that, but we still need to explicitly handle shutdown."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 317,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 346,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "?  Doesn't the connection need closed if the queue is empty?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 346,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "I think at this stage the connection is either not created at all, or it is already closed. So return should suffice I suppose."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 346,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "That's a fair point.  ok as is."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 346,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 411,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "These two headers have nothing to do with retries.  They look fine to me, but please put them in another patchset."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 411,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 414,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This also seems like it needs to be done in another patchset.  Also, doesn't this throw when going over the limits?   That error doesn't look handled."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 414,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 423,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "emplace_back with a std::move will avoid the string copy of a potentially large string."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 423,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "boost::circular_buffer_space_optimized doesnt have emplace_back member function.\nIt only has either push_back or push_front"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 423,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "understood about emplace_back not being available, but this still should use the rvalue overload of push_back, not the lvalue overload."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 423,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I am not sure how to do this. Need to check more.\nDo you have any link handy which can explain the difference between these tow overloads of push_back() ? What are the pros and cons of each ?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 423,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is already incorrect on master, so it's fine as-is;\n\ntechnically you would change the prototype of this to\n\nvoid sendData(std::string&& data)\n\nThen this call to\n\nrequestDataQueue.push_back(std::move(data))\n\nwhich would avoid the (potentially large) string copy, but like I said, this is ok as is."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Isn't this now going to duplicate headers every time, because the req object isn't reset?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Nope. Request.set is going to replace the value if the key already exists. So shouldn't be an issue."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Unless one request has different headers than the other one, in which case the second request will get the first requests headers."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This wasn't done."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "req is a private member of HttpClient, which is a object per subscriber. So there is no scope of changing the custom http headers, until the subscription is alive. So all the messages which are being sent to a single subscriber will have same set of headers."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 189,
+                    "deletions": -126
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 190,
+            "sizeDeletions": 127
+        },
+        {
+            "number": 23,
+            "revision": "862f1bbc5ca2fc35dced97847516d96767b60814",
+            "parents": [
+                "7088690c98169f0a8710909560647a560287f8a6"
+            ],
+            "ref": "refs/changes/31/40731/23",
+            "uploader": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "createdOn": 1627501283,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "like I mentioned before, please have the async_connect handler directly call into the sendMessage code, which removes the need for storing this in the class, and avoids several copies of it along the way."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "To remove this member, we need to bring back the base file change(at line #100) to pass the endpointList to the doConnect method"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Right, that seems fine?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 422,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Given that you're now handling retries, isn't this statement incorrect?  an attempt to send data on a suspended or terminated connection should result in a reconnect, right?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 422,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "If the connection is suspended/terminated, we should not retry. There should not be an attempt to sendData since its a \"known good state\" where its decided not to send the events out"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 422,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "ok, I see that those two terms were not what I thought.  Fine as is."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 422,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 189,
+                    "deletions": -126
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 190,
+            "sizeDeletions": 127
+        },
+        {
+            "number": 24,
+            "revision": "7fa9e89cce199320e76c6f2878a3ac26a5828404",
+            "parents": [
+                "4529ef8b9151ddfbc0899e9572f789ea5a766294"
+            ],
+            "ref": "refs/changes/31/40731/24",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1628581779,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 167,
+                    "deletions": -95
+                }
+            ],
+            "sizeInsertions": 167,
+            "sizeDeletions": 95
+        },
+        {
+            "number": 25,
+            "revision": "e6f5b059bda3456487cfd619883e8d6e9efe868c",
+            "parents": [
+                "f9daf7a5caa6676206d572db1812600cc3847295"
+            ],
+            "ref": "refs/changes/31/40731/25",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1628582821,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 167,
+                    "deletions": -95
+                }
+            ],
+            "sizeInsertions": 167,
+            "sizeDeletions": 95
+        },
+        {
+            "number": 26,
+            "revision": "eb1908b9cf27ecea21b0f7b199cde7e7388a4b77",
+            "parents": [
+                "f9daf7a5caa6676206d572db1812600cc3847295"
+            ],
+            "ref": "refs/changes/31/40731/26",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1628592428,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 155,
+                    "deletions": -89
+                }
+            ],
+            "sizeInsertions": 155,
+            "sizeDeletions": 89
+        },
+        {
+            "number": 27,
+            "revision": "f021d20665397f243f5a6636176a4ecb2319c5f3",
+            "parents": [
+                "b80484ed4e985ee76cc4dcd11c57dcc1dd069cf0"
+            ],
+            "ref": "refs/changes/31/40731/27",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1629791737,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 155,
+                    "deletions": -89
+                }
+            ],
+            "sizeInsertions": 155,
+            "sizeDeletions": 89
+        },
+        {
+            "number": 28,
+            "revision": "7ad4a43b1249e3384698d3601a5b3256bdf9718e",
+            "parents": [
+                "dc7519de2868915d35e971db72bac2066e488fff"
+            ],
+            "ref": "refs/changes/31/40731/28",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1631606586,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 154,
+                    "deletions": -89
+                }
+            ],
+            "sizeInsertions": 154,
+            "sizeDeletions": 89
+        },
+        {
+            "number": 29,
+            "revision": "4690e96bca03ae882d036e2e4e6d21ca1c72643a",
+            "parents": [
+                "dc7519de2868915d35e971db72bac2066e488fff"
+            ],
+            "ref": "refs/changes/31/40731/29",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1631607251,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 154,
+                    "deletions": -88
+                }
+            ],
+            "sizeInsertions": 154,
+            "sizeDeletions": 88
+        },
+        {
+            "number": 30,
+            "revision": "35f4775fb664ec616b856165f3e329023034d739",
+            "parents": [
+                "7de9f811db3400121e1453b1fa3da09ae6df69f6"
+            ],
+            "ref": "refs/changes/31/40731/30",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1631875963,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 208,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I realize it's unlikely, but please check for existence of the parser before dereferencing it.  In theory a bad code path could've nulled it out."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 208,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done. removed this check"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 216,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Is this branch needed in practice?  This should only be needed when calling async_read_some.  If the ec doesn't have an error code in it, there's no need to check the doneness of the parser, as it would've errored out.\n\nWith that said, you wrote this code for a reason;  Did this happen in practice, or is it leftover from when we were only reading in headers?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 216,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done.\nThis section can be removed as mentioned"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 326,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can we reverse these two checks and simplify?\n\nif (ec == boost::asio::error::operation_aborted)\n...\nelse if (ec)\n..."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 326,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 335,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If the timer was canceled, doesn't it meant the the request went through as planned?  I suspect we shouldn't be closing in that case, and should return from line 238?"
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 335,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "We are closing the connection here - as things are complete, and there is no more handleConnState to be called."
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "line": 335,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Even if the timer was canceled?  (ie it hits the condition on line 326?)  Doesn't the timer get canceled every time a second completes?  That seems like keepalive wouldn't work."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 154,
+                    "deletions": -88
+                }
+            ],
+            "sizeInsertions": 154,
+            "sizeDeletions": 88
+        },
+        {
+            "number": 31,
+            "revision": "4eaf3ea5dee648fcf1ee16df62ea34573e7850f6",
+            "parents": [
+                "68452cb09d5b9b87df48217750d4ad7eb387aedc"
+            ],
+            "ref": "refs/changes/31/40731/31",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1632993743,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -88
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 88
+        },
+        {
+            "number": 32,
+            "revision": "6eaa1d2f43612cddb2312e657455d0ef2bc5fd93",
+            "parents": [
+                "1106333af4a5b566d8b3686b3438ddebc75b1b5d"
+            ],
+            "ref": "refs/changes/31/40731/32",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1633024963,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -88
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 88
+        }
+    ]
+}

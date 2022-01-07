@@ -1,0 +1,223 @@
+{
+    "project": "openbmc/phosphor-objmgr",
+    "branch": "master",
+    "id": "I753b835057049d1ccf053bce01cc0663d1691521",
+    "number": 49017,
+    "subject": "fix mapper get-service function",
+    "owner": {
+        "name": "ManojKiran Eda",
+        "email": "manojkiran.eda@gmail.com",
+        "username": "manojkiraneda"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-objmgr/+/49017",
+    "commitMessage": "fix mapper get-service function\n\nIn the current state get-service would only return the first\nservice that implements an object path. This is misleading as\nthere can be multiple services that can implement the same object\npath. This commit would attempt to fix that behavior.\n\nTested By:\nBefore fix:\nroot@bmc:/tmp# mapper get-service /xyz/openbmc_project/inventory\nxyz.openbmc_project.EntityManager\n\nAfter fix:\nroot@bmc:/tmp# /tmp/mapper get-service /xyz/openbmc_project/inventory\nxyz.openbmc_project.EntityManager xyz.openbmc_project.Inventory.Manager xyz.openbmc_project.ObjectMapper xyz.openbmc_project.PLDM\n\nSigned-off-by: Manojkiran Eda <manojkiran.eda@gmail.com>\nChange-Id: I753b835057049d1ccf053bce01cc0663d1691521\n",
+    "createdOn": 1637386208,
+    "lastUpdated": 1638482173,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1637386208,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1637386221,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637386366,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30613/ : FAILURE"
+        },
+        {
+            "timestamp": 1637386451,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1637386468,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637386789,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30614/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637438659,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 2:\n\nCan anyone think of any cases where getting multiple results back would break something?"
+        },
+        {
+            "timestamp": 1637583143,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 2:\n\nI just tried a small grep, and i see a lot of service files and scripts that are using the get-service in the service files,override configs & scripts.\n\nhttps://github.com/openbmc/openbmc/search?q=get-service\n\nAnd yes ,it looks like it might break a lot of things."
+        },
+        {
+            "timestamp": 1637850499,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 2:\n\nPlease have a read through https://semver.org/\n\nThe net is, you really should not make breaking API changes like this.  If you really want to deprecate the old API you'll need to bump the library (major) version but that doesn't seem worth the effort.\n\nAs an alternative you can just add a new api along side the old one that has the behavior you want, and bump the minor version."
+        },
+        {
+            "timestamp": 1638133735,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> Please have a read through https://semver.org/\n> \n> The net is, you really should not make breaking API changes like this.  If you really want to deprecate the old API you'll need to bump the library (major) version but that doesn't seem worth the effort.\n> \n> As an alternative you can just add a new api along side the old one that has the behavior you want, and bump the minor version.\n\n+1\na 'get-services' would be fine with me."
+        },
+        {
+            "timestamp": 1638269168,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 2:\n\nsure , i can make a new api get-services  - do you guys have any suggestions on how to do i send the array of service names ? would that need to be a bash array ? or a space delimited array ?\n\nAnd also, any services that are currently using get-service are already broken right - as they are having an assumption that there is only one service that implements an object path. how do we tell that we are always getting the right service(as it depends on mercy of mapper on which service it picks up first). Dont we need to fix those ?"
+        },
+        {
+            "timestamp": 1638385627,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> sure , i can make a new api get-services  - do you guys have any suggestions on how to do i send the array of service names ? would that need to be a bash array ? or a space delimited array ?\n> \n> And also, any services that are currently using get-service are already broken right - as they are having an assumption that there is only one service that implements an object path. how do we tell that we are always getting the right service(as it depends on mercy of mapper on which service it picks up first). Dont we need to fix those ?\n\nI mean, are they broken?  I don't see any bug reports, so maybe it doesn't matter to them."
+        },
+        {
+            "timestamp": 1638482173,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 2:\n\n> > And also, any services that are currently using get-service are already broken right - as they are having an assumption that there is only one service that implements an object path. how do we tell that we are always getting the right service(as it depends on mercy of mapper on which service it picks up first). Dont we need to fix those ?\n> \n> I mean, are they broken?  I don't see any bug reports, so maybe it doesn't matter to them.\n\nThey assume the first one is the correct one, and if it's not going to be the correct one, the service is hard-coded in the code instead of using get-service."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "e6075b8643bada3e1dd46ef1fd574a51f82097ec",
+            "parents": [
+                "bbf456b448b8f281ad3a077083a86e61c86e2249"
+            ],
+            "ref": "refs/changes/17/49017/1",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1637386208,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "libmapper/app.c",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "libmapper/mapper.c",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -11
+                }
+            ],
+            "sizeInsertions": 30,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 2,
+            "revision": "f3b6770f097df804b84a1c5d133a131010c7a178",
+            "parents": [
+                "bbf456b448b8f281ad3a077083a86e61c86e2249"
+            ],
+            "ref": "refs/changes/17/49017/2",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1637386451,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "libmapper/app.c",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "libmapper/mapper.c",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 31,
+            "sizeDeletions": 13
+        }
+    ]
+}

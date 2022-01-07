@@ -1,0 +1,4209 @@
+{
+    "project": "openbmc/foxconn-ipmi-oem",
+    "branch": "master",
+    "id": "I99dd5e6ba1d943e558e984d948bd63552cd5278f",
+    "number": 46248,
+    "subject": "Add boot count into motherboard eeprom and clear command",
+    "owner": {
+        "name": "Avenash Asai Thambi",
+        "email": "avenash.thambi@fii-usa.com",
+        "username": "avenash-thambi"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/foxconn-ipmi-oem/+/46248",
+    "commitMessage": "Add boot count into motherboard eeprom and clear command\n\nThe bmc boot count which was previously stored into\nthe file /etc/conf/bios.cnt, is now stored into the\nmotherboard FRU eeprom/sys/bus/i2c/devices/4-0050/eeprom\nstarting from offset of 4 bytes from 0x1000.\n\nThe reading and writing to the FRU eeprom is handled\nby using the helper functions.\n\nAdded the new IPMI clear command which sets the eeprom\nto the default value of ff ff ff ff.\n\nUse of 4 bytes from 0x1000 location to check\nif the boot counter is at the max value or at the default\nvalue which server as a header to the boot count.\n\nAll corner cases such as invalid command and invalid\ncommand length have been added\n\nTested:\nipmitool raw 0x34 0x71 0x00 - read current boot count.\nipmitool raw 0x34 0x71 0x01 - increment the boot count by 1.\nipmitool raw 0x34 0x71 0x02 - set the boot_count to all ff which\nis its default value of eeprom location where the boot count is\nstored.\nipmitool raw 0x34 0x71 0x03 byte1 byte2 byte3 byte4 - set the\nboot count to desired value provided by the request parameter.\nReboot,powercyle,flashing bmc - performed to see if the value\nretains.\n\nSigned-off-by: Avenash Asai Thambi <avenash.thambi@fii-usa.com>\nChange-Id: I99dd5e6ba1d943e558e984d948bd63552cd5278f\n",
+    "createdOn": 1630011413,
+    "lastUpdated": 1637277772,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1630011413,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1630011769,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1630014737,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1630511289,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1630523608,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1630524699,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 6: Commit message was updated."
+        },
+        {
+            "timestamp": 1630595229,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 7: Commit message was updated."
+        },
+        {
+            "timestamp": 1631040725,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 7:\n\nI think the sys file interface is copied from phosphor-ipmi-blobs-binarystore.\nAlso do you need this abstraction for a single ipmi command? Can you just directly do the file operations in the command function?"
+        },
+        {
+            "timestamp": 1631041836,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 7:\n\n> Patch Set 7:\n> \n> I think the sys file interface is copied from phosphor-ipmi-blobs-binarystore.\n> Also do you need this abstraction for a single ipmi command? Can you just directly do the file operations in the command function?\n\nYes, you are right the sys file interface is copied from phosphor-ipmi-blobs-binarystore. And the reason for the abstraction is for future purpose, to keep it generic so in future if we need to use those functionalities to write and read we can use them."
+        },
+        {
+            "timestamp": 1631042273,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 7:\n\n> Patch Set 7:\n> \n> > Patch Set 7:\n> > \n> > I think the sys file interface is copied from phosphor-ipmi-blobs-binarystore.\n> > Also do you need this abstraction for a single ipmi command? Can you just directly do the file operations in the command function?\n> \n> Yes, you are right the sys file interface is copied from phosphor-ipmi-blobs-binarystore. And the reason why it is like that is, to keep it generic so in future if we need to use those functionalities to write and read we can use them. We can use the file operations directly in the command function if that is what is needed."
+        },
+        {
+            "timestamp": 1631043280,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1631043441,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 8: Commit message was updated."
+        },
+        {
+            "timestamp": 1631045144,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 8:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1631801413,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1631801550,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1631810271,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1631810351,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 10:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1631812766,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 10:\n\nAll the comments have been addressed and it can be reviewed now with these latest changes. Thanks a lot."
+        },
+        {
+            "timestamp": 1631812788,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 10:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1632265717,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1632314069,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 12: Published edit on patch set 11."
+        },
+        {
+            "timestamp": 1632346705,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 12:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1632770901,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1632771024,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 14: Published edit on patch set 13."
+        },
+        {
+            "timestamp": 1632771253,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1633444050,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1633451954,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1633463563,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 17."
+        },
+        {
+            "timestamp": 1633471512,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1633968129,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1633973891,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 20."
+        },
+        {
+            "timestamp": 1633980877,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 21."
+        },
+        {
+            "timestamp": 1633987551,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 22."
+        },
+        {
+            "timestamp": 1633989697,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 23."
+        },
+        {
+            "timestamp": 1634004066,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 24."
+        },
+        {
+            "timestamp": 1634084292,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 24:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1634141678,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 24:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634159106,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 25."
+        },
+        {
+            "timestamp": 1634162560,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 25:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1634443364,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 26."
+        },
+        {
+            "timestamp": 1634443537,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 26:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1634563407,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 27: Published edit on patch set 26."
+        },
+        {
+            "timestamp": 1634565040,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 28."
+        },
+        {
+            "timestamp": 1634776596,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 29."
+        },
+        {
+            "timestamp": 1635179313,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 30."
+        },
+        {
+            "timestamp": 1635447028,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 30:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1635535365,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 31."
+        },
+        {
+            "timestamp": 1635535543,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 32."
+        },
+        {
+            "timestamp": 1635799932,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 32:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1635802346,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 32:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1635862636,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 33."
+        },
+        {
+            "timestamp": 1635862688,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 33:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1635896256,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 33:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636131012,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 34."
+        },
+        {
+            "timestamp": 1636131158,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 34:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636411903,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 34:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636673222,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 35."
+        },
+        {
+            "timestamp": 1636729410,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 35:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637076871,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 36."
+        },
+        {
+            "timestamp": 1637085894,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 37."
+        },
+        {
+            "timestamp": 1637087266,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 37:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1637256183,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 38."
+        },
+        {
+            "timestamp": 1637262767,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 38:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1637267743,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Uploaded patch set 39."
+        },
+        {
+            "timestamp": 1637268442,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 39:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1637269732,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 39: Code-Review+1"
+        },
+        {
+            "timestamp": 1637269949,
+            "reviewer": {
+                "name": "Vivekanand Veeracholan",
+                "email": "vveerach@google.com",
+                "username": "viarand"
+            },
+            "message": "Patch Set 39:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637270844,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 40: Commit message was updated."
+        },
+        {
+            "timestamp": 1637271481,
+            "reviewer": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "message": "Patch Set 40:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637273973,
+            "reviewer": {
+                "email": "lancelot.kao@fii-usa.com",
+                "username": "Lancelot-Kao"
+            },
+            "message": "Patch Set 40: Code-Review+2"
+        },
+        {
+            "timestamp": 1637277760,
+            "reviewer": {
+                "email": "lancelot.kao@fii-usa.com",
+                "username": "Lancelot-Kao"
+            },
+            "message": "Patch Set 40: Verified+1"
+        },
+        {
+            "timestamp": 1637277772,
+            "reviewer": {
+                "email": "lancelot.kao@fii-usa.com",
+                "username": "Lancelot-Kao"
+            },
+            "message": "Change has been successfully merged"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "26b5b19a6f091326065826805091b7e5606e4465",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/1",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1630011413,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -30
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 346,
+            "sizeDeletions": 31
+        },
+        {
+            "number": 2,
+            "revision": "6697f81e199ece1796275b58545e551b95f71f62",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/2",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1630011769,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -30
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 346,
+            "sizeDeletions": 31
+        },
+        {
+            "number": 3,
+            "revision": "60a962a78e776e2473c2f11bd91980225bf7aa9c",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/3",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1630014737,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -30
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 346,
+            "sizeDeletions": 31
+        },
+        {
+            "number": 4,
+            "revision": "19a225370ab2ed32f6f73d51c18dd4534735f63a",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/4",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1630511289,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -30
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 346,
+            "sizeDeletions": 31
+        },
+        {
+            "number": 5,
+            "revision": "fe22f102d1ed572e2dc00a419fef3bf515049d25",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/5",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1630523608,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 57,
+                    "deletions": -38
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 428,
+            "sizeDeletions": 40
+        },
+        {
+            "number": 6,
+            "revision": "28b566b5aea5788ca072c022e84268867046cb03",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/6",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1630524699,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 57,
+                    "deletions": -38
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 428,
+            "sizeDeletions": 40
+        },
+        {
+            "number": 7,
+            "revision": "66288f373dce00bda15b092de95b377154a89ead",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/7",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1630595229,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Not by that package. this change is not using that package. It copies the sys file implementation from that"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "size is not used anywhere. so the type can be directly passed here."
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "What is this function for?"
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "I think this function can be rewritten. \nInstead of a vector, use uint32_t and this can help with avoiding those logic of creating a vector by pushing and popping."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 36,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Char limit is 100."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 36,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 99,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "This logic can be casted to uint32 and operated on."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 99,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 57,
+                    "deletions": -38
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 428,
+            "sizeDeletions": 40
+        },
+        {
+            "number": 8,
+            "revision": "98b72e588b52df7e13f8d39c0faa297db582ce3a",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/8",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1631043441,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/bioshelper.hpp",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sys.hpp",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sys_file_impl.hpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 57,
+                    "deletions": -38
+                },
+                {
+                    "file": "src/sys.cpp",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sys_file_impl.cpp",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 428,
+            "sizeDeletions": 40
+        },
+        {
+            "number": 9,
+            "revision": "614b6399115c59c3f390d2629a16d1e77b80634f",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/9",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1631801413,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 35,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -47
+                }
+            ],
+            "sizeInsertions": 153,
+            "sizeDeletions": 50
+        },
+        {
+            "number": 10,
+            "revision": "300fd3527572ab89ef35f28bdd219d23a6bfc4e4",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/10",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1631810271,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -55
+                }
+            ],
+            "sizeInsertions": 144,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 11,
+            "revision": "c554278569edb6ba72b53954bf1323a0c03bff6a",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/11",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1632265717,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 361,
+                    "deletions": -55
+                }
+            ],
+            "sizeInsertions": 362,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 12,
+            "revision": "f60d23c5e801b749c0b89f9eaee3fb2c641b28f9",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/12",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1632314069,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Commit message should not exceed 72 characters. some of these lines are over the limit."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Since this repo is foxconn-ipmi-oem, we don't need this tag. This is typically used for tagging a sub directory in a repo that has multiple packages or meta-layers."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 361,
+                    "deletions": -55
+                }
+            ],
+            "sizeInsertions": 363,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 13,
+            "revision": "03e501aea2c37a61529b25e82ba0a1e639526947",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/13",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1632770901,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 361,
+                    "deletions": -55
+                }
+            ],
+            "sizeInsertions": 363,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 14,
+            "revision": "61997338d18d1c272b7bba5b2d054d0b8686a6b7",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/14",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1632771024,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 361,
+                    "deletions": -55
+                }
+            ],
+            "sizeInsertions": 363,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 15,
+            "revision": "891ca85261fb3a88da87134caf7c64b7420e341b",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/15",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633444050,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/bioscommands.hpp",
+                    "type": "RENAMED",
+                    "insertions": 14,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 100,
+                    "deletions": -80
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 176,
+            "sizeDeletions": 90
+        },
+        {
+            "number": 16,
+            "revision": "66a78373fc1a02e2fe308e87cac1ab88739462f6",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/16",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633451954,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/bioscommands.hpp",
+                    "type": "RENAMED",
+                    "insertions": 14,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 100,
+                    "deletions": -80
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 176,
+            "sizeDeletions": 90
+        },
+        {
+            "number": 17,
+            "revision": "230245ac1842c5e8635013185d89d2dabbe8b425",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/17",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633463563,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/bioscommands.hpp",
+                    "type": "RENAMED",
+                    "insertions": 14,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 98,
+                    "deletions": -80
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 174,
+            "sizeDeletions": 90
+        },
+        {
+            "number": 18,
+            "revision": "64a9edcd1cf85078f7dccdb008b7f3129e865653",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/18",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633471512,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/bioscommands.hpp",
+                    "type": "RENAMED",
+                    "insertions": 14,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -76
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 86
+        },
+        {
+            "number": 19,
+            "revision": "dd75c0010006f9a2ab7cd8188e907bbc16f75017",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/19",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633968129,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/common.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/bioscommands.hpp",
+                    "type": "RENAMED",
+                    "insertions": 14,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 94
+        },
+        {
+            "number": 20,
+            "revision": "f0aae1d04ce06c0d432b29794deca60f7652ffc0",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/20",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633973891,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -25
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 100,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 191,
+            "sizeDeletions": 125
+        },
+        {
+            "number": 21,
+            "revision": "145793d5f1f66dee39c14a36fb3560ecd2dee168",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/21",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633980877,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -25
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 98,
+                    "deletions": -79
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 189,
+            "sizeDeletions": 120
+        },
+        {
+            "number": 22,
+            "revision": "da5973cd8216ca2a7c1bab48123989d589564d59",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/22",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633987551,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 13,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 103,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 196,
+            "sizeDeletions": 108
+        },
+        {
+            "number": 23,
+            "revision": "ccd04e9cde6c9b335892e196dae411d9bb5d81e0",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/23",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1633989697,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 13,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 103,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 196,
+            "sizeDeletions": 108
+        },
+        {
+            "number": 24,
+            "revision": "1f744b37a7ae960260b8b0ab3be1a15eb5ccb161",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/24",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1634004066,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/file_handling.hpp",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Should not be present here. Already defined in the other header."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Add \"count\" in the name to be clear."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "This can be just magic/header. Since structure name will have boot_count. the members can be named what it denotes within the structure.\nSame for boot_count. It can be just count"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Can this be split in to 2 different commands? One for writing explicit value and other for increment? That will simplify the whole logic."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "If write and increment are separated, there will be no need to check the request size."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Even when we split the commands, we still have to check the parameter size for the corner cases right ?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 13,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 103,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 198,
+            "sizeDeletions": 108
+        },
+        {
+            "number": 25,
+            "revision": "c23043748ba22a79d5abf8d806bb91a7276cb291",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/25",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1634159106,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/bioscommands.hpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "It is not INITIAL, the header will be the same always."
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "INITIAL has been removed"
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Create close as well."
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "close helper function has been created"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Move the reqParams.size() validation before the switch cases. \nlike \nrequest size validation block and return on error.\nthen switch-case for operation."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Took the reqparams out and checked the corner case"
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 6,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "This is a common file and can be used by multiple commands. Using a single global file descriptor will cause one command overwriting the other. \n\nReturn the file descriptor when opened and clients need to pass it for every operations."
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 6,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "returned file descriptor and passed it as a parameter to other helper functions"
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "File close is missing."
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "file close has been added"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 9,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 102,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 195,
+            "sizeDeletions": 108
+        },
+        {
+            "number": 26,
+            "revision": "63beb3aa708f1bbfcdc891fa60b1b0d62349c7d5",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/26",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1634443364,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 105,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 205,
+            "sizeDeletions": 107
+        },
+        {
+            "number": 27,
+            "revision": "aeb6a94deb50ead609da87d7998800719de16ecc",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/27",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1634563407,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 105,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 205,
+            "sizeDeletions": 107
+        },
+        {
+            "number": 28,
+            "revision": "34b9a72143f8534ccb05205bec74bd528439127b",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/28",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1634565040,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 104,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 204,
+            "sizeDeletions": 107
+        },
+        {
+            "number": 29,
+            "revision": "0fda8aa6577cafb813cd1cea6317d355e683c77b",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/29",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1634776596,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 96,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 196,
+            "sizeDeletions": 107
+        },
+        {
+            "number": 30,
+            "revision": "f1c38154e42e47233a3aad270d2d40e3b10d89c3",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/30",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1635179313,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Don't need to mention decimal. \nJust use 0x prefix for hex and default will be considered decimal."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "README.md",
+                    "line": 48,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Clear should set the boot count to 0"
+                },
+                {
+                    "file": "README.md",
+                    "line": 48,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Are all these headers required?"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 36,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "boot_count_operation should be local to the function"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 36,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 50,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Coding style: leave space after \",\" in arguments"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 50,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "replace tab with space"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Error should be responseReqDataLenInvalid"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "When boot count is cleared, it means the value should be reset to 0. \nSo the header should remain and value should be set to 0."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 97,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "tab to space"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 97,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 5,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Having it global will cause issues if any other command uses this function. I think PCIe command will be using file operations too.\nI don't think you need to support offset in sysopen. You can just open it and do the actual offset operation in the read and write and pass the correct offsets from the calling function."
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 5,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 96,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 216,
+            "sizeDeletions": 124
+        },
+        {
+            "number": 31,
+            "revision": "3b27a91099cf8aee69a1cd2eceb92e5299433ab4",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/31",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1635535365,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 208,
+            "sizeDeletions": 124
+        },
+        {
+            "number": 32,
+            "revision": "88ddd83ed6b3b796a94e46e4d2038fd2d0d0643c",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/32",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1635535543,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 64,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "follow file format. Use space for indents. Not tabs"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 64,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "follow file format. Use space for indents. Not tabs"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 93,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "follow file format. Use space for indents. Not tabs"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 93,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 5,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Remove unused lines."
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 5,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Don't need this. Must be included in the offset itself."
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Same as above."
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "This file is similar to the bios function file, so are these headers needed?"
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 208,
+            "sizeDeletions": 124
+        },
+        {
+            "number": 33,
+            "revision": "379fdeb543b8b34bc72d78f13a5b62a6e3c2dee0",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/33",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1635862636,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 57,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "I think the HEADER validation and initialization can be brought here. \nBefore you enter the switch case, check for the header and if it is invalid, initialize it and return that count. \nIt is repetitive in every case."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 57,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 197,
+            "sizeDeletions": 125
+        },
+        {
+            "number": 34,
+            "revision": "9668bc47028e01daf48c99d0023ba610986f4675",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/34",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1636131012,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "You need to also initialize the count and write it here. So you can avoid all the HEADER checks inside the switch case below. \n\nif(boot.header != BOOT_COUNT_HEADER)\n{\n        boot.header = BOOT_COUNT_HEADER;\n        boot.count = START_BOOT_COUNT_VALUE;\n}"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 199,
+            "sizeDeletions": 125
+        },
+        {
+            "number": 35,
+            "revision": "3705b7d1ec401666ba6691f3bdd47cc935556dae",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/35",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1636673222,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 199,
+            "sizeDeletions": 125
+        },
+        {
+            "number": 36,
+            "revision": "0edb091ad29abba2be609845d01f7f08ff092214",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/36",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1637076871,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 73,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 180,
+            "sizeDeletions": 125
+        },
+        {
+            "number": 37,
+            "revision": "71d89047721ba7294238252af58bb59d7c63368a",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/37",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1637085894,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "All the returns in error case does not close the file. Use a variable to store the return value and use a label at the end that closes the file. use goto and jump to that label on error conditions."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "This one has been modified in a way where the file is not opened until all the corner cases that lead to error code. In this way we don't need to close the file once error response occurs because the file is not opened at that point in code."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Multiple lines are tab indentation while others are space. \nUse 4 space indents throughout the file."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 100,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "not needed."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 100,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -83
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 182,
+            "sizeDeletions": 125
+        },
+        {
+            "number": 38,
+            "revision": "87b2f08925a558f36bcbc3a4081ca66c112e9918",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/38",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1637256183,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "use \"BOOT_COUNT_SET\""
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 57,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "Should be invalid command. \nCommand not available means the command is a valid one but not available in this case. Here it is an invalid command."
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "line": 57,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -17
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 183,
+            "sizeDeletions": 126
+        },
+        {
+            "number": 39,
+            "revision": "4d11738f3863393574359b1ce0b0d5ebfc9eb5b5",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/39",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1637267743,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Vivekanand Veeracholan",
+                        "email": "vveerach@google.com",
+                        "username": "viarand"
+                    },
+                    "message": "No longer called fcntl. can stop the line at \"helper functions\""
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Avenash Asai Thambi",
+                        "email": "avenash.thambi@fii-usa.com",
+                        "username": "avenash-thambi"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -19
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 192,
+            "sizeDeletions": 128
+        },
+        {
+            "number": 40,
+            "revision": "da2cf0d2b0f4cd56bc93575a435a5ee1c848f7b0",
+            "parents": [
+                "35c1ac40e476caa19c84a546d4f85ba96cb5dbbd"
+            ],
+            "ref": "refs/changes/48/46248/40",
+            "uploader": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "createdOn": 1637270844,
+            "author": {
+                "name": "Avenash Asai Thambi",
+                "email": "avenash.thambi@fii-usa.com",
+                "username": "avenash-thambi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 39,
+                    "deletions": 0
+                },
+                {
+                    "file": "CMakeLists.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "README.md",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -19
+                },
+                {
+                    "file": "include/bioscommands.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -8
+                },
+                {
+                    "file": "include/file_handling.hpp",
+                    "fileOld": "include/common.hpp",
+                    "type": "RENAMED",
+                    "insertions": 11,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/bioscommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -84
+                },
+                {
+                    "file": "src/file_handling.cpp",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/systemcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 192,
+            "sizeDeletions": 128
+        }
+    ]
+}

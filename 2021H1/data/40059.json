@@ -1,0 +1,899 @@
+{
+    "project": "openbmc/phosphor-state-manager",
+    "branch": "master",
+    "topic": "hyp-state",
+    "id": "I6082c6e06c6731d71f2e580e1ab87af38917bb3a",
+    "number": 40059,
+    "subject": "hypervisor: state management support",
+    "owner": {
+        "name": "Andrew Geissler",
+        "email": "geissonator@yahoo.com",
+        "username": "geissonator"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-state-manager/+/40059",
+    "commitMessage": "hypervisor: state management support\n\nSome systems have a hypervisor firmware stack which they wish to track\nand change the state of. This new state management object will provide\nthis function if a user selects to bring it into their system.\n\nSigned-off-by: Andrew Geissler <geissonator@yahoo.com>\nChange-Id: I6082c6e06c6731d71f2e580e1ab87af38917bb3a\n",
+    "createdOn": 1611778098,
+    "lastUpdated": 1613162421,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1611778098,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1611778109,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1611778110,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611778329,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11471/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611782105,
+            "reviewer": {
+                "name": "Klaus Heinrich Kiwi",
+                "email": "klaus@klauskiwi.com",
+                "username": "klauskiwi"
+            },
+            "message": "Patch Set 1:\n\ndisclaimer: I *don't* have a good understanding of dbus.\n\nHaving said that, I'm still a bit puzzled by this. Should this be put in use by a static build-time configuration (i.e., MACHINE requests it)? What happens if the same system can have both a type1 and type2 hypervisor running? Could we put it into the image, but switch between the traditional Host state manager and Hypervisor state manager at runtime, say based on another bus property (identifying which hypervisor / OS is running)?\nAnd what happens when we haven't yet reached a state where any hypervisor or OS is running yet? How acting on or requesting data from this property works (just want to make sure that clients querying for this and getting i.e., a hypervisor-off state doesn't automatically assume this is a type1 hypervisor when in fact the Host OS is just coming-up yet, and in fact type2 hypervisors won't probably care, monitor or act on this property)."
+        },
+        {
+            "timestamp": 1611956703,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> disclaimer: I *don't* have a good understanding of dbus.\n> \n> Having said that, I'm still a bit puzzled by this. Should this be put in use by a static build-time configuration (i.e., MACHINE requests it)? What happens if the same system can have both a type1 and type2 hypervisor running? Could we put it into the image, but switch between the traditional Host state manager and Hypervisor state manager at runtime, say based on another bus property (identifying which hypervisor / OS is running)?\n\nThey way it works currently is this is a sub-package of phosphor-state-manager so you can bring it in on a machine type basis. If a system supports both type 1 and type 2 then the code will need to understand that and return the appropriate response (i.e not allowed on hypervisors that don't support it). All machines will support the BootProgress so tracking the state of the hypervisor should work in all cases. Whether you can request a state change would be specific to the hypervisor.\n\n> And what happens when we haven't yet reached a state where any hypervisor or OS is running yet? How acting on or requesting data from this property works (just want to make sure that clients querying for this and getting i.e., a hypervisor-off state doesn't automatically assume this is a type1 hypervisor when in fact the Host OS is just coming-up yet, and in fact type2 hypervisors won't probably care, monitor or act on this property).\n\nI'll add logic to watch BootProgress and only allow the state change if the system boot is at the appropriate point. So user would get InvalidOperation (hypervisor doesn't support it) or InvalidState (system not booted to appropriate staet) type responses."
+        },
+        {
+            "timestamp": 1612180252,
+            "reviewer": {
+                "name": "Klaus Heinrich Kiwi",
+                "email": "klaus@klauskiwi.com",
+                "username": "klauskiwi"
+            },
+            "message": "Patch Set 1:\n\n> > Having said that, I'm still a bit puzzled by this. Should this be put in use by a static build-time configuration (i.e., MACHINE requests it)? What happens if the same system can have both a type1 and type2 hypervisor running? Could we put it into the image, but switch between the traditional Host state manager and Hypervisor state manager at runtime, say based on another bus property (identifying which hypervisor / OS is running)?\n> \n> They way it works currently is this is a sub-package of phosphor-state-manager so you can bring it in on a machine type basis. If a system supports both type 1 and type 2 then the code will need to understand that and return the appropriate response (i.e not allowed on hypervisors that don't support it). All machines will support the BootProgress so tracking the state of the hypervisor should work in all cases. Whether you can request a state change would be specific to the hypervisor.\n>\n\nThanks Andrew. So looks like, by \"default\", the behavior for this State will be completely unchanged for say OPAL, but if PowerVM wants to implement ways to read and set the state, they could.\n \n> > And what happens when we haven't yet reached a state where any hypervisor or OS is running yet? How acting on or requesting data from this property works (just want to make sure that clients querying for this and getting i.e., a hypervisor-off state doesn't automatically assume this is a type1 hypervisor when in fact the Host OS is just coming-up yet, and in fact type2 hypervisors won't probably care, monitor or act on this property).\n> \n> I'll add logic to watch BootProgress and only allow the state change if the system boot is at the appropriate point. So user would get InvalidOperation (hypervisor doesn't support it) or InvalidState (system not booted to appropriate staet) type responses.\n\nThanks. I guess this reinforces that for OPAL mode, nothing changes. If Linux (or RHEV-H or Xen..) wants to use that they can, but the Host states would follow that of a Bare-Metal OS if they dont."
+        },
+        {
+            "timestamp": 1612815238,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2: Patch Set 1 was rebased"
+        },
+        {
+            "timestamp": 1612815250,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612815380,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12115/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612826208,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Topic set to hyp-state"
+        },
+        {
+            "timestamp": 1612905128,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1612905155,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612905301,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12193/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612907675,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1613009923,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1613009943,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613010126,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12287/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613010208,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 5:\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1613083961,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1613084350,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613097680,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613147097,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1613147097,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 6:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1613147110,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613147249,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12393/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613159326,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1613159557,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 6: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1613162399,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 6: Code-Review+2"
+        },
+        {
+            "timestamp": 1613162421,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Change has been successfully rebased and submitted as fe270d358a503988cd4f53d867bb9c33193edcd1 by Andrew Geissler"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "b41512a7b8ff16b6293dcc4b13080142f020ed05",
+            "parents": [
+                "1e8b164f7b575f9728dd7f46d7b2d27e6081ee3f"
+            ],
+            "ref": "refs/changes/59/40059/1",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1611778098,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.hpp",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager_main.cpp",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "d73051a75f7c011a28a327803b634be726e9d119",
+            "parents": [
+                "58477b52876afe889caa7d7ec89ce3fadb384ead"
+            ],
+            "ref": "refs/changes/59/40059/2",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1612815238,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.hpp",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager_main.cpp",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "e58955f6fa84d697b0e88e0dc2c52286a7e91322",
+            "parents": [
+                "1e8b164f7b575f9728dd7f46d7b2d27e6081ee3f"
+            ],
+            "ref": "refs/changes/59/40059/3",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1612905128,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.hpp",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager_main.cpp",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "bb90200e8f2df7a0848ec658b425f6dbba8f4d45",
+            "parents": [
+                "1e8b164f7b575f9728dd7f46d7b2d27e6081ee3f"
+            ],
+            "ref": "refs/changes/59/40059/4",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1612907675,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.hpp",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager_main.cpp",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "f88bdb11bb861605243ca5aa6f385ba144c9e97a",
+            "parents": [
+                "1e8b164f7b575f9728dd7f46d7b2d27e6081ee3f"
+            ],
+            "ref": "refs/changes/59/40059/5",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613009923,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "this can be removed, \"reboot\" namespace is not used in this file."
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "line": 43,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "pldm?"
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "line": 43,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Yeah, could be anything depending on system implementation but let me add pldm as an example to point people in the right direction"
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "line": 43,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "I was just trying to get a feel for how this was even going to be used."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "nit: spelling"
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "line": 3,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "Can you refresh my memory why you're pointing at your own service here?"
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "line": 3,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "It's a way to ensure this service doesn't list itself as started until the D-Bus API has shown up in mapper. It helps if another service puts an After on this and then expects it to be available in mapper. Given our move away from mapper, I could probably revisit all of these in this repo but for now I vote we just stay consistent with the other services."
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "line": 3,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "Thanks, I'm not sure I ever even knew about doing it within the same service like this."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager_main.cpp",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 195,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "fc53f3f6a3a0a0e46671050b1e57bfc86a7c6164",
+            "parents": [
+                "1e8b164f7b575f9728dd7f46d7b2d27e6081ee3f"
+            ],
+            "ref": "refs/changes/59/40059/6",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613147097,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager_main.cpp",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 195,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 7,
+            "revision": "fe270d358a503988cd4f53d867bb9c33193edcd1",
+            "parents": [
+                "58477b52876afe889caa7d7ec89ce3fadb384ead"
+            ],
+            "ref": "refs/changes/59/40059/7",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1613162421,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.cpp",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager.hpp",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "hypervisor_state_manager_main.cpp",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/xyz.openbmc_project.State.Hypervisor.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 195,
+            "sizeDeletions": 0
+        }
+    ]
+}

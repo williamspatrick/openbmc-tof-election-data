@@ -1,0 +1,208 @@
+{
+    "project": "openbmc/phosphor-fan-presence",
+    "branch": "master",
+    "id": "I24a0981ee2532b1b6c3191acffb5ce4568e26166",
+    "number": 48689,
+    "subject": "Fix to Ignore the unconfigured shutdown interfaces.",
+    "owner": {
+        "name": "Kumar Thangavel",
+        "email": "thangavel.k@hcl.com",
+        "username": "HCL-BMC"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-fan-presence/+/48689",
+    "commitMessage": "Fix to Ignore the unconfigured shutdown interfaces.\n\nAdded the exception to catch the unconfigured shutdown\ninterfaces and ignored the unconfigured interfaces.\n\nReproduce : When we restart the sensor-monitor service,\ngetting DbusMethodError and SdbusError.\n\nFix : Added catch exception for DbusMethodError and\nSdbusError.\n\nTESTED : Verified the DbusMethodError and SdbusError\nresolved when the service restarted in Facebook YosemiteV2\nplatform.\n\nSigned-off-by: Kumar Thangavel <thangavel.k@hcl.com>\nChange-Id: I24a0981ee2532b1b6c3191acffb5ce4568e26166\n",
+    "createdOn": 1636394109,
+    "lastUpdated": 1636476037,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1636394109,
+            "reviewer": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1636394139,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636394240,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29909/ : SUCCESS"
+        },
+        {
+            "timestamp": 1636398159,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636433284,
+            "reviewer": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636467317,
+            "reviewer": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "message": "Patch Set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1636470086,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636476037,
+            "reviewer": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3f48f1b408f4d382eff7914a93b2ba1657cd7fed",
+            "parents": [
+                "04f03e1818d3e5fbbcefff50e064b44cd438783c"
+            ],
+            "ref": "refs/changes/89/48689/1",
+            "uploader": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "createdOn": 1636394109,
+            "author": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "sensor-monitor/shutdown_alarm_monitor.cpp",
+                    "line": 165,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "I'm not sure I understand why this was failing. Is it because the sensor didn't have both the 'alarmHigh' and 'alarmLow' properties on D-Bus?"
+                },
+                {
+                    "file": "sensor-monitor/shutdown_alarm_monitor.cpp",
+                    "line": 165,
+                    "reviewer": {
+                        "name": "Kumar Thangavel",
+                        "email": "thangavel.k@hcl.com",
+                        "username": "HCL-BMC"
+                    },
+                    "message": "Yes. The sensor doesn't have any one of the interfaces then this is failing.\n\nExample : If Hardshutdown High is configured for fansensor, then this will create only HardShutdownAlarmHigh property on D-Bus. The alarms map has both Alarm type as high and low. So, It is trying to get the both properties details. But only one property was generated on D-Bus. So, In this case, getting DbusMethodError and SdBusError."
+                },
+                {
+                    "file": "sensor-monitor/shutdown_alarm_monitor.cpp",
+                    "line": 165,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "Could you fix findAlarms() to only add an alarm that is on d-bus?  You could do a get all properties on each path/interface and only add alarms that are present."
+                },
+                {
+                    "file": "sensor-monitor/shutdown_alarm_monitor.cpp",
+                    "line": 165,
+                    "reviewer": {
+                        "name": "Kumar Thangavel",
+                        "email": "thangavel.k@hcl.com",
+                        "username": "HCL-BMC"
+                    },
+                    "message": "Yes. Will fix in findAlarms(). Thanks."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "sensor-monitor/shutdown_alarm_monitor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 16,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "59138efe63d92b31be0af23ad1e3af282aa8b454",
+            "parents": [
+                "04f03e1818d3e5fbbcefff50e064b44cd438783c"
+            ],
+            "ref": "refs/changes/89/48689/2",
+            "uploader": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "createdOn": 1636467317,
+            "author": {
+                "name": "Kumar Thangavel",
+                "email": "thangavel.k@hcl.com",
+                "username": "HCL-BMC"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "sensor-monitor/shutdown_alarm_monitor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 16,
+            "sizeDeletions": 0
+        }
+    ]
+}

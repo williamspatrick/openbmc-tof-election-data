@@ -1,0 +1,947 @@
+{
+    "project": "openbmc/pldm",
+    "branch": "master",
+    "id": "Id9ae0ce5bba1c1a63d3de20daa22571d24a8d9f2",
+    "number": 42270,
+    "subject": "pdr: Sensor/Effecter support for enc fault and identify leds",
+    "owner": {
+        "name": "Jayashankar Padath",
+        "email": "jayashankarpadath@gmail.com",
+        "username": "jaypadath"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/pldm/+/42270",
+    "commitMessage": "pdr: Sensor/Effecter support for enc fault and identify leds\n\nThis is to support sensor/effecter pdrs for enclosure fault led\nand enclosure identify led.\n\nTesting Result:\n\nEFFECTER:\n\nEnclosure Identify Use Cases:\n\npldmtool platform GetPDR -d 55\n{\n    \"nextRecordHandle\": 56,\n    \"responseCount\": 29,\n    \"recordHandle\": 55,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 2,\n    \"entityType\": \"System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 0,\n    \"containerID\": 0,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"17\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": \" 1 2\"\n}\n\nSet On:\npldmtool raw -d 0x80 0x02 0x39 0x02 0x00 0x01 0x01 0x01\nRequest Message:\n08 01 80 02 39 02 00 01 01 01\nResponse Message:\n08 01 00 02 39 00\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager\n/xyz/openbmc_project/led/groups/enclosure_identify\nxyz.openbmc_project.Led.Group Asserted\nb true\n\nSet Off:\npldmtool raw -d 0x80 0x02 0x39 0x02 0x00 0x01 0x01 0x02\nRequest Message:\n08 01 80 02 39 02 00 01 01 02\nResponse Message:\n08 01 00 02 39 00\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager\n/xyz/openbmc_project/led/groups/enclosure_identify\nxyz.openbmc_project.Led.Group Asserted\nb false\n\nEnclosure Fault Use Cases:\n\npldmtool platform GetPDR -d 56\n{\n    \"nextRecordHandle\": 57,\n    \"responseCount\": 29,\n    \"recordHandle\": 56,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 3,\n    \"entityType\": \"System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 0,\n    \"containerID\": 0,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"10\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": \" 1 2\"\n}\n\nSet state as On:\npldmtool raw -d 0x80 0x02 0x39 0x03 0x00 0x01 0x01 0x01\nRequest Message:\n08 01 80 02 39 03 00 01 01 01\nResponse Message:\n08 01 00 02 39 00\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager\n/xyz/openbmc_project/led/groups/enclosure_fault\nxyz.openbmc_project.Led.Group Asserted\nb true\n\nSet state as Off:\npldmtool raw -d 0x80 0x02 0x39 0x03 0x00 0x01 0x01 0x02\nRequest Message:\n08 01 80 02 39 03 00 01 01 02\nResponse Message:\n08 01 00 02 39 00\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager\n/xyz/openbmc_project/led/groups/enclosure_fault\nxyz.openbmc_project.Led.Group Asserted\nb false\n\nSENSOR:\n\nEnc Identify Use Cases:\n\npldmtool platform GetPDR -d 24\n{\n    \"nextRecordHandle\": 25,\n    \"responseCount\": 27,\n    \"recordHandle\": 24,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Sensor PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 17,\n    \"PLDMTerminusHandle\": 0,\n    \"sensorID\": 3,\n    \"entityType\": \"System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 0,\n    \"containerID\": 0,\n    \"sensorInit\": \"noInit\",\n    \"sensorAuxiliaryNamesPDR\": false,\n    \"compositeSensorCount\": 1,\n    \"stateSetID[0]\": \"17\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": \" 1 2\"\n}\n\nSet On:\nbusctl set-property xyz.openbmc_project.LED.Controller.virtual_enc_id\n/xyz/openbmc_project/led/physical/virtual_enc_id xyz.openbmc_project.Led.Physical\nState s \"xyz.openbmc_project.Led.Physical.Action.On\"\npldmtool raw --data 0x80 0x02 0x21 0x03 0x00 0x01 0x00\nRequest Message:\n08 01 80 02 21 03 00 01 00\nResponse Message:\n08 01 00 02 21 00 01 00 01 00 01\n\nSet Off:\nbusctl set-property xyz.openbmc_project.LED.Controller.virtual_enc_id\n/xyz/openbmc_project/led/physical/virtual_enc_id xyz.openbmc_project.Led.Physical\nState s \"xyz.openbmc_project.Led.Physical.Action.Off\"\n\npldmtool raw --data 0x80 0x02 0x21 0x03 0x00 0x01 0x00\nRequest Message:\n08 01 80 02 21 03 00 01 00\nResponse Message:\n08 01 00 02 21 00 01 00 01 00 02\n\nEnc Fault Use Cases:\n\npldmtool platform GetPDR -d 25\n{\n    \"nextRecordHandle\": 26,\n    \"responseCount\": 27,\n    \"recordHandle\": 25,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Sensor PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 17,\n    \"PLDMTerminusHandle\": 0,\n    \"sensorID\": 4,\n    \"entityType\": \"System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 0,\n    \"containerID\": 0,\n    \"sensorInit\": \"noInit\",\n    \"sensorAuxiliaryNamesPDR\": false,\n    \"compositeSensorCount\": 1,\n    \"stateSetID[0]\": \"10\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": \" 1 2\"\n}\n\nSet On:\nbusctl set-property xyz.openbmc_project.LED.Controller.virtual_enc_fault\n/xyz/openbmc_project/led/physical/virtual_enc_fault xyz.openbmc_project.Led.Physical\nState s \"xyz.openbmc_project.Led.Physical.Action.On\"\npldmtool raw --data 0x80 0x02 0x21 0x04 0x00 0x01 0x00\nRequest Message:\n08 01 80 02 21 04 00 01 00\nResponse Message:\n08 01 00 02 21 00 01 00 01 00 01\n\nSet Off:\nbusctl set-property xyz.openbmc_project.LED.Controller.virtual_enc_fault\n/xyz/openbmc_project/led/physical/virtual_enc_fault xyz.openbmc_project.Led.Physical\nState s \"xyz.openbmc_project.Led.Physical.Action.Off\"\npldmtool raw --data 0x80 0x02 0x21 0x04 0x00 0x01 0x00\nRequest Message:\n08 01 80 02 21 04 00 01 00\nResponse Message:\n08 01 00 02 21 00 01 00 01 00 02\n\nSigned-off-by: Jayashankar Padath <jayashankar.padath@in.ibm.com>\nChange-Id: Id9ae0ce5bba1c1a63d3de20daa22571d24a8d9f2\n",
+    "createdOn": 1618458852,
+    "lastUpdated": 1620206968,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1618458852,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1618458865,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618458875,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1432/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1618460193,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15461/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1432/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1618465677,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\nOnly SENSORs should use \n\nxyz.openbmc_project.Led.Controller.virtual_end_id\nxyz.openbmc_project.Led.Controller.virtual_end_fault\n\nEffectors should use : \n\n/xyz/openbmc_project/led/groups/enclosure_fault\n/xyz/openbmc_project/led/groups/enclosure_identify"
+        },
+        {
+            "timestamp": 1618466054,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1619096483,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\n> Patch Set 1: Code-Review-1\n> \n> Only SENSORs should use \n> \n> xyz.openbmc_project.Led.Controller.virtual_end_id\n> xyz.openbmc_project.Led.Controller.virtual_end_fault\n> \n> Effectors should use : \n> \n> /xyz/openbmc_project/led/groups/enclosure_fault\n> /xyz/openbmc_project/led/groups/enclosure_identify\n\nChanged and re-tested"
+        },
+        {
+            "timestamp": 1619096513,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1619096540,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619096547,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1544/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1619098352,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15974/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1544/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1619186549,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1619432314,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1619432460,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1619432462,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1619432482,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619432492,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1573/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1619433294,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 3:\n\nAssuming || is how it has to be represented in this json, I am good. But just waiting on the PDR/container type/value comment to be taken to completion before +1"
+        },
+        {
+            "timestamp": 1619434377,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16155/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1573/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1619522560,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> Assuming || is how it has to be represented in this json, I am good. But just waiting on the PDR/container type/value comment to be taken to completion before +1\n\nOkay I am updating the fault id also. So only pending is the container value which I am waiting for Justin/Sampa."
+        },
+        {
+            "timestamp": 1619522826,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1619522839,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619522848,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1602/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1619523887,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16267/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1602/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1619585645,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1619589237,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1619692433,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)\n\nVishwa, talked to Sampa on the container id and we are good this data."
+        },
+        {
+            "timestamp": 1619692616,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1619692643,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619692651,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1625/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1619694191,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16377/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1625/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1619790404,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1619790418,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619790428,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1628/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1619791911,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16498/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1628/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1619881056,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 6: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1620004233,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1620023331,
+            "reviewer": {
+                "name": "Sampa Misra",
+                "email": "sampmisr@in.ibm.com",
+                "username": "sampmisr"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1620120355,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 7: New patch set was added with same tree, parent, and commit message as Patch Set 6."
+        },
+        {
+            "timestamp": 1620120379,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1620120383,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620120389,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Verified\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1647/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1620121334,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1647/ : ppc64le CI Build Failed\n\nhttps://jenkins.openbmc.org/job/ci-repository/16629/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620151340,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1620151344,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620152070,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Verified\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1658/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1620152832,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16657/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/1658/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1620205757,
+            "reviewer": {
+                "name": "Sampa Misra",
+                "email": "sampmisr@in.ibm.com",
+                "username": "sampmisr"
+            },
+            "message": "Patch Set 7: Code-Review+2"
+        },
+        {
+            "timestamp": 1620206968,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Change has been successfully rebased and submitted as 50304da5f27c3f6a6c12a016a1390385a2e99859 by Jayashankar Padath"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "9579dc4fae0e61787ff797fbc5537dad22bacc2c",
+            "parents": [
+                "3200e6ec3cf6bcc7083d45ff855611d9a2fa8c8c"
+            ],
+            "ref": "refs/changes/70/42270/1",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1618458852,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Also for sensors, what really matters is [ whether it is in Identify state or no.. So, the value of [Blink || On] really means it's in Identify state.\n\nIt needs to be similar to what we have for other non enclosure sensors. But just that, we use different D-Bus objects\n\nIf [off], then it means, it's not in Identify state"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Okay I am removing the Blink option here."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 212,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 45,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 90,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "7ea023c92dd00701bd16868263f33c4f219e7c17",
+            "parents": [
+                "ba5eedd8beccbeb9ac50053acd5e706cfa238549"
+            ],
+            "ref": "refs/changes/70/42270/2",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1619096513,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "D-Bus object is correct. However, I see type / instance / container / effector are same for both fault and identify. ( this is just my observation )"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "I will ask this to Justin and see whether he is okay with this data."
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Like I said in the previous patch.\n\ntrue --> xyz.openbmc_project.Led.Physical.Action.On || xyz.openbmc_project.Led.Physical.Action.Blink\n\nfals --> xyz.openbmc_project.Led.Physical.Action.Off"
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "same comment as before"
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 206,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "83ba1e9ee2b834421117a275998491e552a129f7",
+            "parents": [
+                "ba5eedd8beccbeb9ac50053acd5e706cfa238549"
+            ],
+            "ref": "refs/changes/70/42270/3",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1619432462,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 206,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "47b6eaf9b7116af251e9bcb303e440c4e3070460",
+            "parents": [
+                "ba5eedd8beccbeb9ac50053acd5e706cfa238549"
+            ],
+            "ref": "refs/changes/70/42270/4",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1619522826,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "typo"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 206,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "bfec46f45232e5687b5e18687040cac614e4ae9a",
+            "parents": [
+                "b0b33fa1441b8cb633f53b1ef5fedc7fe326e4cf"
+            ],
+            "ref": "refs/changes/70/42270/5",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1619692616,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 206,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "891527050d5e47e6e88e2f1b772079779bfb52eb",
+            "parents": [
+                "064bfd78606080a72f554cd3f83973babdae4bf3"
+            ],
+            "ref": "refs/changes/70/42270/6",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1619790404,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 52,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "hmm.. why is enclosure_fault deleted ?"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 359,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "oh .. is it just moved here ?"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 359,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Yea just re-alinged to make identify and faults together."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 206,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 7,
+            "revision": "9a0123990bc38e2e3951a0eb0db193805f120737",
+            "parents": [
+                "8e7bc3ec67ef4c46b88956acdebe18f1d48fe33f"
+            ],
+            "ref": "refs/changes/70/42270/7",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1620120355,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "NO_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 206,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 8,
+            "revision": "50304da5f27c3f6a6c12a016a1390385a2e99859",
+            "parents": [
+                "06f34416279302e0ee895e16f55d2419b634460e"
+            ],
+            "ref": "refs/changes/70/42270/8",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1620206968,
+            "author": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 206,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 0
+        }
+    ]
+}

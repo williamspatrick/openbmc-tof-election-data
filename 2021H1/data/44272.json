@@ -1,0 +1,679 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "topic": "bootOverride",
+    "id": "Id0b24b37a4519a2efbb97da597858c295d7c6c27",
+    "number": 44272,
+    "subject": "Support new boot override setting design",
+    "owner": {
+        "name": "Konstantin Aladyshev",
+        "email": "aladyshev22@gmail.com",
+        "username": "Kostr"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/44272",
+    "commitMessage": "Support new boot override setting design\n\nAdd support for the new boot override setting design that was pushed\nin the commit: \"phosphor-settings-manager: redesign boot setting\noverride feature\" (openbmc/openbmc/+/44226).\nThe new design not only simplifies boot override settings handling,\nbut also removes interdependency between BootType/BootSource/\nBootMode parameters that was present in the handling code.\n\nIn the old design there wasn't any place to encode boot override\ndisabled state on a Dbus. Therefore bmcweb used implicit mapping of\nboot parameters to address the problem of encoding disabled override\nstate:\n\"BootSourceOverrideEnabled=Disabled\" =\n\"BootSourceOverrideMode=UEFI\" + \"BootSourceOverrideTarget=None\"\nBut with this approach if you set:\n\"BootSourceOverrideEnabled=Once\"\n\"BootSourceOverrideMode=UEFI\"\n\"BootSourceOverrideTarget=None\"\nYou would later read:\n\"BootSourceOverrideEnabled=Disabled\"\n\"BootSourceOverrideMode=UEFI\"\n\"BootSourceOverrideTarget=None\"\nWhich is not what is expected.\n\nAlso this interdependency between boot parameters complicates the code.\nFor example if we only try to set the boot mode, we need also to check\nthe boot target and probably set the boot enabled state. If we only try\nto read boot enabled, we also need to check boot mode and boot target.\nThis is also not good.\n\nIn the new design there is a specific Dbus interface that is used to\nstore overall override enabled state. With it is possible to remove the\nimplicit mapping of boot parameters to disabled state and remove the\nunnecessary interdependency between the boot override parameters.\n\nAlso now with the help of \"Support all parameter combinations in\nRedfish boot tests\" (openbmc-test-automation/+/44225) it it possible to\ntest for all combinations of boot override parameters.\n\nTested with the openbmc-test-automation with the aforementioned patch\napplied (openbmc-test-automation/+/44225) with \"boot_type\" feature\npresent:\n  robot -v PLATFORM_ARCH_TYPE:x86 \\\n        -v OPENBMC_HOST:<BMC IP> \\\n        redfish/systems/test_boot_devices.robot\n\nAlso tested with the openbmc-test-automation with the aforementioned\npatch applied (openbmc-test-automation/+/44225) without \"boot_type\"\nfeature present:\n  robot -v OPENBMC_HOST:<BMC IP> \\\n        redfish/systems/test_boot_devices.robot\n\nMore information about boot source override design differences can be\nfound at the mailing list discussions:\nhttps://lists.ozlabs.org/pipermail/openbmc/2021-May/026533.html\nand\nhttps://lists.ozlabs.org/pipermail/openbmc/2021-June/026759.html\n\nSigned-off-by: Konstantin Aladyshev <aladyshev22@gmail.com>\nChange-Id: Id0b24b37a4519a2efbb97da597858c295d7c6c27\nSigned-off-by: Konstantin Aladyshev <aladyshev22@gmail.com>\n",
+    "createdOn": 1624276397,
+    "lastUpdated": 1628287402,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1624276397,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1624276430,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624276789,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/20239/ : FAILURE"
+        },
+        {
+            "timestamp": 1624283182,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1624283197,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624283525,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/20251/ : FAILURE"
+        },
+        {
+            "timestamp": 1624285561,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1624285577,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624285909,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/20257/ : FAILURE"
+        },
+        {
+            "timestamp": 1624288949,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1624288967,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624289472,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20260/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624291407,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 4:\n\nHello!\nPlease review this change that is a part of a redesign of a boot source override feature:\nhttps://gerrit.openbmc-project.xyz/q/topic:%22bootOverride%22\n\nAll the problems with the last realization was discussed in a mailing list letter:\nhttps://lists.ozlabs.org/pipermail/openbmc/2021-May/026533.html"
+        },
+        {
+            "timestamp": 1626792452,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1626800819,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 5: Commit message was updated."
+        },
+        {
+            "timestamp": 1626804375,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 6: Patch Set 5 was rebased"
+        },
+        {
+            "timestamp": 1626804401,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1626804850,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/22418/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627580632,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1627646431,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1627646448,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627646902,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23329/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627647034,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 7:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1627892851,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 7:\n\nFor the record, I tested this patch and confirmed it worked as expected.\nBut I did not have time to review the changes."
+        },
+        {
+            "timestamp": 1627919036,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7: Code-Review+2"
+        },
+        {
+            "timestamp": 1627919039,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as c21865c469cfc9dffdc15d87710293115cf6d9e4 by Ed Tanous"
+        },
+        {
+            "timestamp": 1628230179,
+            "reviewer": {
+                "name": "Basheer Ahmed Muddebihal",
+                "email": "basheerx.muddebihal@intel.com",
+                "username": "bamuddex"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)\n\nPlease correct the patch"
+        },
+        {
+            "timestamp": 1628287402,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 8:\n\n> Patch Set 8:\n> \n> (2 comments)\n> \n> Please correct the patch\n\nThe interface is not wrong. There were some API changes, I've commented all of the reasons behind this in your relevant patchset"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "ec4edac95c0399c5f7f174f41dea99ea8fea3abd",
+            "parents": [
+                "e5a99777b8710cdcc82bffb25a7a248e18705e2d"
+            ],
+            "ref": "refs/changes/72/44272/1",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1624276397,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 363,
+                    "deletions": -172
+                }
+            ],
+            "sizeInsertions": 363,
+            "sizeDeletions": 172
+        },
+        {
+            "number": 2,
+            "revision": "82d7cecad21d2572f8dbf2d97db245bc4a212ad1",
+            "parents": [
+                "ac3ca4e145e5ee04eb16abd975a6111118374599"
+            ],
+            "ref": "refs/changes/72/44272/2",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1624283182,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 254,
+                    "deletions": -270
+                }
+            ],
+            "sizeInsertions": 254,
+            "sizeDeletions": 270
+        },
+        {
+            "number": 3,
+            "revision": "4ca5a29dd19bb7fb63204c5c4aba6931fb00617d",
+            "parents": [
+                "ac3ca4e145e5ee04eb16abd975a6111118374599"
+            ],
+            "ref": "refs/changes/72/44272/3",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1624285561,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 254,
+                    "deletions": -270
+                }
+            ],
+            "sizeInsertions": 254,
+            "sizeDeletions": 270
+        },
+        {
+            "number": 4,
+            "revision": "69d22a2084bff40e3a0ebb9be1c1d31ea4241d21",
+            "parents": [
+                "ac3ca4e145e5ee04eb16abd975a6111118374599"
+            ],
+            "ref": "refs/changes/72/44272/4",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1624288949,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please make some statements about the backward compatibility of these changes from a Redfish API surface perspective.  Is this new code perfectly compatible?  If it's not, what differences would a user expect?  Are any changes to client code required?\n\n\nAlso, being more specific about how the param handling is changing would help.  \"removes weird interdependency...\" doesn't really speak toward what the changes are."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 253,
+                    "deletions": -270
+                }
+            ],
+            "sizeInsertions": 253,
+            "sizeDeletions": 270
+        },
+        {
+            "number": 5,
+            "revision": "c528eceea0c1b789e4985afa346583ee0be6996a",
+            "parents": [
+                "ac3ca4e145e5ee04eb16abd975a6111118374599"
+            ],
+            "ref": "refs/changes/72/44272/5",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1626800819,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 253,
+                    "deletions": -270
+                }
+            ],
+            "sizeInsertions": 253,
+            "sizeDeletions": 270
+        },
+        {
+            "number": 6,
+            "revision": "eefb60c4f9e059eb091fac30ec8ee1431f46e4c7",
+            "parents": [
+                "cd9a4666e67563bad804d08b891f7d852ac6e18a"
+            ],
+            "ref": "refs/changes/72/44272/6",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1626804375,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1082,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This lambda is kinda big.  Can we abstract it into its own method?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1082,
+                    "reviewer": {
+                        "name": "Konstantin Aladyshev",
+                        "email": "aladyshev22@gmail.com",
+                        "username": "Kostr"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1539,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "init your variables (preferably on line 1547 closer to where they're filled in)."
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1539,
+                    "reviewer": {
+                        "name": "Konstantin Aladyshev",
+                        "email": "aladyshev22@gmail.com",
+                        "username": "Kostr"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1576,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Because this wasn't initialized above, this is undefined behavior if *bootEnable == \"Disabled\""
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1576,
+                    "reviewer": {
+                        "name": "Konstantin Aladyshev",
+                        "email": "aladyshev22@gmail.com",
+                        "username": "Kostr"
+                    },
+                    "message": "Fixed"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1595,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, these braces aren't needed."
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1595,
+                    "reviewer": {
+                        "name": "Konstantin Aladyshev",
+                        "email": "aladyshev22@gmail.com",
+                        "username": "Kostr"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 253,
+                    "deletions": -270
+                }
+            ],
+            "sizeInsertions": 253,
+            "sizeDeletions": 270
+        },
+        {
+            "number": 7,
+            "revision": "f3cef75fc8b6252337f841aea74e6e3431796e95",
+            "parents": [
+                "42cbb517ffc573e9ec39077f5a59c1443e0ef9ea"
+            ],
+            "ref": "refs/changes/72/44272/7",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1627646431,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 255,
+                    "deletions": -252
+                }
+            ],
+            "sizeInsertions": 255,
+            "sizeDeletions": 252
+        },
+        {
+            "number": 8,
+            "revision": "c21865c469cfc9dffdc15d87710293115cf6d9e4",
+            "parents": [
+                "8b6a35f0f99ed38293f7d134511d6181c88c5a59"
+            ],
+            "ref": "refs/changes/72/44272/8",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1627919039,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1160,
+                    "reviewer": {
+                        "name": "Basheer Ahmed Muddebihal",
+                        "email": "basheerx.muddebihal@intel.com",
+                        "username": "bamuddex"
+                    },
+                    "message": "Interface is wrong here, Correct Interface is \n/xyz/openbmc_project/control/host0/boot/one_time"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1599,
+                    "reviewer": {
+                        "name": "Basheer Ahmed Muddebihal",
+                        "email": "basheerx.muddebihal@intel.com",
+                        "username": "bamuddex"
+                    },
+                    "message": "Interface is wrong here, Correct Interface is \n/xyz/openbmc_project/control/host0/boot/one_time"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 255,
+                    "deletions": -252
+                }
+            ],
+            "sizeInsertions": 255,
+            "sizeDeletions": 252
+        }
+    ]
+}

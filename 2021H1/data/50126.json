@@ -1,0 +1,301 @@
+{
+    "project": "openbmc/openpower-vpd-parser",
+    "branch": "master",
+    "id": "I7a5c6dc23ef5b09a99f013c0540ecc59913c92c6",
+    "number": 50126,
+    "subject": "Move json symlink before populating dbus interfaces",
+    "owner": {
+        "email": "priyanga24@in.ibm.com",
+        "username": "PriyangaRamasamy"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openpower-vpd-parser/+/50126",
+    "commitMessage": "Move json symlink before populating dbus interfaces\n\nThis commit reorders the flow of ibm-read-vpd app execution by\nfirst allowing the app to create symbolink link to the respective json\nand then populate dbus interfaces by having the right json.\n\nWithout this change, only those motherboard subfrus which are present\nin the default inventory json will gets its interfaces populated during\ngenesis boot. Thus leaving machine specific motherboard's subfru's\n(powersupply, pcieslots, etc.,) dbus interfaces unpopulated.\n\nWith this change, all of the motherboard subfrus which are present in\nthe symlink json will get its interfaces populated on dbus during\ngenesis boot.\n\nTest:\nTested on simics rainier2s2u. Able to see all of the interfaces of\nmotherboard's\nsubfrus after the genesis boot.\n\n1. motherboard's subfru - powersupply0\n\nroot@p10bmc:~# busctl introspect xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/powersupply0\nNAME                                                  TYPE      SIGNATURE RESULT/VALUE                             FLAGS\ncom.ibm.ipzvpd.DINF                                   interface -         -                                        -\n.FL                                                   property  ay        20 69 48 32 32 32 32 32 32 32 32 32 32 \u2026 emits-change writable\n.RI                                                   property  ay        4 0 3 16 0                               emits-change writable\n.RT                                                   property  ay        0                                        emits-change writable\ncom.ibm.ipzvpd.Location                               interface -         -                                        -\n.LocationCode                                         property  s         \"U78DA.ND0.1234567-E0\"                   emits-change writable\ncom.ibm.ipzvpd.VINI                                   interface -         -                                        -\n.B3                                                   property  ay        0                                        emits-change writable\n.B4                                                   property  ay        0                                        emits-change writable\n.B7                                                   property  ay        0                                        emits-change writable\n.CC                                                   property  ay        4 53 49 69 57                            emits-change writable\n.CE                                                   property  ay        0                                        emits-change writable\n.CT                                                   property  ay        0                                        emits-change writable\n.DR                                                   property  ay        6 73 66 77 32 80 83                      emits-change writable\n.FG                                                   property  ay        0                                        emits-change writable\n.FN                                                   property  ay        1 99                                     emits-change writable\n.HE                                                   property  ay        0                                        emits-change writable\n.HW                                                   property  ay        0                                        emits-change writable\n.HX                                                   property  ay        0                                        emits-change writable\n.PN                                                   property  ay        8 114 101 118 105 115 105 111 110        emits-change writable\n.PR                                                   property  ay        0                                        emits-change writable\n.RT                                                   property  ay        0                                        emits-change writable\n.SN                                                   property  ay        12 89 76 49 48 75 115 101 114 105 97 10\u2026 emits-change writable\n.TS                                                   property  ay        0                                        emits-change writable\n.VN                                                   property  ay        0                                        emits-change writable\n.VZ                                                   property  ay        0                                        emits-change writable\norg.freedesktop.DBus.Introspectable                   interface -         -                                        -\n.Introspect                                           method    -         s                                        -\norg.freedesktop.DBus.Peer                             interface -         -                                        -\n.GetMachineId                                         method    -         s                                        -\n.Ping                                                 method    -         -                                        -\norg.freedesktop.DBus.Properties                       interface -         -                                        -\n.Get                                                  method    ss        v                                        -\n.GetAll                                               method    s         a{sv}                                    -\n.Set                                                  method    ssv       -                                        -\n.PropertiesChanged                                    signal    sa{sv}as  -                                        -\nxyz.openbmc_project.Association.Definitions           interface -         -                                        -\n.Associations                                         property  a(sss)    3 \"fault_led_group\" \"fault_inventory_ob\u2026 emits-change writable\nxyz.openbmc_project.Inventory.Decorator.Asset         interface -         -                                        -\n.BuildDate                                            property  s         \"\"                                       emits-change writable\n.Manufacturer                                         property  s         \"\"                                       emits-change writable\n.Model                                                property  s         \"51E9\"                                   emits-change writable\n.PartNumber                                           property  s         \"revision\"                               emits-change writable\n.SerialNumber                                         property  s         \"serial\"                                 emits-change writable\n.SparePartNumber                                      property  s         \"c\"                                      emits-change writable\n.SubModel                                             property  s         \"\"                                       emits-change writable\nxyz.openbmc_project.Inventory.Decorator.LocationCode  interface -         -                                        -\n.LocationCode                                         property  s         \"U78DA.ND0.1234567-E0\"                   emits-change writable\nxyz.openbmc_project.Inventory.Item                    interface -         -                                        -\n.Present                                              property  b         true                                     emits-change writable\n.PrettyName                                           property  s         \"powersupply0\"                           emits-change writable\nxyz.openbmc_project.Inventory.Item.PowerSupply        interface -         -                                        -\nxyz.openbmc_project.Object.Enable                     interface -         -                                        -\n.Enabled                                              property  b         false                                    emits-change writable\nxyz.openbmc_project.Software.Version                  interface -         -                                        -\n.Purpose                                              property  s         \"xyz.openbmc_project.Software.Version.V\u2026 emits-change writable\n.Version                                              property  s         \"313033323330\"                           emits-change writable\nxyz.openbmc_project.State.Decorator.OperationalStatus interface -         -                                        -\n.Functional                                           property  b         true                                     emits-change writable\nroot@p10bmc:~#\n\n===========\n2. motherboard's subfru - pcieslot0\n\nroot@p10bmc:~# busctl introspect xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/pcieslot0\nNAME                                                  TYPE      SIGNATURE RESULT/VALUE                             FLAGS\ncom.ibm.ipzvpd.Location                               interface -         -                                        -\n.LocationCode                                         property  s         \"U78DA.ND0.1234567-P0-C0\"                emits-change writable\norg.freedesktop.DBus.Introspectable                   interface -         -                                        -\n.Introspect                                           method    -         s                                        -\norg.freedesktop.DBus.Peer                             interface -         -                                        -\n.GetMachineId                                         method    -         s                                        -\n.Ping                                                 method    -         -                                        -\norg.freedesktop.DBus.Properties                       interface -         -                                        -\n.Get                                                  method    ss        v                                        -\n.GetAll                                               method    s         a{sv}                                    -\n.Set                                                  method    ssv       -                                        -\n.PropertiesChanged                                    signal    sa{sv}as  -                                        -\nxyz.openbmc_project.Association.Definitions           interface -         -                                        -\n.Associations                                         property  a(sss)    3 \"fault_led_group\" \"fault_inventory_ob\u2026 emits-change writable\nxyz.openbmc_project.Inventory.Decorator.LocationCode  interface -         -                                        -\n.LocationCode                                         property  s         \"U78DA.ND0.1234567-P0-C0\"                emits-change writable\nxyz.openbmc_project.Inventory.Item.PCIeSlot           interface -         -                                        -\n.Generation                                           property  s         \"xyz.openbmc_project.Inventory.Item.PCI\u2026 emits-change writable\n.HotPluggable                                         property  b         false                                    emits-change writable\n.Lanes                                                property  u         0                                        emits-change writable\n.SlotType                                             property  s         \"xyz.openbmc_project.Inventory.Item.PCI\u2026 emits-change writable\nxyz.openbmc_project.Object.Enable                     interface -         -                                        -\n.Enabled                                              property  b         false                                    emits-change writable\nxyz.openbmc_project.State.Decorator.OperationalStatus interface -         -                                        -\n.Functional                                           property  b         true                                     emits-change writable\nxyz.openbmc_project.State.Decorator.PowerState        interface -         -                                        -\n.PowerState                                           property  s         \"xyz.openbmc_project.State.Decorator.Po\u2026 emits-change writable\nroot@p10bmc:~#\n\nSigned-off-by: Priyanga Ramasamy <priyanga24@in.ibm.com>\nChange-Id: I7a5c6dc23ef5b09a99f013c0540ecc59913c92c6\n",
+    "createdOn": 1641373346,
+    "lastUpdated": 1641474342,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1641373346,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1641373370,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641373370,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641373508,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/34918/ : SUCCESS"
+        },
+        {
+            "timestamp": 1641374092,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1641374661,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1641374717,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1641375778,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1641461766,
+            "reviewer": {
+                "name": "Jinu Joy Thomas",
+                "email": "jinu.joy.thomas@in.ibm.com",
+                "username": "jinuthomas"
+            },
+            "message": "Patch Set 2: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1641473789,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1641474334,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 2: Code-Review+2"
+        },
+        {
+            "timestamp": 1641474342,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Change has been successfully rebased and submitted as 32c687f5a145008c7b725278b3b23589f315e4a7"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "0e22cb66c041ecfe1b51ca934f90e23a093d7cb7",
+            "parents": [
+                "26d6c146d265de6f0b6b66baf3951298c0418a67"
+            ],
+            "ref": "refs/changes/26/50126/1",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1641373346,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "reorders**"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Please split these lines"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Looks good, just a couple nits"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 123,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -22
+                }
+            ],
+            "sizeInsertions": 25,
+            "sizeDeletions": 22
+        },
+        {
+            "number": 2,
+            "revision": "bb6c8d24dfbcdc3f0e1995bb6a45ef703f4fbc69",
+            "parents": [
+                "26d6c146d265de6f0b6b66baf3951298c0418a67"
+            ],
+            "ref": "refs/changes/26/50126/2",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1641374661,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Jinu Joy Thomas",
+                        "email": "jinu.joy.thomas@in.ibm.com",
+                        "username": "jinuthomas"
+                    },
+                    "message": "nit"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Jinu Joy Thomas",
+                        "email": "jinu.joy.thomas@in.ibm.com",
+                        "username": "jinuthomas"
+                    },
+                    "message": "machine specific"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 127,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -22
+                }
+            ],
+            "sizeInsertions": 25,
+            "sizeDeletions": 22
+        },
+        {
+            "number": 3,
+            "revision": "32c687f5a145008c7b725278b3b23589f315e4a7",
+            "parents": [
+                "69f760240e8bf0937652a39a3fd81d8fb180179c"
+            ],
+            "ref": "refs/changes/26/50126/3",
+            "uploader": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "createdOn": 1641474342,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 127,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -22
+                }
+            ],
+            "sizeInsertions": 25,
+            "sizeDeletions": 22
+        }
+    ]
+}

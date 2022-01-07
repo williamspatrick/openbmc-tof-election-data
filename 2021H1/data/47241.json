@@ -1,0 +1,4008 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I15769d33ea2fa53dcc117b1f3c96041acd0f2fcf",
+    "number": 47241,
+    "subject": "Add support for 'Get PMBUS Readings' method.",
+    "owner": {
+        "name": "Arun Lal K M",
+        "email": "arun.lal@intel.com",
+        "username": "arunlalkm-intel"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/47241",
+    "commitMessage": "Add support for 'Get PMBUS Readings' method.\n\nVR sensor is currently read in the following way:\nBMC gives read command, and ME proxy forward it to VR sensor.\n\nIn 'Get PMBUS Readings' method BMC reads the data from ME.\nThis is used in platforms where ME cannot proxy forward PMBUS command.\n\nCommand:\n0x2E 0xF5 0x57 0x01 0x00 0x<ID> 0x0F 0x00\n\n0x2E is net function\n0xF5 is corresponding to 'Get PMBUS Readings'\n0x57 0x01 0x00 is Intel manufacturers ID\nID is the ID of senssor in ME (not actual sensor address)\n0x0F is PMBUS-enabled Device Index\n0x00 is reserved byte\n\nNew configuration parameters in Baseboard.json:\n1) DeviceIndex: ID of the sensor in ME.\n2) ReadMethod: use \"ReadME\" for 'Get PMBUS Readings'.\n3) Register: Register to read in the response byte array.\n   For example,\n      Registers 1 = Temperature\n      Registers 2 = Voltage\n      Registers 3 = Current\n\nNote:\nThis is not a complete replacement for the old method, we are adding\none more way to read these sensors. The old implementation is still\npresent, as in, new code with old configuration file\n(xx_Baseboard.json) will work (using the old method of reading the\nsensor).\n\nReferences:\n1) Intelligent Power Node Manager External Interface Specification\n   Using IPMI.\n2) PMBus-Specification.\n\nTested:\nCase 1: Using proxy (Backward compatibility testing)\nSample configuration in Baseboard.json:\n{\n    \"Address\": \"0xXX\",\n    \"Class\": \"MpsBridgeTemp\",\n    \"Name\": \"XX VR Temp\",\n    \"Thresholds\": [...],\n    \"Type\": \"IpmbSensor\"\n}\n\nGive command 'ipmitool sdr elist'\nResponse:\nCPU1 PVCCD VR Te | 31h | ok  |  0.1 | 37 degrees C\nCPU2 PVCCD VR Te | 36h | ok  |  0.1 | 37 degrees C\nCPU1 PVCCFA EHV  | 32h | ok  |  0.1 | 34 degrees C\nCPU2 PVCCFA EHV  | 37h | ok  |  0.1 | 33 degrees C\nCPU1 VCCIN VR Te | 34h | ok  |  0.1 | 48 degrees C\nCPU2 VCCIN VR Te | 39h | ok  |  0.1 | 58 degrees C\n\nCase 2: Using 'Get PMBUS Readings' method\nSample configuration in Baseboard.json:\n{\n    \"Address\": \"0xXX\",\n    \"DeviceIndex\": \"0xXX\",\n    \"Class\": \"MpsBridgeTemp\",\n    \"Register\": 1,\n    \"ReadMethod\": \"ReadME\",\n    \"Name\": \"XX VR Temp\",\n    \"Thresholds\": [...],\n    \"Type\": \"IpmbSensor\"\n}\n\nGive command 'ipmitool sdr elist'\nResponse:\nCPU1 PVCCD VR Te | 31h | ok  |  0.1 | 41 degrees C\nCPU2 PVCCD VR Te | 36h | ok  |  0.1 | 43 degrees C\nCPU1 PVCCFA EHV  | 32h | ok  |  0.1 | 37 degrees C\nCPU2 PVCCFA EHV  | 37h | ok  |  0.1 | 37 degrees C\nCPU1 VCCIN VR Te | 34h | ok  |  0.1 | 60 degrees C\nCPU2 VCCIN VR Te | 39h | ok  |  0.1 | 56 degrees C\n\nSigned-off-by: Arun Lal K M <arun.lal@intel.com>\nSigned-off-by: gokulsanker <gokul.sanker.v.g@intel.com>\nChange-Id: I15769d33ea2fa53dcc117b1f3c96041acd0f2fcf\n",
+    "createdOn": 1632725935,
+    "lastUpdated": 1641433469,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1632725935,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1632725967,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632726122,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27010/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632749386,
+            "reviewer": {
+                "name": "Suresh Vijayakumar",
+                "email": "suresh.vijayakumar@intel.com",
+                "username": "sureshvijayv1"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1632758899,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(4 comments)\n\nI recommend adding some clarifications inside the code to assist in understanding how to use this feature."
+        },
+        {
+            "timestamp": 1632847237,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 1:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1633024788,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1633103186,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1633111569,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1633124704,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633270245,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 2:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1633326581,
+            "reviewer": {
+                "name": "Suresh Vijayakumar",
+                "email": "suresh.vijayakumar@intel.com",
+                "username": "sureshvijayv1"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1633451780,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1633451806,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633451953,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27485/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633503005,
+            "reviewer": {
+                "email": "smriti.ayushi@linux.intel.com",
+                "username": "Smriti-Ayushi"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\nlgtm."
+        },
+        {
+            "timestamp": 1633530926,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\nNo additional comments."
+        },
+        {
+            "timestamp": 1633649531,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(11 comments)"
+        },
+        {
+            "timestamp": 1633674548,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 3:\n\n(11 comments)"
+        },
+        {
+            "timestamp": 1633688527,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1633688542,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633688693,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27878/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633690332,
+            "reviewer": {
+                "name": "Manish Baing",
+                "email": "manish.baing@intel.com",
+                "username": "manishbaing"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1633706719,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633764135,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633962132,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\n(1 comment)\n\nI won't hold this up for the requested change."
+        },
+        {
+            "timestamp": 1633962883,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633964486,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1633965817,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4: -Code-Review\n\nPushed wrong button - still pending couple minor things for me"
+        },
+        {
+            "timestamp": 1633966325,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1633966340,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633966575,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28067/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633967539,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 5: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633968356,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1633968370,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633968462,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633968492,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/28068/ : FAILURE"
+        },
+        {
+            "timestamp": 1633969586,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1633969610,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633969764,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28069/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633969828,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        },
+        {
+            "timestamp": 1633972377,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        },
+        {
+            "timestamp": 1633984785,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        },
+        {
+            "timestamp": 1634495518,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(21 comments)\n\nplenty of cleanups to do here."
+        },
+        {
+            "timestamp": 1634504525,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634559107,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 7:\n\n(21 comments)"
+        },
+        {
+            "timestamp": 1634559499,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634570843,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1634570920,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634732500,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1634732524,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634732672,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28619/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634905194,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 8:\n\nHi Ed,\n\nCan you review the new patch? I have addressed your comments."
+        },
+        {
+            "timestamp": 1635180716,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635188824,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 9: Commit message was updated."
+        },
+        {
+            "timestamp": 1635188965,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 10: Commit message was updated."
+        },
+        {
+            "timestamp": 1635189058,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 11: Commit message was updated."
+        },
+        {
+            "timestamp": 1635189137,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 12: Commit message was updated."
+        },
+        {
+            "timestamp": 1635189173,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635197955,
+            "reviewer": {
+                "name": "P Dheeraj Srujan Kumar",
+                "email": "p.dheeraj.srujan.kumar@intel.com",
+                "username": "dheerajpdsk"
+            },
+            "message": "Patch Set 12:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1635225941,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 13: Commit message was updated."
+        },
+        {
+            "timestamp": 1635225964,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635358100,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1635358642,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1635367046,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 13:\n\n(19 comments)"
+        },
+        {
+            "timestamp": 1635371930,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1635371957,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 14:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635371966,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635372121,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29205/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635466133,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Removed reviewer Andrew Jeffery."
+        },
+        {
+            "timestamp": 1635797988,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1636726808,
+            "reviewer": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1637001042,
+            "reviewer": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1637001056,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637001203,
+            "reviewer": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "message": "Patch Set 15:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1637001207,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30281/ : FAILURE"
+        },
+        {
+            "timestamp": 1637002050,
+            "reviewer": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1637002081,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637002477,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30283/ : FAILURE"
+        },
+        {
+            "timestamp": 1637003781,
+            "reviewer": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "message": "Patch Set 17: Published edit on patch set 16."
+        },
+        {
+            "timestamp": 1637003796,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637003954,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30284/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637112285,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 17:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1639569306,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1639569327,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639569478,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32091/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639572417,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 18:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1639630995,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 18:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639631817,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 18:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639632542,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Removed reviewer Andrew Jeffery."
+        },
+        {
+            "timestamp": 1639634319,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 18:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639702046,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 18:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1639715875,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 18:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1639719901,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1639719915,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639719991,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Removed reviewer Andrew Jeffery."
+        },
+        {
+            "timestamp": 1639720177,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32188/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639762951,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)\n\nIt looks really close, only one issue left from my perspective."
+        },
+        {
+            "timestamp": 1639763154,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 19:\n\n> Patch Set 19:\n> \n> (1 comment)\n> \n> It looks really close, only one issue left from my perspective.\n\n@Ed I see your previous comments have been addressed. Do you have further comments with the latest patch?"
+        },
+        {
+            "timestamp": 1639764541,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639764556,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 19:\n\n(6 comments)\n\nPretty minor logic things."
+        },
+        {
+            "timestamp": 1639765249,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639768463,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 19:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1639768732,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 20."
+        },
+        {
+            "timestamp": 1639768749,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639769005,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32223/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639769761,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 20: Code-Review+1\n\nLGTM, please do follow up with clean up suggestions"
+        },
+        {
+            "timestamp": 1640103651,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 20: Code-Review+1\n\nLGTM"
+        },
+        {
+            "timestamp": 1640303005,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 20:\n\n> Patch Set 19:\n> \n> (6 comments)\n> \n> Pretty minor logic things.\n\n@Ed, Can you review the latest patch again?"
+        },
+        {
+            "timestamp": 1640308454,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 20:\n\n(1 comment)\n\n> Patch Set 20: Code-Review+1\n> \n> LGTM, please do follow up with clean up suggestions"
+        },
+        {
+            "timestamp": 1640308729,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 20:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1640336246,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 20:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1640620806,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Uploaded patch set 21."
+        },
+        {
+            "timestamp": 1640620829,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1640621091,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32449/ : SUCCESS"
+        },
+        {
+            "timestamp": 1640621189,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 21:\n\n@Ed, please review the new code and my suggestions to your comments."
+        },
+        {
+            "timestamp": 1641433469,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 21:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "466f7ae41e903d5d1399e983b9014fab6f5216af",
+            "parents": [
+                "1e34cecad498e89fb52b4c73cb19e62a297f2329"
+            ],
+            "ref": "refs/changes/41/47241/1",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1632725935,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Are these methods mutually exclusive?\nCan they be selected dynamically?\nIf dynamic, how do you select the access method?\nIs the mechanism described inside the code to assist devs in enabling/disabling the access method?\nIs this an Intel only entity, or do we need to make sure other users can choose the method for getting to VR's?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Are these methods mutually exclusive?\n- Yes the methods are mutually exclusive, what method is used to \n  read the sensor is depended on xx_baseboard.json file. \n\nCan they be selected dynamically?\n- Current code does not support changing the read method during \n  runtime. But if we dynamically make isProxy = true, the code \n  will switch to reading using proxy method. \n\nIs the mechanism described inside the code to assist devs in enabling/disabling the access method?\n- I will add more comments in code to enable this. \n\nIs this an Intel only entity, or do we need to make sure other users can choose the method for getting to VR's?\n- It is not Intel only, others can make use of this method, \n  assuming the ME at their end is capable of retrieving correct \n  data to 'Get PMBUS Readings' request."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Is ipmitool used for both examples?\nThe output appears to be \"ipmitool sdr elist\" in both cases."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "In both cases we are using ipmitool sdr elist, only change is what method we are using internally to read the sensor data. \nAnd that method is based on configuration in xx_baseboard.json"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Is registerToRead eqn performing an I2C 7-bit to 8-bit translation?\nIs this being doubled for some other purpose?\nPlease document what this is doing in some fashion."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "In NM External Interface Spec, go to \"Get PMBUS Readings\". We see that response is a set of register values from the sensor.\nAnd we need to map which register is mapped to temperature. This configuration is right now being read from xx_baseboard.json and fille into 'registerToRead'."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 379,
+                    "reviewer": {
+                        "name": "Suresh Vijayakumar",
+                        "email": "suresh.vijayakumar@intel.com",
+                        "username": "sureshvijayv1"
+                    },
+                    "message": "I think that printing the errors when the read failure happens may flood this way. It would be good that we have a limit to check for until it reaches those count and print the error strings till that point of time??"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 379,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "The logic right now is to print the error only once. That is if errCount == 0. \nAfter this we increment errCount. So we do not print again. \nAnd the parent sensor structure is looking if this count is crossing a threshold. \nThis happens inside incrementError function. And if we cross the threshold of errors, we make it markFunctional(false);"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 379,
+                    "reviewer": {
+                        "name": "Suresh Vijayakumar",
+                        "email": "suresh.vijayakumar@intel.com",
+                        "username": "sureshvijayv1"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 565,
+                    "reviewer": {
+                        "name": "Suresh Vijayakumar",
+                        "email": "suresh.vijayakumar@intel.com",
+                        "username": "sureshvijayv1"
+                    },
+                    "message": "Is this dependent on JSON file for the initial configs be loaded to determine isProxyRead for a particular VR sensor? If so what would happen if we do not use the latest BMC firmware with this change(Just wanted to understand the backward compatibility)??"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 565,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 565,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "It is backward compatible, and is tested, result is added in commit message. \nIf we use old configuration json file, the code reads the sensor as it use to, that is using proxy method."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 565,
+                    "reviewer": {
+                        "name": "Suresh Vijayakumar",
+                        "email": "suresh.vijayakumar@intel.com",
+                        "username": "sureshvijayv1"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 31,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 116,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 147,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 2,
+            "revision": "0fa615c00210e94713729de8fccfafa149b772b7",
+            "parents": [
+                "1e34cecad498e89fb52b4c73cb19e62a297f2329"
+            ],
+            "ref": "refs/changes/41/47241/2",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1633024788,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Why you are adding new types in the middle instead of appending to existing defintions ?\nWouldn't this impact existing sensors using this definiton, for example, \n'elevenBit' value was 2, now it will be 4, right ?\n\nPlease check for regression, i.e.) other sensors sharing this code (proxyRead=true) are working correctly, before as well as after your changes."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "This enum is used in a switch case, so value does not matter. \nAnyway I will add it to the end instead of in middle.\n\nproxyRead=true and false was tested. And same is updated in commit message."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 158,
+                    "reviewer": {
+                        "name": "Suresh Vijayakumar",
+                        "email": "suresh.vijayakumar@intel.com",
+                        "username": "sureshvijayv1"
+                    },
+                    "message": "I think that the if else conditions can also be moved out to header file and just calling a function here by passing the IpmbType should do the required functionalities and command selections, so that the code readability will also be nice to have in place even though it is existing from legacy."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 171,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "You can keep common things outside of if{}, else{}.\ni.e.) After line 167,\n            commandAddress = meAddress;\n            netfn = ipmi::me_bridge::netFn;\n\nApplicable to all places."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 171,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 324,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I don't like keep expanding this switch statement. The ReadingFormat is known at construct time and remains the same for the life of the object. There is no reason to do the switch for every read. It maybe time to abstract this out."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 324,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "This will throw exception when invalid JSON file entries present. i.e.) ReadMethod=IPMI, but no \"Register\" defined.\n\nBetter find them one by one like \n auto readMethod = entry.second.find(\"Register\");, \n auto readMethod = entry.second.find(\"SensorMeAddress\");\nAnd, if these entries are missing, you can log error and revert to default values, i.e) isProxyRead = true, ...."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 141,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 174,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 3,
+            "revision": "2766306db8891240b1178b01f4e2e3b7a64fb0bb",
+            "parents": [
+                "3fed6742dcfe30fe2fa5182dd37c3e1a0e337a43"
+            ],
+            "ref": "refs/changes/41/47241/3",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1633451780,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Is there a spec for all the different bytes? What is ID?\nHow are they related to PMBus?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "NM External Interface Spec\nID is the mapping of sensor in NM."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 40,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "not used?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 40,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Yes, not used. Will remove it."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "coding standard please"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address it."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 64,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "this can overflow"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 64,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will make offset uint16_t"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "nit: static_cast"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 250,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Log a message if this fails and IPMI is ignored, proxy mode is used?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 250,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Yes we will default to proxy. \nWill log error."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 70,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "default value can be moved to hpp file, reduce the length here"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 70,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "In hpp file there is only the class declaration. We are initializing the member variables."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Can this be changed to a std::chrono value?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "sensorPollMs is of type int, that is why we are using static_cast<int>.\n\nAnd if you want me to change type of sensorPollMs, we can do that. \nAnd a better choice will be boost::posix_time::milliseconds. \nAs sensorPollMs is used in waitTimer.expires_from_now. \nBut can I push it as separate review? As I think it has nothing to do with the current patch."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I did not notice the sensorPollMs init was identical.\nLeave the code as is.\n\nI'm not sure I understand your assertion though.\nstd::chrono::milliseconds is an int type.\nFrom BMCWeb there is this example code:\ncreateTimer->expires_after(std::chrono::milliseconds(500));\n\nIt appears to my eye the code I flagged could be changed to std::chrono::milliseconds(pollRate) without causing any issues. I don't understand why there would be a need to involve boost."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "I said that looking at the usage of sensorPollMs\nwaitTimer.expires_from_now(boost::posix_time::milliseconds(sensorPollMs));\nin line 368"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> sensorPollMs is of type int, that is why we are using static_cast<int>.\n> \n> And if you want me to change type of sensorPollMs, we can do that.\n\nI agree, using a std::chrono type would be better here;  Some of the reason this is the way it is is because of history;  Old asio timers couldn't take a std::chrono for a time value, so int milliseconds was an ok compromise.\n\n> And a better choice will be boost::posix_time::milliseconds. \n\nPer the coding standard, please prefer the std implementations of this, so std::chrono::milliseconds.\n\n> As sensorPollMs is used in waitTimer.expires_from_now. \n> But can I push it as separate review? As I think it has nothing to do with the current patch.\n\nAgreed, that should be done in a different patchset.  This patch is making no changes to the types of this value, it's just in the diff because of how it's initialized."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This is common, can be moved outside if, else"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 252,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "same as line 246"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 252,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 401,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Can we make this to return empty data so, this error handling @ line 419 can be used and does not have to be repeated here"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 401,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 426,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "this can be combined with line 419 to avoid repeating the below 3 lines"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 426,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 176,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 142,
+                    "deletions": -170
+                }
+            ],
+            "sizeInsertions": 318,
+            "sizeDeletions": 176
+        },
+        {
+            "number": 4,
+            "revision": "156c5842d368bf0501c4574312407ed86d0dcfed",
+            "parents": [
+                "26601e8919552a52bd8b23aa85fac30088f03303"
+            ],
+            "ref": "refs/changes/41/47241/4",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1633688527,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 190,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 132,
+                    "deletions": -174
+                }
+            ],
+            "sizeInsertions": 322,
+            "sizeDeletions": 180
+        },
+        {
+            "number": 5,
+            "revision": "5f8befd0b56fdae3717eaa895a3e5ca749bceac8",
+            "parents": [
+                "1dc85f51670dea67df5bb80c7328419f2eacec27"
+            ],
+            "ref": "refs/changes/41/47241/5",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1633966325,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "nit:remove"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 192,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 128,
+                    "deletions": -171
+                }
+            ],
+            "sizeInsertions": 320,
+            "sizeDeletions": 179
+        },
+        {
+            "number": 6,
+            "revision": "b6c9e76f4ec844d75ea380728072bb4c804f958c",
+            "parents": [
+                "1dc85f51670dea67df5bb80c7328419f2eacec27"
+            ],
+            "ref": "refs/changes/41/47241/6",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1633968356,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 190,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 128,
+                    "deletions": -171
+                }
+            ],
+            "sizeInsertions": 318,
+            "sizeDeletions": 178
+        },
+        {
+            "number": 7,
+            "revision": "0a43a5123b11824256bfe643f996574ab8e02d18",
+            "parents": [
+                "1dc85f51670dea67df5bb80c7328419f2eacec27"
+            ],
+            "ref": "refs/changes/41/47241/7",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1633969586,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please wrap 50/72"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address it."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "More details needed here.  Is this:\nA. A complete replacement for the old way?  In which case, is it known to be compatible with older systems?\nB. A per-system configurable option?  In which case, how does the option work, and is there a configuration item for it?\nC. An additional mechanism, in which case, what additional data does it provide.\n\nPlease answer in your commit message."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "A. A complete replacement for the old way?  In which case, is it known to be compatible with older systems?\n- It is not a complete replacement for the old way, we are adding one more way to read these sensors. And the implementation is backwards compatible, as in, new code with old configuration file (xx_Baseboard.json) will work (using the old method of reading the sensor). \n\nB. A per-system configurable option?  In which case, how does the option work, and is there a configuration item for it?\n- There is a configuration item, which is read in entity manager code. And is a baseboard.json file. We configure sensors and there addresses there. If the user adds \"ReadMethod\", \"Register\" and \"SensorMeAddress\" then the user will be able to switch to new method of reading the sensor data. \n\nC. An additional mechanism, in which case, what additional data does it provide.\n- It is a additional method, and we read the exact same sensor data. The new method is used in systems where ME can not proxy forward PMBUS command (for example, due to security reasons proxy forward is disabled at ME end). \n\nPlease answer in your commit message.\n- Will address this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> A. A complete replacement for the old way?  In which case, is it known to be compatible with older systems?\n> - It is not a complete replacement for the old way, we are adding one more way to read these sensors. And the implementation is backwards compatible, as in, new code with old configuration file (xx_Baseboard.json) will work (using the old method of reading the sensor). \n> \n> B. A per-system configurable option?  In which case, how does the option work, and is there a configuration item for it?\n> - There is a configuration item, which is read in entity manager code. And is a baseboard.json file. We configure sensors and there addresses there. If the user adds \"ReadMethod\", \"Register\" and \"SensorMeAddress\" then the user will be able to switch to new method of reading the sensor data. \n> \n> C. An additional mechanism, in which case, what additional data does it provide.\n> - It is a additional method, and we read the exact same sensor data. The new method is used in systems where ME can not proxy forward PMBUS command (for example, due to security reasons proxy forward is disabled at ME end). \n> \n> Please answer in your commit message.\n> - Will address this.\n\nLets get this put in the commit message, and we can discuss more there."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Did you consider a design that makes this a new type of sensor class?  It seems like a majority of the implementation and configuration has been replaced.\n\nAs a maintainer, I'm probalby ok either way, but it seems like something we should consider."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "It is not a type of sensor, and that is why we are not moving it into a new sensor class. \nWe are adding a alternative option to read the same set of sensors."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "It is not a new type of sensor*"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "From a code perspective, it is a fairly different form of sensor, that might share a method or two with the old one that might be abstracted.  I'm not that worried about it, but it would be good to go through a first pass of simplification here."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is a header file.  Please put your implementations in a cpp file."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this. \nQuestion: Any particular reason why this is not recommended?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Because if it's in a header, all implementations have to compile the code for it."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "const?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Yes it can be made const. Will address this."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "const?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Yes it can be made const. Will address this."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 195,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "else return error?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 195,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "This is not a new code I have added. I just cleaned up the code by abstracting some of the set functionalities. \nOriginally in else we use subType = IpmbSubType::temp\nI moved most of the default settings to initialization at constructor. So the else is not required here, or can be called as redundant code."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 195,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Ah, I see now;  These looked new.\n\nIn the future, please try to split up your \"cleanup\" or code-moving commits to be separate from commits that add features.  It helps maintainers to give you faster reviews."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why does any of this need to be runtime configurable?  Doesn't the PMBUS specification already give us these things for scaling and offset?  Also, isn't the PowerState parameter for ME always set to PowerOn?  (ie, not available when power isn't applied)."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 221,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "This is not a new code that I added. I have only abstracted these as part of clean up. \nI will move these functions to private members so that it cannot be accessed outside by mistake."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 247,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why does this need to be configurable at a register level?  Shouldn't this be an index, or a name in the pmbus device?\n\nGiven there's no description in the commit message of what this parameter really controls, it's kind of hard to know the answer to the above."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 247,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "The Get PMBUS Readings method (new method of reading same sensor data), reads the data from ME rather than reading it directly from the sensors. \nAs mentioned earlier, this method is used when ME cannot proxy forward BMC commands to sensors. \nAnd as response to Get PMBUS Readings, BMC receive all the registers in sensor. That is register for temperature, voltage, current etc. \nNow if BMC us looking for temperature, BMC needs to read the corresponding 2 bytes of register, that is what this configuration is for.\n\nInformation of these registers are defined in PMBus-Specification-Rev-1-2-Part-II."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 248,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This should be moved to the scope above, such that you can appropriately return errors if you get a config like\n\nReadMethod: Proxy\nRegister: 0x11"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 248,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "If read method is proxy we will not come to line 248. \nThis check is done in line 239."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 258,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can't we just reuse the address parameter name that was used previously in the old IPMB implementation?  Is there a reason we would need to define both this and the old one?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 258,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "This is done so that both method can co-exist. And also to not disturb the previous implementation. And just in case we don't find a valid configuration for new method we can default to reading by proxy method. \n\nI do understand the method you are proposing. Reuse the address variable and log error if we see some configuration mistake. Patch set 1 was like that. But then we thought it is better to go with a co-existing model."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 286,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please prefer a pattern of \n\nif(error check){\n   // log error\n   return\n}\n\nThis makes the code much more readable, and avoids significant scopes at the bottom of the file."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 286,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 298,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "These look like they got moved?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 298,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "They where moved to private space, as they should not be invoked externally during runtime."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Once you've fixed your code location issues, these will need to be put back where they were."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "I will move the abstracted function definitions to cpp file and if that allows me to move these back to where they were, I will do that too."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 159,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Doesn't this break existing me sensors?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 159,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "It does not break anything, I had tested for backwards compatibility. I have just moved all default initialization to constructor. Or where the variables are declared. \n\ncommandAddress = meAddress; was common for all the if else cases."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 233,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Is there a way to avoid this bool?  considering that we now have a settable \"get reading\" function, it seems like this would just be uneeded?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 233,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "setReadMethod will set isProxyRead. \n\nThis flag is used to switch between old and new method of reading. \nAnd plays important role in the command that we send and how the response is handled. \n\nWe can avoid this variable by passing it as argument to loadDefaults and setReadMethod.\nOr I can make a enum for ReadMethod and use a variable called readMethod. \ndoes any of the above two option seems desirable to you?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 249,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Magic numbers (yes, I realize the old one had magic numbers, but lets avoid it where possible."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 249,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "I will define these in code, no issues. \n0x57, 0x01, 0x00 is Intel manufacturers ID\n0x0F is PMBUS-enabled Device Index\n0x00 is reserved byte"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 274,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "It would've made this patchset significantly easier to review if the \"configurable read function\" parts were put in their own patchset.  As-is, I'm not really following why it's necessary, considering essentially every one of these handlers is doing the same operation (switch on type, and grab the right byte or bytes from the data structure).\n\nWhat necessitated moving this to a separate configurable method call?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 274,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "previous implementation (processReading function) was called from read() function, which means every time we read we use the switch case to switch to the corresponding read method, grab the bytes and process it. \n\nWith new implementation (setReadFunction function) we store the read method in a std::function member variable during initialization.  \nSo that we don't call a switch case every time we read. It was an optimization done as per one of the review comments in a earlier patch set."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 275,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Capturing by this can have significant lifetime issues.  I'd probably recommend making this method return a struct of the data you need, and avoid the capture entirely."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 275,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "readFunction is called from read() and is used to decode the response. \nreturning a structure idea is not that clear to me. \n\n'this' can be avoided if I can pass 'command' as argument in lambda. \nis that an acceptable alternative?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 411,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please put on it's own line like it was before."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 411,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "This was done as per one of the review comments in an earlier patch set. \nIs there any particular reason why we want it back in original place? \n\nThe change do make the code a bit clean rt?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 521,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This looks like a great cleanup;  It would've been really nice if it were in a patchset ahead of adding the new features;  Otherwise, it makes this very hard to review."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 521,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "I will keep this in mind for future commits."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 191,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 128,
+                    "deletions": -171
+                }
+            ],
+            "sizeInsertions": 319,
+            "sizeDeletions": 178
+        },
+        {
+            "number": 8,
+            "revision": "3ab2545bf1bb0e1ff2f2615a2544e76a98c0d1be",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/41/47241/8",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1634732500,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "not nearly enough detail.  please respond to the questions asked in the initial comment."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 423,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 508,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 9,
+            "revision": "56489587dcb281ae4a897106978e80bfd17cc440",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/41/47241/9",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1635188824,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 97,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 423,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 508,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 10,
+            "revision": "8f2842c48a49f97aa12817f34258b8bd34eac9a1",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/41/47241/10",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1635188965,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 97,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 423,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 508,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 11,
+            "revision": "1b57f5666cb3a26698eff8d4328e2efb6bc12b00",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/41/47241/11",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1635189058,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 423,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 508,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 12,
+            "revision": "140abf87f1e28224ea78b91aa9d418eb240c1505",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/41/47241/12",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1635189137,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "*sensor"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "their ?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "P Dheeraj Srujan Kumar",
+                        "email": "p.dheeraj.srujan.kumar@intel.com",
+                        "username": "dheerajpdsk"
+                    },
+                    "message": "Nit : Magic number?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "You can see in line 98 to 104 we are adding 5 bytes."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 423,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 508,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 13,
+            "revision": "3179876a615234f71baeda21f59cf8a42dd92cc3",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/41/47241/13",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1635225941,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please call this something over than \"Address\"  Maybe \"ID\"?  Ideally this would match whatever the term that's used in the ME EDS, such that one could reference it when finding these IDs.\n\n\nIs there no way to determine these IDs automatically?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Device Index is configured while making an IFWI. So can change, and that is why we keep it as configuration in BMC as well."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Aren't both of these using \"IPMI\", just variations of the commands?  Maybe we need some better names here?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Yes both are IPMI, will address this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why is this needed?  More details here, is this an index?  An enum?  an array?  Why can't we determine this automatically?  How does this relate to the PMbus specification."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Imagine a sensor X which has values for temperature, voltage and current. These values are stored in different registers. \nLet us assume a mapping.\n\nregisters 1 = temperature\nregisters 2 = voltage\nregisters 3 = current\n\nIn \"Get PMBUS Readings\" we get all the registers in response, and our code should read the register corresponding to the type we are interested in. That is what this variable is for. \n\nAnd this mapping is taken as a configuration parameter while building the IFWI. And that is why it is kept as a configuration parameter in BMC."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "That would kind of imply that we now need a single config that takes a list of registers to produce as sensors, rather than breaking it up per sensor.  If they're all returned in one response, we shouldn't be duplicating the request for the same data, right?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Gokul Sanker V G",
+                        "email": "gokul.sanker.v.g@intel.com",
+                        "username": "gokulsvg"
+                    },
+                    "message": "yes if Get PMBUS Reading is used instead of pmbus proxy, the response will contain reading  for all the mapped sensors"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Does this sensor deserve a new \"Type\" in the configuration?  Given the level of changes it's going through, it feels like it would need one."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "These are not a different type of sensors rt? The sensor class is still the same (like MpsBridgeTemp, PxeBridgeTemp etc). Only how we read is different, that is why we have introduced \"ReadMethod\" in configuration."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please rephrase to \"the old implementation is still present\"  \"backward compatible\" implies that we replaced something."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: This is stated previously on line 13, no need to repeat."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will remove this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: typo."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As a general rule, I would like to see cleanups done in other commits, but I guess we're here now, so it is what it is."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Yes I understand this. Clean up was not part of my original plan (you can check initial patch sets). \n\nBut I will keep this in mind for future patches."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "ok, so from the comment above, I see that this is an index.  What does it index?  Why is it needed, when it wasn't needed previously?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Already answered in line 28.\n\nAnd in old method (proxy), we could send request to get just Temperature or Current Output. \n\nLike\n0x8D means read Temperature\n0x8C means read Current Output\n\nHere 8D means Temperature and is fixed, and it is sensor's responsibility to return the appropriate register. \n\nBut in new method we receive all mapped registers, typically 6 or 7 register values, we need to know which register is corresponding to  Temperature or Current Output etc. \n\nIn the above example register 1 of response is Temperature."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "please answer by making your commit message more clear."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 83,
+                    "reviewer": {
+                        "name": "Gokul Sanker V G",
+                        "email": "gokul.sanker.v.g@intel.com",
+                        "username": "gokulsvg"
+                    },
+                    "message": "updated"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "These shadow the names of the variables on line 46 (I realize they're in a different namespace).  Please make these names somewhat unique, instead of putting them in a namespace.  This makes them easier to search for later."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will give a different name."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 79,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please add a comment where these are coming from.  Is this the pmbus specification?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 79,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 80,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please use size_t for offsets."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 80,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will do."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 85,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This seems like something we should rely on the user for, and in this code doesn't look neccesary, please remove."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 85,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will remove."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why not just make offset size_t on the line above and avoid the static_cast altogether."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will do."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 177,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why does this need to be a method;  Wouldn't a switch statement be simpler and optimize better?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 177,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "read() is a function which is called continuously, with the interval of sensorPollMs. \nIt was a switch statement inside read() function, which means the switch is called every time. \nThere was a suggestion from one of the reviewers in one of the earlier patch to optimize the same. Hence I removed the switch case and added this readFunction. \n\nDuring init() we use the switch case (one time) to initialize the readFunction with the appropriate code. And in runtime read() function will use readFunction instead of switch case."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 528,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This looks duplicated between the branches."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 528,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "I did not get you.\nThis code is same as line 367 in code to left."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 545,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, another set of whitespace."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 545,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will remove."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 755,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: extra whitespace injected."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 755,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will remove."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm having a lot of trouble determining which parts of this are rearranging code, and which parts of this are new code for this new feature.  Please separate them into different patches."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Only line 807 (setReadMethod) is code corresponding to new feature.\n\nLines 808, 809, 810 are abstracted as part of clean up."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If it's that trivial, then please split them into separate patches."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Gokul Sanker V G",
+                        "email": "gokul.sanker.v.g@intel.com",
+                        "username": "gokulsvg"
+                    },
+                    "message": "sure will do"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Gokul Sanker V G",
+                        "email": "gokul.sanker.v.g@intel.com",
+                        "username": "gokulsvg"
+                    },
+                    "message": "splited the patch, will push the clean as another patch"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "@Ed, Patch is spitted into separate patches. The patch is trivial."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 423,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 508,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 14,
+            "revision": "55bc4fc3e997062252782d0e4b84744ca047d045",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/41/47241/14",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1635371930,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 420,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 512,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 15,
+            "revision": "c9c5980089fd63c536daafc3250df0fa1799b6bd",
+            "parents": [
+                "66558235ce5d7568439ce7618dd0ce77fcc0b69c"
+            ],
+            "ref": "refs/changes/41/47241/15",
+            "uploader": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "createdOn": 1637001042,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 108,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 147,
+                    "deletions": -20
+                }
+            ],
+            "sizeInsertions": 158,
+            "sizeDeletions": 20
+        },
+        {
+            "number": 16,
+            "revision": "9a3d98b59827933cc889429e79303b5ac5279e0b",
+            "parents": [
+                "66558235ce5d7568439ce7618dd0ce77fcc0b69c"
+            ],
+            "ref": "refs/changes/41/47241/16",
+            "uploader": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "createdOn": 1637002050,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 108,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 147,
+                    "deletions": -20
+                }
+            ],
+            "sizeInsertions": 158,
+            "sizeDeletions": 20
+        },
+        {
+            "number": 17,
+            "revision": "072d3e1841b25b2e4933a7b7ebd2598ccd302323",
+            "parents": [
+                "66558235ce5d7568439ce7618dd0ce77fcc0b69c"
+            ],
+            "ref": "refs/changes/41/47241/17",
+            "uploader": {
+                "name": "Gokul Sanker V G",
+                "email": "gokul.sanker.v.g@intel.com",
+                "username": "gokulsvg"
+            },
+            "createdOn": 1637003781,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "remove"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This does not seem right, since the new command is NOT for ME to forward raw PMBUS command"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This is in-correct. The code checks for \"IPMI\""
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "We changed it to ReadME. As per review comments from Ed."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Hmm - I meant this line https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/47241/17/src/IpmbSensor.cpp#487\nIt is checking for IPMI\nAm I missing something?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "No you were correct, in patch set 18 it is moved to ReadME."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Do they need to be added to EntityManager's schema?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "This is configuration in IFWI. And can change as per configuration."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "IMO - This overlaps with line 27-34, can be consolidated"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 52,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "not sure this is necessary"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 52,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I would also want to understand more on the use cases for these two methods.\n1. I agree that the change should not break existing functionality. Existing config file should still work as before.\n2. But, should we make the new method a \"preferred\" way, i.e. if \"DeviceIndex\" and \"Register\" are defined, new method is assumed. Will there ever be a case, that Proxy mode should be used with the new configuration? If yes, why?\n3. Will ME be configured to support one of the two modes or both? Is it possible to query ME which mode is supported run time and use the proper one in ipmb sensor daemon?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 52,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "2) We need to use the correct method depending on the configuration of IFWI. \n3) Right now we do not have a method to ask ME if \"Get PMBUS Readings\" is enabled."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "If multiple readings are returned - it is more efficient to read once and unpack all the available data."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "We can unpack all data, but current sensor structure architecture does not allow a object to update multiple values, as check threshold function are so tightly bound to one sensor value."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 108,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 147,
+                    "deletions": -20
+                }
+            ],
+            "sizeInsertions": 158,
+            "sizeDeletions": 20
+        },
+        {
+            "number": 18,
+            "revision": "09d291a748fd65903ca3fca2f052631ba0d94fe8",
+            "parents": [
+                "66558235ce5d7568439ce7618dd0ce77fcc0b69c"
+            ],
+            "ref": "refs/changes/41/47241/18",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1639569306,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "In terms of design, I'd like to use this as an opportunity to discuss some further cleanups.  It's much easier if each device is being accessed by a single application.  Having NodeManagerProxy and IPMBSensor both accessing ME is causing some messy things to happen like duplication of this code between them.  Is there an eventual plan there between those two?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "It's a either or situation. We read the sensor either using proxy or using ME.  \n\nA situation of having NodeManagerProxy and IPMBSensor reading the same sensor data is redundant as will not but supported by exiting code.  \n\nAnd I am happy to take up clean up suggestions, but can we get this merged? and take up clean on top of this?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> It's a either or situation. We read the sensor either using proxy or using ME.  \n> \n> A situation of having NodeManagerProxy and IPMBSensor reading the same sensor data is redundant as will not but supported by exiting code.  \n\nThis is my point.  Why are two different services managing the resources behind the ME.  This is an ME specific command here, it should probably be going in node manager proxy eventually.\n\n> \n> And I am happy to take up clean up suggestions, but can we get this merged? and take up clean on top of this?\n\nOnce it has made the other required changes that were asked for, that's fine, but given you have an interest, and this is going the wrong direction in terms of design abstractions, I'd like to understand the path to getting to the appropriate design before merging this, even if it's not done right away."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Why are two different services managing the resources behind the ME.\n- In porxy method ME is acting as a bridge and the command send from BMC is directly going to sensor. This has some security related concerns, as ME is blindly forwarding the command. \nIn some cases because of security concerns proxy is disabled. That is when we use getPmbusReadings method.\n- In getPmbusReadings sensor data is read from ME, not from actual sensor. And ME is able to give this data as it has read from sensor and stored it (periodic polling). \n\nI'd like to understand the path to getting to the appropriate design before merging this.\n- The current design to incorporate getPmbusReadings into IpmbSensor class was under the idea that even though these are two methods we are reading the same sensor data. \n\nRegarding abstractions, I have two suggestions\n1) We could inherit a class from IpmbSensor, and only override read method in it.\n2) Make a separate sensor class which inherit from Sensor structure and move all getPmbusReadings related code there. Treating it as a separate sensor."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I think the question is ,long term, whether it make sense to encapsulate the ME specific commands and processing of data inside NodeManagerProxy service. Or in other words, let NodeManagerProxy to decide which command to send to ME when reading these sensors."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Does this need to log an error or return an error, given that the operation failed?"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "We return result with no data in case if failure. \nAnd if (data.empty()) is used in read function to incrementError (one time logging is done in when number of error cross errorThreshold, and sensor object is marked as not functional)."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I meant log an error to stderr, but sure, that's fine."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "input.size()==offset+1 will pass line 70, this is undefined"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "We have a check for that in line 70."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "My point is - if input.size() == (offset+1)\n1. Line 70 will be false\n2. line 84 will get executed, but input[offset+1] is invalid"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Understood. I will add <= at line 70."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1.  Also input[2] is possible to be invalid if fixed_offset is 0, and registerToRead is 0, and input.size() is 2."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Fixed offset is defined in line 62 and will not be zero until someone mess with the code."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please just range check this against the largest fixed or variable indexes you use to make it VERY clear the code can't walk over the end of the range.  As written, it might be correct, but it isn't clear."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address it."
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "nit: since you refer new method as read_me, I would flip the logic here, make a flag isReadMe"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 157,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This could just modify class member commandData directly to avoid an extra creation and copy of vector"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 157,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address it."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 291,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "repeating the same code for IpmbType::PXE1410CVR.\nOnly difference is readingFormat\n\nconsider combine them"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 291,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "I have split this patch, and there is one rebased on top of this for code clean up. \nhttps://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/49718\nCan you please go through that, and I will address the clean up comments there."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 477,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This is only needed for certain sensor type. Current implementation would call this for all sensors.\nI feel like it can be optimized."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 477,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address it."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 486,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "need update to match the code"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 486,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 90,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 156,
+                    "deletions": -21
+                }
+            ],
+            "sizeInsertions": 208,
+            "sizeDeletions": 21
+        },
+        {
+            "number": 19,
+            "revision": "eda4983de591524773a227e003e84e7ded9ff303",
+            "parents": [
+                "0b207a624f925460797a51974b77b275d4c05e30"
+            ],
+            "ref": "refs/changes/41/47241/19",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1639719901,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 80,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "missing range check.  If registerToRead == 0, input.size() == 2, and fixedOffset == 0, this will nullptr deference.  Please add an explicit check against size >= 3"
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "line": 80,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "fixedOffset is defined at line 62 and cannot be zero unless someone changes the code."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 201,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Does this branch need applied to ALL pmbus types?  Given that a number of these are pmbus (example PXE1410CVR), I would've expected this logic to be higher."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 201,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Currently PxeBridgeTemp and MpsBridgeTemp is tested using new method. That is why we are converting the same. \nAnd yes in theory we can support more sensors in new method."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 201,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please apply this to all types, as its correct per the spec, and simplifies the code.  Any testing will be done by those enabling this mode for their specific systems in their EM config."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 201,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Will address this."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 648,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Same as above, shouldn't this be called for all types, not just these two?"
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 648,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "That was change to avoid extra function call based of my prev comments that only these types can be read through the new method (Currently)\nThinking again, I do see potentially it can apply to more devices in the future.\nSo I am ok with keeping this way for now or change it back to call for all types."
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "line": 648,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "+1"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 90,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -21
+                }
+            ],
+            "sizeInsertions": 199,
+            "sizeDeletions": 21
+        },
+        {
+            "number": 20,
+            "revision": "0d7ceb188d8d8300c170ca22f9633df7de2df5ab",
+            "parents": [
+                "0b207a624f925460797a51974b77b275d4c05e30"
+            ],
+            "ref": "refs/changes/41/47241/20",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1639768732,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 90,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -21
+                }
+            ],
+            "sizeInsertions": 199,
+            "sizeDeletions": 21
+        },
+        {
+            "number": 21,
+            "revision": "8be096ddd0b65533fdfe97f4a8cefd8227263f8c",
+            "parents": [
+                "0b207a624f925460797a51974b77b275d4c05e30"
+            ],
+            "ref": "refs/changes/41/47241/21",
+            "uploader": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "createdOn": 1640620806,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 90,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/IpmbSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 182,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 233,
+            "sizeDeletions": 35
+        }
+    ]
+}

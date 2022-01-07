@@ -1,0 +1,345 @@
+{
+    "project": "openbmc/phosphor-dbus-interfaces",
+    "branch": "master",
+    "topic": "redfish-condition",
+    "id": "I6638bbc861e66feb3ec053ad97b6b27bcd576dc5",
+    "number": 48274,
+    "subject": "Logging: Event: Added the event_indicator association",
+    "owner": {
+        "name": "Ramesh Iyyar",
+        "email": "rameshi1@in.ibm.com",
+        "username": "RameshIyyar"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/48274",
+    "commitMessage": "Logging: Event: Added the event_indicator association\n\n- The Redfish Status property is common to all the Redfish schema\n  that can also be used to represent the status or health of the self\n  resource (aka D-Bus object).\n\n- The Redfish Conditions property is one of the sub-property of\n  the Status property and that can contain the condition, or\n  the related resource information that affects the self resource\n  health.\n\n- But of course, there is a Redfish Status.HealthRollup property that\n  is already supported in the OpenBMC project to indicate the health\n  of the self resource if any of it dependent or related resource is\n  affects it and the Status.State property that can also be used to\n  indicate the state of the self resource but, these properties are\n  not explicitly tells \"Why the self resource health, health rollup,\n  and state are in the certain situation\".\n\n- For example,\n  - The Memory (aka DIMM) might be not functional due to its related\n    resource issues, and we may need to tell \"Why?\" is it because\n    of the association with another resource, which resource it is,\n    is there any error log to get more details?\n  - The user or system might be intentionally disabled or made as\n    unavailable, and we may need to tell \"Why?\" is it user or system,\n    what is the severity (may vary in different platforms), is there\n    any error log, is there the resource (aka entry object that\n    disabled or made as unavailable).\n\n- So, the BMC can use the Redfish Conditions property to tell \"Why?\"\n  the self resource health is affected by using\n  the sub-property of the Conditions property to give more details.\n\n  - To achieve that in the BMC, the implementor (who hosting\n    the Redfish resource aka D-Bus object) or another implementor (who\n    wants to maintain or monitor the health of resources) needs\n    the interface with required properties and associations so we can\n    use the existing Logging.Event (aka Conditions) interface and\n    the Redfish service provider can use these interface properties and\n    associations to convert as the Redfish Status.Conditions.\n\n  - The D-Bus service implementor can host the Logging.Event interface\n    instance with the added forward \"event_indicator\" association\n    and that association object_path can point the object (e.g. DIMM)\n    that wants the condition to represent the status.\n\n  - The Redfish service provider can use the D-Bus object reverse\n    \"event_log\" association endpoint to get the Logging.Event interface\n    instance and convert that into the Redfish Status.Conditions.\n\nD-Bus Mock-Up:\n\nLogging.Event interface instance:\n\n```\nbusctl -j get-property <event_service_name> \\\n       <event_service_dbus_root>/events/<type>/<id> \\\n       xyz.openbmc_project.Association.Definitions Associations\n{\n \"type\" : \"a(sss)\",\n \"data\" : [\n     [\n       \"event_indicator\",\n       \"event_log\",\n       \"/xyz/openbmc_project/inventory/system/chassis/motherboard/dimmN\"\n     ]\n  ]\n}\n```\n\nForward association endpoint:\n\n```\nbusctl -j get-property xyz.openbmc_project.ObjectMapper \\\n       <event_service_dbus_root>/events/<type>/<id>/event_indicator \\\n       xyz.openbmc_project.Association endpoints\n{\n \"type\" : \"as\",\n \"data\" : [ \"/xyz/openbmc_project/inventory/system/chassis/motherboard/dimmN\" ]\n}\n```\n\nReverse association endpoint:\n\n```\nbusctl -j get-property xyz.openbmc_project.ObjectMapper \\\n       /xyz/openbmc_project/inventory/system/chassis/motherboard/dimmN/event_log \\\n       xyz.openbmc_project.Association endpoints\n{\n \"type\" : \"as\",\n \"data\" : [ \"<event_service_dbus_root>/events/<type>/<id>\" ]\n}\n```\n\nReference:\n\n- Refer \"DSP2046_2021.2.pdf\" section 4.15 for the Redfish Status.Conditions.\n  https://www.dmtf.org/sites/default/files/standards/documents/DSP2046_2021.2.pdf\n\n- Refer below link for the OpenBMC HealthRollup design.\n  https://github.com/openbmc/docs/blob/master/designs/redfish-health-rolllup.md\n\n- Refer below links for the \"Associations\"\n  - Design details:\n    https://github.com/openbmc/docs/blob/master/architecture/object-mapper.md#associations\n\n  - D-Bus interfaces details:\n    https://github.com/openbmc/phosphor-dbus-interfaces/blob/master/yaml/xyz/openbmc_project/Association/Definitions.interface.yaml\n    https://github.com/openbmc/phosphor-dbus-interfaces/blob/master/yaml/xyz/openbmc_project/Association.interface.yaml\n\nSigned-off-by: Ramesh Iyyar <rameshi1@in.ibm.com>\nChange-Id: I6638bbc861e66feb3ec053ad97b6b27bcd576dc5\n",
+    "createdOn": 1635251053,
+    "lastUpdated": 1637936613,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1635251053,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1635251067,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635251392,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Set Ready For Review"
+        },
+        {
+            "timestamp": 1635251406,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1635251491,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29041/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635251749,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1635251852,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Set Ready For Review"
+        },
+        {
+            "timestamp": 1635251920,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Patch Set 2:\n\nPlease review"
+        },
+        {
+            "timestamp": 1635253353,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635270423,
+            "reviewer": {
+                "name": "Deepak Kodihalli",
+                "email": "deepak.kodihalli.83@gmail.com",
+                "username": "dkodihal"
+            },
+            "message": "Patch Set 2: Code-Review-1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1635333486,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1635333817,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Uploaded patch set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1635334297,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1637936613,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c390d24b1db1e1fefef487d763e421a7a1ebc14c",
+            "parents": [
+                "4aec8027acae734a1dbc6334d53fd66ab854b81c"
+            ],
+            "ref": "refs/changes/74/48274/1",
+            "uploader": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "createdOn": 1635251053,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/Logging/Event.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 10,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "12eccfd5ffac9ac815cd8367899f6f59500d947d",
+            "parents": [
+                "4aec8027acae734a1dbc6334d53fd66ab854b81c"
+            ],
+            "ref": "refs/changes/74/48274/2",
+            "uploader": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "createdOn": 1635251749,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Deepak Kodihalli",
+                        "email": "deepak.kodihalli.83@gmail.com",
+                        "username": "dkodihal"
+                    },
+                    "message": "sorry, not following what you mean by this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "Sorry about that, added more details on this, please share your view."
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/Logging/Event.interface.yaml",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "Deepak Kodihalli",
+                        "email": "deepak.kodihalli.83@gmail.com",
+                        "username": "dkodihal"
+                    },
+                    "message": "Not following how this helps with Status.Conditions. I'm still not convinced if we need anything additional on D-Bus to what we have already for implementing the Redfish Status property."
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/Logging/Event.interface.yaml",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "Sorry about that, I have added more details about \"Why we are looking for the Redfish Status.Condition along with Redfish Status.Health, Status.HealthRollup, and Status.State\" (point 3 and 4) and also \"The new association usage\" (point 4.1, 4.2, and 4.3) in the commit message. - Can you please share your view on this?"
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/Logging/Event.interface.yaml",
+                    "line": 42,
+                    "reviewer": {
+                        "name": "Ramesh Iyyar",
+                        "email": "rameshi1@in.ibm.com",
+                        "username": "RameshIyyar"
+                    },
+                    "message": "The event_indicator association can be created to any inventory item interface or entry interface so, how we can use the `required_endpoint_interfaces` field in the association documentation?\n\n\nShould we add with the required interface and later we can extend that list based on the needs?\n\nOR\n\nCan we just add the details on this in the `description`?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/Logging/Event.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 10,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "3ae804a28be9c2576a53128f1a7d9aa68a2ec698",
+            "parents": [
+                "4aec8027acae734a1dbc6334d53fd66ab854b81c"
+            ],
+            "ref": "refs/changes/74/48274/3",
+            "uploader": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "createdOn": 1635333486,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 118,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/Logging/Event.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 10,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "73eb567a379a6f31c4c4fa1839515e4a2a121c74",
+            "parents": [
+                "4aec8027acae734a1dbc6334d53fd66ab854b81c"
+            ],
+            "ref": "refs/changes/74/48274/4",
+            "uploader": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "createdOn": 1635333817,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 119,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/Logging/Event.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 10,
+            "sizeDeletions": 0
+        }
+    ]
+}

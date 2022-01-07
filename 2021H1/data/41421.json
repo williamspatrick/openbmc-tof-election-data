@@ -1,0 +1,1960 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "Id3fea32722044f3e3b106cd0be11f6f43c038011",
+    "number": 41421,
+    "subject": "Ensure PSU sensor values are refreshed",
+    "owner": {
+        "name": "Kuiying Wang",
+        "email": "wangkuiying.wky@alibaba-inc.com",
+        "username": "kuiyingw"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/41421",
+    "commitMessage": "Ensure PSU sensor values are refreshed\n\nA server managed by OpenBMC may have more than a single power\nsupply. In the event that one or more PSU's have AC removed, or are\nremoved from the system, the PSU sensors should reflect the loss of\nthe input power from the PSU. This condition was not being reflected\nwhen using the current PSU sensor code. AC loss from a single PSU\nresulted in the output power value remaining greater than zero. This\nwas due to the use of the ASIO async_read_until function.\n\nThe ASIO async_read_until function can only be used on well behaved\ninterfaces that will not fail. The hwmon files being read do not\nconform. Reads can result in an EAGAIN error code. The\nasync_read_until documentation states EAGAIN is not handled.\n\nThe code changes in this commit are lifted from the IPMB bridge\nsource. The hwmon file containing the sensor reading is opened so that\nit is non-blocking. The sensors are read when the kernel indicates a\nchange has been made. Subsequent reads occur only after a delay time\nhas expired in order to prevent too many reads from being performed,\nand thus consuming CPU time.\n\nTested:\nThe SUT is a dual PSU system.\nBoth PSU's are enabled at the beginning of the test.\nRun 'ipmitool sensor list' and inspect the PSU state\n  * All input/output voltages/currents are presented\nRemove AC from PSU1\nRun the ipmitool command again, and see that the values for PSU1\nchange state, reflecting the power loss.\n  * Prior to this change the output power values stalled\nRestore AC to PSU1\nRun the ipmitool command again, and see that the values for PSU1\nare restored.\nRemove AC from PSU2\nThe ipmitool values will reflect the loss of voltage/current/power\n  * Prior to this change the output power values stalled\nRestore AC to PSU2\nThe sensor values for PSU2 will be present again.\n\nChange-Id: Id3fea32722044f3e3b106cd0be11f6f43c038011\nSigned-off-by: Kuiying Wang <kuiying.wang@intel.com>\nSigned-off-by: Johnathan Mantey <johnathanx.mantey@intel.com>\n",
+    "createdOn": 1616124715,
+    "lastUpdated": 1625582573,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1616124715,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1616124754,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616124757,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1616124912,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1616124977,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14021/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616191002,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1616196925,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1616264091,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(9 comments)\n\nSome work to be done here.\n\nAlso, I'd like to see a more generalized root cause and understanding of the problem.  If hwmon can stall forever, this is far from the only sensor that needs this fix."
+        },
+        {
+            "timestamp": 1616378694,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 3:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1616439554,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616466724,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616524048,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616526068,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616572026,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616572738,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616577209,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616580575,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617145362,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617225249,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617695821,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617697075,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1617697147,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617697251,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14894/ : FAILURE"
+        },
+        {
+            "timestamp": 1617697500,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1617697543,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617697902,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14895/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617794588,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617815012,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617816087,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617816566,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617845007,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1622743909,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1622743925,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622744077,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 6:\n\nThis submission attempts to resolve the outstanding review comments, and to do so in a way that reduces code complexity."
+        },
+        {
+            "timestamp": 1622744078,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/18646/ : FAILURE"
+        },
+        {
+            "timestamp": 1622745094,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1622745106,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622745296,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/18647/ : SUCCESS"
+        },
+        {
+            "timestamp": 1622754116,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1623034390,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1623034531,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 8: Published edit on patch set 7."
+        },
+        {
+            "timestamp": 1623034549,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623034573,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/18834/ : FAILURE"
+        },
+        {
+            "timestamp": 1623034582,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1623034642,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 9: Published edit on patch set 8."
+        },
+        {
+            "timestamp": 1623034658,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623034791,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/18835/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623080863,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 9: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1623082557,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 9:\n\nKuiying,\nThanks for pushing the changes for the review comments."
+        },
+        {
+            "timestamp": 1623088893,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 9: Code-Review+1\n\n(3 comments)\n\nLogic looks ok to me. Few minor comments."
+        },
+        {
+            "timestamp": 1623089487,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1623089545,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1623089645,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1623174884,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 9:\n\n(5 comments)\n\nEd, responding to your comments, and looking for some guidance on how to resolve the conflicts."
+        },
+        {
+            "timestamp": 1623176661,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1623180369,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 9:\n\n(2 comments)\n\nThanks for the quick reply Ed."
+        },
+        {
+            "timestamp": 1623194868,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1624391069,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1624391086,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624391438,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20406/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624392319,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 10:\n\nI have based this commit from Patchset 3. I believe Patchset 4 introduced the synchronous access, which is undesirable.\n\nI left the timer as a deadline timer. My reasoning is that should be done independently of the changes to make reading the input files operational."
+        },
+        {
+            "timestamp": 1624561237,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 10:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1624569044,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1624569059,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624569090,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 11:\n\n(3 comments)\n\nThanks for the quick feedback."
+        },
+        {
+            "timestamp": 1624569212,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20658/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624580602,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1624633185,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1624642642,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 11: Code-Review+1\n\nLGTM"
+        },
+        {
+            "timestamp": 1624900463,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 11: Code-Review+1"
+        },
+        {
+            "timestamp": 1625582571,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11: Code-Review+2"
+        },
+        {
+            "timestamp": 1625582573,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as bcf76717697238e380be785bd28150963ecf0e9e by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "58483f3272d56d250f04f0bf9f920f4ed7fc8956",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/21/41421/1",
+            "uploader": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "createdOn": 1616124715,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 31,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 2,
+            "revision": "c4c918b4b07c097c7be3591867117f03dc8e37ef",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/21/41421/2",
+            "uploader": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "createdOn": 1616124757,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 31,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 3,
+            "revision": "369a10bce9a5a63538a3320f79672d147ba4c22a",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/21/41421/3",
+            "uploader": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "createdOn": 1616124912,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't wrap your lines by hand.  Lines should be wrapped 50/72 please."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Is the read until eventually going to finish or is it hung? \nWhat is the root cause for this? Is device busy, driver issue or other reason?\nHow to recover from this, close and reopen the file or simply cancel and retry?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Is the read until eventually going to finish or is it hung? \n> What is the root cause for this? Is device busy, driver issue or other reason?\n\n+1 this implies that a driver is hung.  I'm not against protections in this area, but we need a proper root cause on what's happening.\n\n> How to recover from this, close and reopen the file or simply cancel and retry?\n\nI suspect that's going to depend on what the real root cause is."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Take \"power1_input\" for example, hwmon drive still working well to update \"/sys/class/hwmon/hwmon2/power1_input\" but \"async_read_until\" cannot return to callback function."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "The question is why (and what cause) \"async_read_until\" can't return?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "I don't know.\nThe correct way, async_read_until will callback when read char '\\n' (0x0a).\nAt error case, async_read_until cannot callback, but the value still changed in the device file like \"/sys/class/hwmon/hwmon2/power1_input\" and char '\\n' (0x0a) is there.\n\nroot@intel-obmc:/lib/systemd/system# hexdump /sys/class/hwmon/hwmon2/power1_input \n0000000 3033 3538 3030 3030 0a30               \n000000a\n\n\nSo this patch is to resume async_read_until."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Sorry, I don't quite understand, the data showed is for normal/working case, right?  What is the reason that the callback is not called?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> I don't know.\n\nSounds like there's a better root cause needed here.\n\nasync_read_until isn't returning, which would imply that the kernel isn't returning which is expected here.  What is the kernel returning in this case?  Can we adjust to use the regular async_read instead and avoid this problem without timers?  Considering there are systems that have overloaded i2c busses, and there's not one timeout that will work for all systems, I'm worried this patch as-written will break people."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Personally, I don't there is no strong requirement to use async_read_until (it is used in the whole dbus-sensors repo), because all the data from sensor device just few bytes.\nHow about to change all the async_read_until to async_read in the whole dbus-sensor repo?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Correct typo.\n I don't think there is strong requirement to use async_read_until."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "async_read function met the same issue \ud83d\ude1e, cannot return to the callback function."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "sync read file is working well, like below. do you agree to use sync read file?\nI think it is acceptable, because the sensor data is small.\nActually we use it in updateMinMaxValues.\n\nvoid PSUSensor::setupRead(void)\n{\n    std::cerr << \"setupRead: \" << path\n                  << \"\\n\";\n    std::string line;\n    std::ifstream sensorFile(path);\n    if (sensorFile.good())\n    {\n        try\n        {\n            std::getline(sensorFile, line);\n            rawValue = std::stod(line);\n            sensorFile.close();\n            double nvalue = rawValue / sensorFactor;\n\n            updateValue(nvalue);\n\n            if (minMaxReadCounter++ % 8 == 0)\n            {\n                updateMinMaxValues();\n            }\n        }\n        catch (const std::invalid_argument&)\n        {\n            std::cerr << \"Could not parse \" << line << \"\\n\";\n            incrementError();\n        }\n    }\n    lseek(fd, 0, SEEK_SET);\n    waitTimer.expires_from_now(boost::posix_time::milliseconds(sensorPollMs));\n\n    std::weak_ptr<PSUSensor> weakRef = weak_from_this();\n    waitTimer.async_wait([weakRef](const boost::system::error_code& ec) {\n        std::shared_ptr<PSUSensor> self = weakRef.lock();\n        if (ec == boost::asio::error::operation_aborted)\n        {\n            std::cerr << \"Failed to reschedule\\n\";\n            return;\n        }\n        if (self)\n        {\n            self->setupRead();\n        }\n    });\n    return;\n}"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I agree sync read is probably fine most of time since the data is small. It also simplifies logic.\nBut it is a rather big shift. I would worry about it introduce new intermittent issues.\nSome load/stress testing may be needed. \nAnother option is to create this \"async read with timeout\" support like other io stream in boost."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Frankly, I don't care what this code is doing.  I want to understand why the kernel isn't returning, or, if it is, why the async_read_until isn't returning.  Once that is understood, we'll know if this is a kernel bug, or a boost bug, or an OpenBMC bug.\n\nAny root cause that involves \"when I change this X method with Y method, it works\" will not be accepted.  Both async_read_until, async_read, and read would be expected to work here.  If they don't we need to understand why, so we can get the other sensors updated as well."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Sure, we have to root-cause it.\nAt least we found only asio async read has such issue, it is not stable as common sync call, so it is not correct way to use asio async read here."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "You could below log message async_read_until is hang at \"Jan 01 00:30:24\" with error \"system:11\", as I know it is EAGAIN.\nSeems Asio don't handle it well or even return error code to call back function.\n\n\nJan 01 00:30:22 intel-obmc psusensor[458]: @asio|1822.391454|4328*4329|deadline_timer@0x14d9c88.async_wait\nJan 01 00:30:22 intel-obmc psusensor[458]: @asio|1822.391509|<4328|\nJan 01 00:30:22 intel-obmc psusensor[458]: @asio|1822.391537|>4327|ec=system:125\nJan 01 00:30:22 intel-obmc psusensor[458]: @asio|1822.391565|<4327|\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391476|>4329|ec=system:0\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391590|4329*4330|deadline_timer@0x14d9cc8.async_wait\nJan 01 00:30:23 intel-obmc psusensor[458]: setupRead /sys/class/hwmon/hwmon2/power1_input\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391682|4329^4331|in 'async_read_until' (/usr/src/debug/dbus-sensors/0.1+git999-r0/recipe-sysroot/usr/include/boost/asio/:878)\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391682|4329*4331|descriptor@0x14d9c5c.async_read_some\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391750|.4331|non_blocking_read,ec=system:0,bytes_transferred=10\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391778|<4329|\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391803|>4331|ec=system:0,bytes_transferred=10\nJan 01 00:30:23 intel-obmc psusensor[458]: async_read_until back /sys/class/hwmon/hwmon2/power1_input\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391851|4331|deadline_timer@0x14d9cc8.cancel\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391967|4331|deadline_timer@0x14d9c88.cancel\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.391997|4331*4332|deadline_timer@0x14d9c88.async_wait\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.392038|<4331|\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.392060|>4330|ec=system:125\nJan 01 00:30:23 intel-obmc psusensor[458]: @asio|1823.392082|<4330|\nJan 01 00:30:24 intel-obmc psusensor[458]: @asio|1824.392069|>4332|ec=system:0\nJan 01 00:30:24 intel-obmc psusensor[458]: @asio|1824.392174|4332*4333|deadline_timer@0x14d9cc8.async_wait\nJan 01 00:30:24 intel-obmc psusensor[458]: setupRead /sys/class/hwmon/hwmon2/power1_input\nJan 01 00:30:24 intel-obmc psusensor[458]: @asio|1824.392271|4332^4334|in 'async_read_until' (/usr/src/debug/dbus-sensors/0.1+git999-r0/recipe-sysroot/usr/include/boost/asio/:878)\nJan 01 00:30:24 intel-obmc psusensor[458]: @asio|1824.392271|4332*4334|descriptor@0x14d9c5c.async_read_some\nJan 01 00:30:24 intel-obmc psusensor[458]: @asio|1824.906478|.4334|non_blocking_read,ec=system:11,bytes_transferred=0\nJan 01 00:30:24 intel-obmc psusensor[458]: @asio|1824.906580|<4332|\nJan 01 00:30:34 intel-obmc psusensor[458]: @asio|1834.392269|>4333|ec=system:0\nJan 01 00:30:34 intel-obmc psusensor[458]: Read timer timeout, resume it: /sys/class/hwmon/hwmon2/power1_input\nJan 01 00:30:34 intel-obmc psusensor[458]: @asio|1834.392397|4333|descriptor@0x14d9c5c.cancel\nJan 01 00:30:34 intel-obmc psusensor[458]: @asio|1834.392443|4333|deadline_timer@0x14d9cc8.cancel\nJan 01 00:30:34 intel-obmc psusensor[458]: @asio|1834.392466|4333*4335|deadline_timer@0x14d9cc8.async_wait\nJan 01 00:30:34 intel-obmc psusensor[458]: setupRead /sys/class/hwmon/hwmon2/power1_input"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Sounds like a bug in asio, or a bug in the driver.  I'm guessing that the driver shouldn't be returning EAGAIN?  Might be time to go look at the boost code handling for that."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "According to boost documentation - it assumes EAGAIN is NOT returned from underlying OS.\nhttps://www.boost.org/doc/libs/1_75_0/doc/html/boost_asio/overview/posix/stream_descriptor.html"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I feel like we've hit this before, and the workaround was to use a socket type instead of a stream_descriptor type, which handled eagain properly.\n\nYou might want to go look at the ipmb bridge code, I feel like that's what we did there.\n\nIn the end, I suspect we're going to need our own FD reader class, so we can handle these kinds of errors, but socket might be a short term fix."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "No matter socket is working or not to WA this issue. It is not good  to use sync read right (as patchset3 did)?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Seems like you are adding the timeout ability for the async_read_until function.\nDepends on what is the root cause of the timeout, can it happen on other descriptor read?\nIt might be beneficial to add a generic \"read with timeout\" function in utility."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Are there any documented gaurantees in the kernel for this kind of thing?  I thought there were hwmon knobs for this kind of thing."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "could?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This needs a better tested statement, as well as a better root cause."
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "IMO - readTimeoutTimer is a better description of what the timer is for. Same in other places."
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "Probably want to use steady_timer instead to avoid time change issues."
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Because waitTimer is not running when we're reading, we don't need a second timer here, just reuse waitTimer."
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Right could change all timers to steady_timer at one time."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 134,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "expires_from_now is deprecated in favor of expires_after. And might want to prefer std::chrono:: instead of boost::posix_time"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 134,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 137,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "move before it is used"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 137,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "needs nullptr checked.  This also should go below operation aborted."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 137,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Checked it before using at line 142"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "What ec will line 163 get? Currently, ec is not checked before it is passed to handleResponse(ec), please follow through to make sure it is handled correctly. Looks like setupRead can get called twice: line 150 and line 239."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "There is no twice called for setupRead.\nCorrect case: readTimer will be cancelled at line 168.\nIssue case, when async_read_until hang: readTimer will trigger setupRead instead of waitTimer."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I might be missing something, but here is the flow I see:\nafter line 149, line150 get called to setupRead.\nline149 will cause line161 lambda, which does not check ec and call line 170.\nCheck at line190 will fail (need to verify with actual ec was my original comment)\ncode continues and may end up calling at line 239."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Line149 is to cancel inputDev but not trigger line 161 lambda, also not the coming 170/190."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "According to the documentation, the handlers are getting called.\nhttps://www.boost.org/doc/libs/1_70_0/doc/html/boost_asio/reference/posix__basic_stream_descriptor/cancel/overload1.html"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 31,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 4,
+            "revision": "055c3184d984e308aa62fcb7612209a25d12a3ab",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/21/41421/4",
+            "uploader": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "createdOn": 1617697075,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": -14
+                }
+            ],
+            "sizeInsertions": 44,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 5,
+            "revision": "9903cb22a3f717f5bc1b2464661e2e266a2aafcb",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/21/41421/5",
+            "uploader": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "createdOn": 1617697500,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 42,
+                    "deletions": -14
+                }
+            ],
+            "sizeInsertions": 42,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 6,
+            "revision": "e7bc36eed013c4b6c90930de501481e2d303614a",
+            "parents": [
+                "9702c9d1751e5b90f7c1b53c3afbbd4ab2d5e817"
+            ],
+            "ref": "refs/changes/21/41421/6",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1622743909,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 41,
+                    "deletions": -81
+                }
+            ],
+            "sizeInsertions": 41,
+            "sizeDeletions": 83
+        },
+        {
+            "number": 7,
+            "revision": "87345eb1d743f55780eec7ce8c7115dd52d86dcc",
+            "parents": [
+                "9702c9d1751e5b90f7c1b53c3afbbd4ab2d5e817"
+            ],
+            "ref": "refs/changes/21/41421/7",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1622745094,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 146,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "should else an error condition too?\nelse \n{\nincrementError();\n}"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 146,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "this change is not mentioned in commit message, a separate commit?"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "There is no update on this."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I see, the diff tool made it look like a new function where it is just moved because of other changes"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 31,
+                    "deletions": -71
+                }
+            ],
+            "sizeInsertions": 31,
+            "sizeDeletions": 73
+        },
+        {
+            "number": 8,
+            "revision": "7200dff85199af7162372d2c11e86c7570342263",
+            "parents": [
+                "9702c9d1751e5b90f7c1b53c3afbbd4ab2d5e817"
+            ],
+            "ref": "refs/changes/21/41421/8",
+            "uploader": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "createdOn": 1623034531,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": -68
+                }
+            ],
+            "sizeInsertions": 33,
+            "sizeDeletions": 70
+        },
+        {
+            "number": 9,
+            "revision": "2f561de79f3f3616c642e2f5b2a924ea3b5d3db6",
+            "parents": [
+                "9702c9d1751e5b90f7c1b53c3afbbd4ab2d5e817"
+            ],
+            "ref": "refs/changes/21/41421/9",
+            "uploader": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "createdOn": 1623034642,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I don't see anything asyncronous about the current code.  It calls std::getline, which I'm pretty sure is synchronous."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "What does it mean to \"turn off\" a server power supply?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I will update this to read \"Remove AC input from PSU1\""
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "\ud83d\udc4d"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is a blocking call.  Why wouldn't we use boost::asio::async_read here?"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "The original solution was using async_read_until, which was found to be unreliable.\nUsing async_read requires supplying a buffer and reading into that buffer. The problem is that requires apriori knowledge of the stream size, or you have to recreate a function that behaves like async_read_until.\n\nI have spent almost four weeks trying to resolve a defect saying that the PSU2 input power, output power, and output current do not update correctly. I am, subsequently, made aware that Kuiying has already submitted a solution (this commit) that always returns the correct data for PSU1 and PSU2. The solution shifted away from an unreliable collection method to one that is reliable.\n\nIn my opinion the original code with async_read_until was difficult to read and difficult to determine correctness. This code, which Kuiying submitted in patchset 4 or 5, is much easier to  determine the flow of the code, and the correctness of the code. It is unclear to me why an unreliable async method is preferable to a reliable synchronous method.\n\nAdditionally this same model is used in the PSUSubEvent setupRead code. It is also failing, as removing AC from PSU2 does not generate ACLost or PredictiveFailure events. It also occasionally decides that Failure will not be emitted either. The behavior of the events is erratic for both PSUs. PSU1 tends to work correctly, most of the time. After spending a few weeks in this portion of the code I still have no idea how it functions. The async method is making the code obtuse, and unreliable. Which is why I don't believe we should use it here."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> The original solution was using async_read_until, which was found to be unreliable.\n\nAsync_read_until is what's currently on master.\n\n> Using async_read requires supplying a buffer and reading into that buffer. The problem is that requires apriori knowledge of the stream size, or you have to recreate a function that behaves like async_read_until.\n\nI misspoke, I would expect we should use async_read_some, which does not require prior knowledge of the stream size.\n\n> \n> I have spent almost four weeks trying to resolve a defect saying that the PSU2 input power, output power, and output current do not update correctly. I am, subsequently, made aware that Kuiying has already submitted a solution (this commit) that always returns the correct data for PSU1 and PSU2. The solution shifted away from an unreliable collection method to one that is reliable.\n\nReliable in some contexts, but moves to blocking calls, which now makes every interface in the system slower and less reliable, because a hung power supply can now cause the daemon to stop responding to dbus requests.  This was what James found very early on in developing dbus-sensors, which is why I'm somewhat hesitant to go back to blocking calls, given there was a very good reason we went away from blocking calls in the first place.  If we have solutions to all the problems we avoided, I'm open to it, but I don't see this patchset proposing any new coding styles or doing any failure/performance testing, which makes me think that this wasn't considered;  If it has been, I apologize, lets get that documented.\n\nAlso, if you're blocking, there's no way to time out a read or interrupt the read, which is required in some contexts.  We'd need solutions to those problems as well.\n\n> \n> In my opinion the original code with async_read_until was difficult to read and difficult to determine correctness. This code, which Kuiying submitted in patchset 4 or 5, is much easier to  determine the flow of the code, and the correctness of the code. It is unclear to me why an unreliable async method is preferable to a reliable synchronous method.\n\nBecause the failure modes matter.  When power supplies fail, the synchronous code can effectively cause all the external interfaces (IPMI and redfish) to lock up and time out, hence why this code is this way today.  I'm open to the possibility that this is better, but I don't see any testing of those failure modes that this code handles today.\n\n> \n> Additionally this same model is used in the PSUSubEvent setupRead code. It is also failing, as removing AC from PSU2 does not generate ACLost or PredictiveFailure events.\n\nThat's a little bit surprising considering Kwin built and tested the code, presumably on the same system.  Kwin, is this the same behavior you're seeing, is it a regression, or is it specific to Jonathans setup?\n\n> It also occasionally decides that Failure will not be emitted either. The behavior of the events is erratic for both PSUs. PSU1 tends to work correctly, most of the time. After spending a few weeks in this portion of the code I still have no idea how it functions. The async method is making the code obtuse, and unreliable. Which is why I don't believe we should use it here."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "> > The original solution was using async_read_until, which was found to be unreliable.\n> \n> Async_read_until is what's currently on master.\n> \n> > Using async_read requires supplying a buffer and reading into that buffer. The problem is that requires apriori knowledge of the stream size, or you have to recreate a function that behaves like async_read_until.\n> \n> I misspoke, I would expect we should use async_read_some, which does not require prior knowledge of the stream size.\n\nI'll take a look and see if it can be molded to fit. I'm worried about the comment in async_read_until docs that say you must guard against new async_read_xxx functions. I'm not sure the code on master guards against that.\n\n> \n> > \n> > I have spent almost four weeks trying to resolve a defect saying that the PSU2 input power, output power, and output current do not update correctly. I am, subsequently, made aware that Kuiying has already submitted a solution (this commit) that always returns the correct data for PSU1 and PSU2. The solution shifted away from an unreliable collection method to one that is reliable.\n> \n> Reliable in some contexts, but moves to blocking calls, which now makes every interface in the system slower and less reliable, because a hung power supply can now cause the daemon to stop responding to dbus requests.  This was what James found very early on in developing dbus-sensors, which is why I'm somewhat hesitant to go back to blocking calls, given there was a very good reason we went away from blocking calls in the first place.  If we have solutions to all the problems we avoided, I'm open to it, but I don't see this patchset proposing any new coding styles or doing any failure/performance testing, which makes me think that this wasn't considered;  If it has been, I apologize, lets get that documented.\n\nThanks for the backstory.\n\n> \n> Also, if you're blocking, there's no way to time out a read or interrupt the read, which is required in some contexts.  We'd need solutions to those problems as well.\n> \n> > \n> > In my opinion the original code with async_read_until was difficult to read and difficult to determine correctness. This code, which Kuiying submitted in patchset 4 or 5, is much easier to  determine the flow of the code, and the correctness of the code. It is unclear to me why an unreliable async method is preferable to a reliable synchronous method.\n> \n> Because the failure modes matter.  When power supplies fail, the synchronous code can effectively cause all the external interfaces (IPMI and redfish) to lock up and time out, hence why this code is this way today.  I'm open to the possibility that this is better, but I don't see any testing of those failure modes that this code handles today.\n\nTo which failure modes are you referring?\nSomething more than AC removal, and PSU removal?\nPlus..... ugh.\n\n> \n> > \n> > Additionally this same model is used in the PSUSubEvent setupRead code. It is also failing, as removing AC from PSU2 does not generate ACLost or PredictiveFailure events.\n> \n> That's a little bit surprising considering Kwin built and tested the code, presumably on the same system.  Kwin, is this the same behavior you're seeing, is it a regression, or is it specific to Jonathans setup?\n> \n> > It also occasionally decides that Failure will not be emitted either. The behavior of the events is erratic for both PSUs. PSU1 tends to work correctly, most of the time. After spending a few weeks in this portion of the code I still have no idea how it functions. The async method is making the code obtuse, and unreliable. Which is why I don't believe we should use it here."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > > The original solution was using async_read_until, which was found to be unreliable.\n> > \n> > Async_read_until is what's currently on master.\n> > \n> > > Using async_read requires supplying a buffer and reading into that buffer. The problem is that requires apriori knowledge of the stream size, or you have to recreate a function that behaves like async_read_until.\n> > \n> > I misspoke, I would expect we should use async_read_some, which does not require prior knowledge of the stream size.\n> \n> I'll take a look and see if it can be molded to fit. I'm worried about the comment in async_read_until docs that say you must guard against new async_read_xxx functions. I'm not sure the code on master guards against that.\n\nTechnically all the code guards against that, because we don't restart the poll timer until after the read is complete, so there's no possibility for the timer to expire before the read has finished.  We don't have an explicit lock, but the code is just structured that way.\n\nFor what it's worth, the rules for async_read_some are the same as the rules for async_read_until, so aside from the buffers it should be a drop in replacement.\n\n> \n> > \n> > > \n> > > I have spent almost four weeks trying to resolve a defect saying that the PSU2 input power, output power, and output current do not update correctly. I am, subsequently, made aware that Kuiying has already submitted a solution (this commit) that always returns the correct data for PSU1 and PSU2. The solution shifted away from an unreliable collection method to one that is reliable.\n> > \n> > Reliable in some contexts, but moves to blocking calls, which now makes every interface in the system slower and less reliable, because a hung power supply can now cause the daemon to stop responding to dbus requests.  This was what James found very early on in developing dbus-sensors, which is why I'm somewhat hesitant to go back to blocking calls, given there was a very good reason we went away from blocking calls in the first place.  If we have solutions to all the problems we avoided, I'm open to it, but I don't see this patchset proposing any new coding styles or doing any failure/performance testing, which makes me think that this wasn't considered;  If it has been, I apologize, lets get that documented.\n> \n> Thanks for the backstory.\n> \n> > \n> > Also, if you're blocking, there's no way to time out a read or interrupt the read, which is required in some contexts.  We'd need solutions to those problems as well.\n> > \n> > > \n> > > In my opinion the original code with async_read_until was difficult to read and difficult to determine correctness. This code, which Kuiying submitted in patchset 4 or 5, is much easier to  determine the flow of the code, and the correctness of the code. It is unclear to me why an unreliable async method is preferable to a reliable synchronous method.\n> > \n> > Because the failure modes matter.  When power supplies fail, the synchronous code can effectively cause all the external interfaces (IPMI and redfish) to lock up and time out, hence why this code is this way today.  I'm open to the possibility that this is better, but I don't see any testing of those failure modes that this code handles today.\n> \n> To which failure modes are you referring?\n> Something more than AC removal, and PSU removal?\n> Plus..... ugh.\n\nSomething like, bus gets hung (i2c clock stuck low) or bus has too much higher priority traffic for the multi-master arbitration to succeed (like on a PSU bus that's shared with ME polling very quickly).\n\nThose are the two scenarios I remember, but there might be more.\n\n> \n> > \n> > > \n> > > Additionally this same model is used in the PSUSubEvent setupRead code. It is also failing, as removing AC from PSU2 does not generate ACLost or PredictiveFailure events.\n> > \n> > That's a little bit surprising considering Kwin built and tested the code, presumably on the same system.  Kwin, is this the same behavior you're seeing, is it a regression, or is it specific to Jonathans setup?\n> > \n> > > It also occasionally decides that Failure will not be emitted either. The behavior of the events is erratic for both PSUs. PSU1 tends to work correctly, most of the time. After spending a few weeks in this portion of the code I still have no idea how it functions. The async method is making the code obtuse, and unreliable. Which is why I don't believe we should use it here."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 129,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Looks like it is global errno. \nCan you tell me which file include brings it here ? I am not able to find."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 129,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "It's a global, but I'm not following why we need it.  We don't seem to be doing anything that would set an errno.  std::stod is going to throw an exception on failure."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 130,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "It can throw exception, right ? Does it need to be under try-catch block ?\nhttps://en.cppreference.com/w/cpp/string/basic_string/stof"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 130,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please use std::from_chars."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 130,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "GCC does not support the double& version of the call.\n\nIn addition I was trying to get away from a try/catch, as the use of exceptions is undesirable. Am I misunderstanding, and that is primarily a BMCWeb rule?"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 130,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> GCC does not support the double& version of the call.\n\nDamn, so right you are......  I thought it had been at the same time as the others.  My bad, fine as is.\n\n> \n> In addition I was trying to get away from a try/catch, as the use of exceptions is undesirable. Am I misunderstanding, and that is primarily a BMCWeb rule?\n\nYes, exceptions are avoided in bmcweb because 99% of bmcweb failures happen in a connection context where the errors can be properly handled by either returning an error code to the user, or closing the connection.  bmcweb does use exceptions for startup issues that are fatal, but there's very few things that are unrecoverable in a webserver..\n\n\ndbus-sensors doesn't really have this issue, it can crash without any negative impact to the user (IPMI and bmcweb can both continue and return proper error codes) so exceptions are ok here.\n\nI'm ok if we don't want to catch this one;  If the kernel is returning a valid code but isn't obeying its well defined API, it's fine to throw an exception and crash."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Not required. RAII takes care."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Not required. It isn't harmful either.\nIs the guidance of reducing the scope/duration of file open/close pairing passe?\nIf RAII is the preferred method, then should the sensorFile object be placed inside an anonymous block in order for it to close prior to the lseek and timer re-init?"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Not required. It isn't harmful either.\n> Is the guidance of reducing the scope/duration of file open/close pairing passe?\n> If RAII is the preferred method, then should the sensorFile object be placed inside an anonymous block in order for it to close prior to the lseek and timer re-init?\n\nIdeally, yes, but in this case the exact destruction order isn't super critical, so it's fine either way."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 182,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This looks unrelated to this patch.  Maybe put in a different patch?"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 182,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "This is git-diff failing to recognize the code block was not actually modified.\nSee earlier in the commit diff history above."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 182,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can you elaborate a little?  I'm comparing base (ie master) to patchset 9, in which this diff shows these lines were added.  I suspect there was a merge conflict that didn't get handled well, and this diff ended up here?"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 182,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Check this commit at line 150, you will see updateMinMaxValues there.\nThis code is not new, only moved."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -67
+                }
+            ],
+            "sizeInsertions": 32,
+            "sizeDeletions": 69
+        },
+        {
+            "number": 10,
+            "revision": "c28d06739a28ced92d89428113b414ab51ab3329",
+            "parents": [
+                "18fffd3d4d426ad84059a1e474665a0e31926f5f"
+            ],
+            "ref": "refs/changes/21/41421/10",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1624391069,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 164,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Not part of this  patch, but related I think. I am wondering if we want to consider\n1. close and try to repoen the file and use wait timer to schedule another read\nor\n2. call incrementError - because no more read going to happen if we return here"
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 164,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Interesting question. Is a bad FD even possible here?\nThe file is only opened when the sensor object is created, and failure to open exits the constructor. This code would never get called in that situation.\n\nCan a FD become bad under normal circumstances? Is this just covering the catastrophic? Is this covering the condition where the sensor disappears due to removal? If it is only covering the case where the sensor is removed, then restarting the process is undesirable."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 164,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Good point, I think call incrementError to make the sensor not available seems reasonable. I am ok to leave it out for a separate patch if that is preferred."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 164,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I prefer to save the modification of the error handler to another commit."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 168,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "comment to justify why 128 is picked here or use a constexpr with a name."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 168,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Will do."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "DO you need to check if \"\\n\" is read? I don't know if there is a timing crack that the buffer would only read part of the data."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I tested this with the \\n character at the end of the buffer. stod did the right thing, and ignored the \\n. It also seemed apparent that the async_wait only terminated once the \\n was present in the sensor file."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Ack. Nice! All services that use async_read_until to should be converted to use this pattern."
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "line": 176,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "When this solution is approved the other sensors using async_read should use this paradigm. Which needs to be done in separate commits. :)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 21,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 11,
+            "revision": "f2442e930bd8763f0a704e721a67f160281460e9",
+            "parents": [
+                "18fffd3d4d426ad84059a1e474665a0e31926f5f"
+            ],
+            "ref": "refs/changes/21/41421/11",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1624569044,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 24,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 24,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 12,
+            "revision": "bcf76717697238e380be785bd28150963ecf0e9e",
+            "parents": [
+                "8685b17ab14a187eae08399153b9ec6bace2ab9b"
+            ],
+            "ref": "refs/changes/21/41421/12",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1625582573,
+            "author": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 24,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 24,
+            "sizeDeletions": 28
+        }
+    ]
+}

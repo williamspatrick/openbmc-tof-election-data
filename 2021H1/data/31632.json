@@ -1,0 +1,665 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I3e0e3e68aeed94d1faad81be62e222d4fd299991",
+    "number": 31632,
+    "subject": "Implement Power Capping to spec",
+    "owner": {
+        "name": "Gunnar Mills",
+        "email": "gmills@us.ibm.com",
+        "username": "gtmills"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/31632",
+    "commitMessage": "Implement Power Capping to spec\n\nFrom https://redfish.dmtf.org/schemas/v1/Power.v1_6_0.json:\n\"LimitInWatts\": {\n    \"description\": \"The power limit, in watts.  If `null`, power capping is disabled.\",\n\nOn Redfish if LimitInWatts is set to null, set the PowerCapEnable D-Bus property\nto false. If LimitInWatts is set to a number, set PowerCapEnable to true.\nMade minor readability changes.\n\nTested:\nValidator passed.\n\nPowerCap disabled:\ncurl -k https://${bmc}/redfish/v1/Chassis/chassis/Power\n{\n  \"@odata.id\": \"/redfish/v1/Chassis/chassis/Power\",\n  \"@odata.type\": \"#Power.v1_5_2.Power\",\n  \"Id\": \"Power\",\n  \"Name\": \"Power\",\n  \"PowerControl\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Chassis/chassis/Power#/PowerControl/0\",\n      \"@odata.type\": \"#Power.v1_0_0.PowerControl\",\n      \"MemberId\": \"0\",\n      \"Name\": \"Chassis Power Control\",\n      \"PowerConsumedWatts\": 551.0,\n      \"PowerLimit\": {\n        \"LimitException\": \"NoAction\",\n        \"LimitInWatts\": null\n....\n\n(Can see this on D-Bus as well)\ncurl -k \\\nhttps://$bmc/xyz/openbmc_project/control/host0/power_cap/attr/PowerCapEnable\n{\n  \"data\": false,\n....\n\nPowerCap enabled via setting LimitInWatts to 2020:\n\ncurl -k -v https://${bmc}/redfish/v1/Chassis/chassis/Power \\\n-X PATCH -d '{\"PowerControl\":[{\"PowerLimit\":{\"LimitInWatts\":2020}}]}'\n....\n< HTTP/1.1 204 No Content\n....\n\ncurl -k https://${bmc}/redfish/v1/Chassis/chassis/Power\n{\n  \"@odata.id\": \"/redfish/v1/Chassis/chassis/Power\",\n  \"@odata.type\": \"#Power.v1_5_2.Power\",\n  \"Id\": \"Power\",\n  \"Name\": \"Power\",\n  \"PowerControl\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Chassis/chassis/Power#/PowerControl/0\",\n      \"@odata.type\": \"#Power.v1_0_0.PowerControl\",\n      \"MemberId\": \"0\",\n      \"Name\": \"Chassis Power Control\",\n      \"PowerConsumedWatts\": 549.0,\n      \"PowerLimit\": {\n        \"LimitException\": \"NoAction\",\n        \"LimitInWatts\": 2020.0\n....\n\n(see it got set on D-Bus)\ncurl -k \\\nhttps://$bmc/xyz/openbmc_project/control/host0/power_cap/attr/PowerCapEnable\n{\n  \"data\": true\n...\n\ncurl -k https://$bmc/xyz/openbmc_project/control/host0/power_cap/attr/PowerCap\n{\n  \"data\": 2020,\n...\n\nDisabled the PowerCap:\ncurl -k -v https://${bmc}/redfish/v1/Chassis/chassis/Power -X PATCH \\\n-d '{\"PowerControl\":[{\"PowerLimit\":{\"LimitInWatts\":null}}]}'\n....\n< HTTP/1.1 204 No Content\n....\n\ncurl -k https://${bmc}/redfish/v1/Chassis/chassis/Power\n...\n      \"PowerLimit\": {\n        \"LimitException\": \"NoAction\",\n        \"LimitInWatts\": null\n      }\n\n(confirm on D-Bus)\ncurl -k \\\nhttps://$bmc/xyz/openbmc_project/control/host0/power_cap/attr/PowerCapEnable\n{\n  \"data\": false,\n\nChange-Id: I3e0e3e68aeed94d1faad81be62e222d4fd299991\nSigned-off-by: Gunnar Mills <gmills@us.ibm.com>\n",
+    "createdOn": 1587587861,
+    "lastUpdated": 1615254025,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1587587861,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1587587886,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1587587898,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/48178/"
+        },
+        {
+            "timestamp": 1587588462,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1587588483,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1587588491,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://openpower.xyz/job/openbmc-repository-ci/48178/ : ABORTED"
+        },
+        {
+            "timestamp": 1587588494,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/48180/"
+        },
+        {
+            "timestamp": 1587589279,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://openpower.xyz/job/openbmc-repository-ci/48180/ : SUCCESS"
+        },
+        {
+            "timestamp": 1587592996,
+            "reviewer": {
+                "name": "Edward A. James",
+                "email": "eajames@us.ibm.com",
+                "username": "eddiejames"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1587650810,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1587669573,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1587669596,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1587669609,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/48253/"
+        },
+        {
+            "timestamp": 1587669910,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://openpower.xyz/job/openbmc-repository-ci/48253/ : SUCCESS"
+        },
+        {
+            "timestamp": 1587670012,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1587674650,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1587764595,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1587951913,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1587951948,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1587952037,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/48306/"
+        },
+        {
+            "timestamp": 1587952055,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1587952440,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://openpower.xyz/job/openbmc-repository-ci/48306/ : SUCCESS"
+        },
+        {
+            "timestamp": 1591217196,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1591217224,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1591217254,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1591217931,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 5:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/50880/"
+        },
+        {
+            "timestamp": 1591218356,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://openpower.xyz/job/openbmc-repository-ci/50880/ : FAILURE"
+        },
+        {
+            "timestamp": 1604961988,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1604962002,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1604963111,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/7551/ : FAILURE"
+        },
+        {
+            "timestamp": 1605729055,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1605729073,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1605729794,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/8124/ : FAILURE"
+        },
+        {
+            "timestamp": 1615254025,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Abandoned\n\nMoving to new powersubsystem schema soon. Abandoning."
+        }
+    ],
+    "wip": true,
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "5cd13e86a5bcffeef67177a6dc0db57a171b715c",
+            "parents": [
+                "b84982b674e84940db9a4b50e234c36e257e634b"
+            ],
+            "ref": "refs/changes/32/31632/1",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1587587861,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": -13
+                }
+            ],
+            "sizeInsertions": 44,
+            "sizeDeletions": 13
+        },
+        {
+            "number": 2,
+            "revision": "69e88c625b054ebe73b7309ccac9e74ca4dcf523",
+            "parents": [
+                "b84982b674e84940db9a4b50e234c36e257e634b"
+            ],
+            "ref": "refs/changes/32/31632/2",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1587588462,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 142,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I know these were defined before you got here but the code would be a lot more readable if these variables were more descriptive names (like powerCapEnabled, requestedPowerCap)"
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 142,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Done. Doing this made a ton of format changes and now the diff for this commit looks a lot larger than it really is. :( The changes between patch 2 and 3 are only related to this comment, b -> powerCapEnabled and value -> requestedPowerCap."
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 146,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Shouldn't we enable the power cap after setting a valid one?"
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 146,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "That is done below. Line 150 - 166."
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 146,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "geissonator@yahoo.com",
+                        "username": "geissonator"
+                    },
+                    "message": "But you shouldn't enable a power cap if a valid one is not set first? Sounds like undefined behavior."
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 146,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Done. This is how the GUI does it (enable and set the powercap at the same time), but sure sounds resonable, set the powerCap first then enable it. \nhttps://github.com/openbmc/phosphor-webui/blob/c652ed1889599da3ca2a0e0d36979e099f9b3b8c/app/server-control/controllers/power-usage-controller.js#L58\nI went with a simpler design here, just blindly set the PowerCap and PowerCapEnable, this is how I see other d-bus calls work in bmcweb (i.e. you don't read first and then decide if it should be set, just set it.)."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -13
+                }
+            ],
+            "sizeInsertions": 43,
+            "sizeDeletions": 13
+        },
+        {
+            "number": 3,
+            "revision": "75cc60f7120f14e7a4c989f86a1caa44ac9f4e4f",
+            "parents": [
+                "b84982b674e84940db9a4b50e234c36e257e634b"
+            ],
+            "ref": "refs/changes/32/31632/3",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1587669573,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 129,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Since requestedPowerCap is a std::optional, shouldn't you check if it has a value before dereferencing it?  Otherwise the behavior is undefined."
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "line": 129,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Done. Used your suggestion from below of using a special value."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 103,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 112,
+                    "deletions": -84
+                }
+            ],
+            "sizeInsertions": 112,
+            "sizeDeletions": 84
+        },
+        {
+            "number": 4,
+            "revision": "741c2bbdd8a59d136b2dc86904a8e51f74eb0b88",
+            "parents": [
+                "a5a259a39afe976aa0262b34d8d14f14d8c0b07a"
+            ],
+            "ref": "refs/changes/32/31632/4",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1587951913,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 105,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -90
+                }
+            ],
+            "sizeInsertions": 88,
+            "sizeDeletions": 90
+        },
+        {
+            "number": 5,
+            "revision": "a3cf4dcd2855e6633ae95164f5bbb965f565f8b5",
+            "parents": [
+                "7e63a70fbc3229ccff89fdfc237b3df2a9884df5"
+            ],
+            "ref": "refs/changes/32/31632/5",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1591217196,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 105,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": -42
+                }
+            ],
+            "sizeInsertions": 44,
+            "sizeDeletions": 42
+        },
+        {
+            "number": 6,
+            "revision": "8e27be73e41f3651f1d470ae336c6c3b4c7a9ff4",
+            "parents": [
+                "b28f82dc4825bef0e0883204accd7116caaefea6"
+            ],
+            "ref": "refs/changes/32/31632/6",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1604961988,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 105,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": -42
+                }
+            ],
+            "sizeInsertions": 44,
+            "sizeDeletions": 42
+        },
+        {
+            "number": 7,
+            "revision": "b3b32cd498e81e5ec160b43d28677e5b140e9607",
+            "parents": [
+                "59c7669006bc70b93b6f7d1281de7cefcf682abe"
+            ],
+            "ref": "refs/changes/32/31632/7",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1605729055,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 105,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -42
+                }
+            ],
+            "sizeInsertions": 43,
+            "sizeDeletions": 42
+        }
+    ]
+}

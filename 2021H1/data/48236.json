@@ -1,0 +1,1528 @@
+{
+    "project": "openbmc/phosphor-bmc-code-mgmt",
+    "branch": "master",
+    "topic": "usb-code-update",
+    "id": "I733f1b0f217f4fdd2f99cc6e8bbd602085da407d",
+    "number": 48236,
+    "subject": "usb: Add service and rules files",
+    "owner": {
+        "name": "George Liu",
+        "email": "liuxiwei@inspur.com",
+        "username": "lxwinspur"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-bmc-code-mgmt/+/48236",
+    "commitMessage": "usb: Add service and rules files\n\nTrigger the USB code update via udev rules. Once a USB flash drive is\nplugged into the BMC, an sda1 device is created, starting the USB\nservice file. Use SYSTEMD_WANTS since this service is long running.\n\nUse BindsTo and After dev-sdX in the service file so that it\nautomatically stops when then USB drive is unplugged. Also add a\ndependency to start after the Version service, which creates the\n/tmp/images directory to copy the image to, and after the Updater\nservice, which handles the update.\n\nEvery time a USB drive is plugged, Linux creates a device sda1, sdb1,\nsdc1, etc. Add rules for only the first 2 plug attempts, in case the\nuser made a mistake with the first USB drive as that seems sufficient.\nIf the second attempt does not work, the user would need to reboot the\nBMC to retry.\n\nTested:\n- Inserted USB key and verified the code update started and finished\n  successfully:\nDec 03 19:29:44 p10bmc kernel:  sda: sda1\nDec 03 19:29:44 p10bmc kernel: sd 0:0:0:0: [sda] Attached SCSI removable disk\nDec 03 19:29:44 p10bmc systemd[1]: Created slice Slice /system/usb-code-update.\nDec 03 19:29:44 p10bmc systemd[1]: Started FW Code Update via USB sda1.\nDec 03 19:29:50 p10bmc phosphor-version-software-manager[544]:\nUntaring /tmp/images/obmc-phosphor-image-rainier.ext4.mmc.tar to\n/tmp/images/imageM6FtSg\n...\nDec 03 19:30:42 p10bmc phosphor-image-updater[470]: BMC activation\nhas ended - BMC reboots are re-enabled.\n\n- Removed USB key and verified usb sda1 service stopped:\nDec 03 20:30:52 p10bmc systemd[1]: usb-code-update@sda1.service:\nDeactivated successfully.\nDec 03 20:30:52 p10bmc systemd[1]: Stopped FW Code Update via USB sda1.\n\n- Reinserted USB key and verified code update started with device sdb1:\nDec 03 20:31:05 p10bmc kernel:  sdb: sdb1\nDec 03 20:31:05 p10bmc kernel: sd 1:0:0:0: [sdb] Attached SCSI removable disk\nDec 03 20:31:05 p10bmc systemd[1]: Started FW Code Update via USB sdb1.\nDec 03 20:31:11 p10bmc phosphor-version-software-manager[541]:\nUntaring /tmp/images/obmc-phosphor-image-rainier.ext4.mmc.tar to\n/tmp/images/imagey2OFWQ\n\n- Removed USB key and verified usb sdb1 service stopped:\nDec 03 20:32:38 p10bmc systemd[1]: usb-code-update@sdb1.service:\nDeactivated successfully.\nDec 03 20:32:38 p10bmc systemd[1]: Stopped FW Code Update via USB sdb1.\n\n- Rebooted BMC with the USB drive inserted and verified the code update\n  started when the BMC booted after the software services started, and\n  the usb code update finished by the time the BMC reached Ready state:\n[  OK  ] Started OpenBMC Software Update Manager.\n[  OK  ] Started Phosphor Version Software Manager.\n[  OK  ] Started FW Code Update via USB sda1.\n\n- Verified the usb service exited on error and a code update can be\n  restarted:\nroot@p10bmc:~# systemctl status usb-code-update@sda1\n\u25cf usb-code-update@sda1.service - FW Code Update via USB sda1\n     Loaded: loaded (/lib/systemd/system/usb-code-update@.service; static)\n     Active: active (exited) since Fri 2021-12-03 21:26:19 UTC; 2min 31s ago\n    Process: 523 ExecStart=/usr/bin/phosphor-usb-code-update --device\nsda1 (code=exited, status=0/SUCCESS)\n   Main PID: 523 (code=exited, status=0/SUCCESS)\nDec 03 21:26:19 p10bmc systemd[1]: Started FW Code Update via USB sda1.\nDec 03 21:26:19 p10bmc phosphor-usb-code-update[523]: Error when\ncopying /run/media/usb/sda1/obmc-phosphor-image-rainier.ext4.mmc.tar to\n/tmp/images: filesystem error: cannot copy file: No \u2026r.ext4.mmc.tar]\nDec 03 21:26:19 p10bmc phosphor-usb-code-update[523]: Failed to FW\nUpdate via USB, usbPath:/run/media/usb/sda1\n\nSigned-off-by: George Liu <liuxiwei@inspur.com>\nSigned-off-by: Adriana Kobylak <anoo@us.ibm.com>\nChange-Id: I733f1b0f217f4fdd2f99cc6e8bbd602085da407d\n",
+    "createdOn": 1635217287,
+    "lastUpdated": 1639511355,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1635217287,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1635217301,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635217365,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Topic set to usb-code-update"
+        },
+        {
+            "timestamp": 1635217612,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28985/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635217858,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1635217869,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635217948,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28993/ : SUCCESS"
+        },
+        {
+            "timestamp": 1636144953,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 2:\n\nWill be testing this patch set on a p10bmc system next week."
+        },
+        {
+            "timestamp": 1636460546,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 3: Patch Set 2 was rebased."
+        },
+        {
+            "timestamp": 1636460561,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636460638,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29943/ : SUCCESS"
+        },
+        {
+            "timestamp": 1636537605,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1636537622,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636537707,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30033/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637185003,
+            "reviewer": {
+                "name": "Bruce Mitchell",
+                "email": "bruce.mitchell@linux.vnet.ibm.com",
+                "username": "BMC-Bruce"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637273482,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637316352,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1637316381,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637316459,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30555/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637316536,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637355933,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 5: Code-Review+1"
+        },
+        {
+            "timestamp": 1637557256,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1637557282,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637557423,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30633/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638310494,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 6: -Code-Review\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1638323745,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1638323760,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638323846,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30941/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638323954,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1638326809,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 8: Patch Set 7 was rebased."
+        },
+        {
+            "timestamp": 1638326825,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638326909,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30944/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638344353,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1638344367,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638344451,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30966/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638398721,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 9:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1638427426,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1638427451,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638427618,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 9:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1638427864,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31048/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638481230,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 10:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638492751,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Uploaded patch set 11: Patch Set 10 was rebased."
+        },
+        {
+            "timestamp": 1638492775,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638492862,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31125/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638568802,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1638568815,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638568894,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31234/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638568963,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)\n\nRebased without the commit the disables the service because that has a dependency, and should not block merging the usb code update functionality."
+        },
+        {
+            "timestamp": 1638824009,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638824061,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1638824077,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638824083,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 13: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638824186,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31312/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639498759,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 13: Code-Review+2"
+        },
+        {
+            "timestamp": 1639511355,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Change has been successfully rebased and submitted as 6d775e6448b57f42099ce71ebef41ed1c19c5479 by Adriana Kobylak"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "d0e06541ab95e5baf16f39c1cba5307171e244b3",
+            "parents": [
+                "913813699bdef2f78c8c41f3afb9877b25e85d50"
+            ],
+            "ref": "refs/changes/36/48236/1",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1635217287,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 47,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "fddca6cc135bfdc4c7308e6e828fcfe5cb698232",
+            "parents": [
+                "913813699bdef2f78c8c41f3afb9877b25e85d50"
+            ],
+            "ref": "refs/changes/36/48236/2",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1635217858,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 41,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "63a779f7029b866c7bd5630f6b578bc61e658ab5",
+            "parents": [
+                "4f9f65feaa5987fa089d6e41a4dd4997642f546c"
+            ],
+            "ref": "refs/changes/36/48236/3",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1636460546,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 41,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "9123313a9c55bf531bcfd9c7458e8905e87589da",
+            "parents": [
+                "d688cdc3e2fc001fb29e851d6bb1fce9eabd12b9"
+            ],
+            "ref": "refs/changes/36/48236/4",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1636537605,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 8,
+                    "reviewer": {
+                        "name": "Bruce Mitchell",
+                        "email": "bruce.mitchell@linux.vnet.ibm.com",
+                        "username": "BMC-Bruce"
+                    },
+                    "message": "Please add Tested: and how it was tested."
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "line": 2,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "I read that ID_FS_LABEL should be the device path, are you expecting it should be like '/dev/sda1'? Maybe the variable needs to be specified differently since it's translating to RED/HAT/ENT for some reason. This is what I see on p10bmc:\n\nNov 18 21:20:17 p10bmc kernel:  sda: sda1\nNov 18 21:20:17 p10bmc kernel: sd 0:0:0:0: [sda] Attached SCSI removable disk\nNov 18 21:20:17 p10bmc systemd[1]: Starting FW Code Update via USB RED/HAT/ENT...\nNov 18 21:20:17 p10bmc phosphor-usb-code-update[1844]: Failed to FW Update via USB, usbPath:/media/RED-HAT-ENT\nNov 18 21:20:17 p10bmc systemd[1]: USBCodeUpdate@RED-HAT-ENT.service: Deactivated successfully.\nNov 18 21:20:17 p10bmc systemd[1]: Finished FW Code Update via USB RED/HAT/ENT."
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "line": 2,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack\nRemoved ID_FS_LABLE."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 38,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "6a92199b3198d5ca1c6de9292ec65ac7d45f72f7",
+            "parents": [
+                "19037542972cc8cba6d5d0d189ee506c4749d8a8"
+            ],
+            "ref": "refs/changes/36/48236/5",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1637316352,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 46,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "453b2b7d3f19a3e4556851b66ef8a83131286d4b",
+            "parents": [
+                "97958fd2f80d35c6cbc5995136a9607d19c97b27"
+            ],
+            "ref": "refs/changes/36/48236/6",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1637557256,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 6,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "syntax error, Need a space here between the quote and square bracket: \n| -if [ ! -d \"${usb_dir}\"]; then\n| +if [ ! -d \"${usb_dir}\" ]; then"
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 6,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Oh, Sorry, It's my mistake \ud83d\ude1e\nDone"
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "We can wait for the service to finish and exit, no reason to do a --no-block?"
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Also I'm seeing the service start twice for some reason in the middle of the update, I put a debug trace in this script but doesn't seem this script is calling the service twice. I'll do some more debugging.\n\nNov 30 21:50:05 p10bmc systemd[1]: Starting FW Code Update via USB sda1...\nNov 30 21:50:17 p10bmc systemd[1]: Starting Write image 7637c6d0 to BMC storage...\nNov 30 21:50:17 p10bmc systemd[1]: USBCodeUpdate@sda1.service: Deactivated successfully.\nNov 30 21:50:17 p10bmc systemd[1]: Finished FW Code Update via USB sda1.\nNov 30 21:50:56 p10bmc obmc-flash-bmc[1785]: 437384+0 records out\nNov 30 21:50:58 p10bmc systemd[1]: Starting FW Code Update via USB sda1...\nNov 30 21:50:59 p10bmc systemd[1]: Finished Write image 7637c6d0 to BMC storage.\nNov 30 21:51:00 p10bmc phosphor-version-software-manager[549]: Software Object with the same version (7637c6d0) already exists"
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Sure, let me know if you get more debugging information."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 46,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 7,
+            "revision": "2c15618d17bb701853e2048bd99007d2553fefc4",
+            "parents": [
+                "0e4aa111753d213ffca372d037c1445b9a45c36d"
+            ],
+            "ref": "refs/changes/36/48236/7",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1638323745,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 46,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 8,
+            "revision": "507b52ab3853df02a5eb4a1f934cfb331ca45d17",
+            "parents": [
+                "e6fa8477d56f7c5503a0e0d6c0b6000436b772d6"
+            ],
+            "ref": "refs/changes/36/48236/8",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1638326809,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 46,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 9,
+            "revision": "637335663a7fb8f8fe1c9be0f16cdac737631cd8",
+            "parents": [
+                "e6fa8477d56f7c5503a0e0d6c0b6000436b772d6"
+            ],
+            "ref": "refs/changes/36/48236/9",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1638344353,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "line": 2,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "This seems to trigger on unplug too, we may need to add a \"ACTION==\"add\"\" but let me try and confirm."
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "line": 2,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "The systemd service files in the bmc appear they're all lower case. Let's change this file name to something like 'usb-code-update@.service'"
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "oneshot is for a short running command, so the service is timing out because it doesn't return until the activation is triggered, then it's restarted, please change to simple and add remain after exit so that it does not run again:\n\nType=simple\nRemainAfterExit=yes"
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "For some reason the usb device is not mounted when it's called from the udev rules when key is inserted, but it's mounted when the usb_update.sh is called manually from the bmc command line. I've put some debug echos and mount does not fail but not sure why it doesn't mount. Need to do some more debug here."
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "I'm testing a theory of having udev call systemcl start usb-code-update@.service and doing the mount from the usb manager app instead of a script."
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Done. It turned out to be better to call the service file from the udev rules, that way we can coordinate the dependencies and the bmc is booted far up enough to do the mount command."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/USBCodeUpdate@.service",
+                    "type": "ADDED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 46,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 10,
+            "revision": "7fd75a8c61ba7831713212a34b8c9503b62fcaf6",
+            "parents": [
+                "9832c9651f1d553330599cad853c1895ae95f6dc"
+            ],
+            "ref": "refs/changes/36/48236/10",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1638427426,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/usb-code-update@.service",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 47,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 11,
+            "revision": "912be4f4bcf40a85e27a74628c64571dee31b08c",
+            "parents": [
+                "072b0264a85afa2e8e22c373e73044db05f64d17"
+            ],
+            "ref": "refs/changes/36/48236/11",
+            "uploader": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "createdOn": 1638492751,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/usb-code-update@.service",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_update.sh",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 47,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 12,
+            "revision": "0e932bbdbe8968794c2e3ceca05e81e4d6fc5fe2",
+            "parents": [
+                "e8bcabed1a2b7c8d333ed116c7b581656a4bfda0"
+            ],
+            "ref": "refs/changes/36/48236/12",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1638568802,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "usb/meson.build",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Extra line"
+                },
+                {
+                    "file": "usb/meson.build",
+                    "line": 59,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/usb-code-update@.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -1
+                },
+                {
+                    "file": "usb/usb_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -3
+                },
+                {
+                    "file": "usb/usb_manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 56,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 13,
+            "revision": "5eec9f6c0b3841861505a83471b9ccd8496a99e0",
+            "parents": [
+                "e8bcabed1a2b7c8d333ed116c7b581656a4bfda0"
+            ],
+            "ref": "refs/changes/36/48236/13",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1638824061,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/usb-code-update@.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -1
+                },
+                {
+                    "file": "usb/usb_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -3
+                },
+                {
+                    "file": "usb/usb_manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 55,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 14,
+            "revision": "6d775e6448b57f42099ce71ebef41ed1c19c5479",
+            "parents": [
+                "5107c45f001dd2ff027c9ed45373a8dbd9619113"
+            ],
+            "ref": "refs/changes/36/48236/14",
+            "uploader": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "createdOn": 1639511355,
+            "author": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/70-bmc-usb.rules",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/services/usb-code-update@.service",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "usb/usb_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -1
+                },
+                {
+                    "file": "usb/usb_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -3
+                },
+                {
+                    "file": "usb/usb_manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 55,
+            "sizeDeletions": 10
+        }
+    ]
+}

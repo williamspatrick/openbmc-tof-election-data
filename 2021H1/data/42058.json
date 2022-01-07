@@ -1,0 +1,286 @@
+{
+    "project": "openbmc/entity-manager",
+    "branch": "master",
+    "id": "I672a5fe055801d8bd674778350ce8f434cc0c430",
+    "number": 42058,
+    "subject": "Fix early exit for non D-Bus probes",
+    "owner": {
+        "name": "Matt Spinler",
+        "email": "spinler@us.ibm.com",
+        "username": "spinler"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/entity-manager/+/42058",
+    "commitMessage": "Fix early exit for non D-Bus probes\n\nThe existing code had a bug where it would require a D-Bus interface to\nbe present for a probe in order to continue on to create any\nconfiguration objects.  This doesn't always work because some probe\nstatements, like \"TRUE\", don't need any D-bus interface checks to\nsucceed.\n\nThe fix is to continue on, and just pass an empty map of D-Bus\ninterfaces into the template substitution function.\n\nThis bug was introduced in my 'Do tmpl substitutions using all\nproperties on path\" commit.\n\nTested:\nTested with a Probe: \"TRUE\" config and saw the configuration object for\nit created on D-Bus.\n\nSigned-off-by: Matt Spinler <spinler@us.ibm.com>\nChange-Id: I672a5fe055801d8bd674778350ce8f434cc0c430\n",
+    "createdOn": 1617911419,
+    "lastUpdated": 1618337486,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1617911419,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1617911443,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617911693,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1: Code-Review+1\n\n(1 comment)\n\nLGTM.  Would like someone (aladyshev?) that was having this problem to weigh in and make sure this actually solves it, but I won't hold up the merge for that."
+        },
+        {
+            "timestamp": 1617911816,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15146/ : SUCCESS"
+        },
+        {
+            "timestamp": 1618246145,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 1:\n\nAfter this commit `entity-manager` fails continiously with core dump\n```\nApr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\nApr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\nApr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1631\nApr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\nApr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\nApr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1640\nApr 01 23:18:35 ethanolx systemd[1]: Started Process Core Dump (PID 1117/UID 0).\nApr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Main process exited, code=dumped, status=11/SEGV\nApr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Failed with result 'core-dump'.\n```\n\nBut I think I've found an issue. In my JSON file some address are set like this:\n```\n\"Address\": \"0x4A\"\n```\nThis is causing troubles for the EM. If I change this line to:\n```\n\"Address\": 74\n```\nEverything works correctly.\n\nBut I don't have such problems with the EM if I simply revert \"Do tmpl substitutions using all properties on path\" commit instead of using this fix. So my JSON was working before this commit."
+        },
+        {
+            "timestamp": 1618255992,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> After this commit `entity-manager` fails continiously with core dump\n> ```\n> Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1631\n> Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1640\n> Apr 01 23:18:35 ethanolx systemd[1]: Started Process Core Dump (PID 1117/UID 0).\n> Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Main process exited, code=dumped, status=11/SEGV\n> Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Failed with result 'core-dump'.\n> ```\n> \n> But I think I've found an issue. In my JSON file some address are set like this:\n> ```\n> \"Address\": \"0x4A\"\n> ```\n> This is causing troubles for the EM. If I change this line to:\n> ```\n> \"Address\": 74\n> ```\n> Everything works correctly.\n> \n> But I don't have such problems with the EM if I simply revert \"Do tmpl substitutions using all properties on path\" commit instead of using this fix. So my JSON was working before this commit.\n\nMatt, could look into the above?"
+        },
+        {
+            "timestamp": 1618256256,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > After this commit `entity-manager` fails continiously with core dump\n> > ```\n> > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1631\n> > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1640\n> > Apr 01 23:18:35 ethanolx systemd[1]: Started Process Core Dump (PID 1117/UID 0).\n> > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Main process exited, code=dumped, status=11/SEGV\n> > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Failed with result 'core-dump'.\n> > ```\n> > \n> > But I think I've found an issue. In my JSON file some address are set like this:\n> > ```\n> > \"Address\": \"0x4A\"\n> > ```\n> > This is causing troubles for the EM. If I change this line to:\n> > ```\n> > \"Address\": 74\n> > ```\n> > Everything works correctly.\n> > \n> > But I don't have such problems with the EM if I simply revert \"Do tmpl substitutions using all properties on path\" commit instead of using this fix. So my JSON was working before this commit.\n> \n> Matt, could look into the above?\n\nI've tried the exact same ethanol* JSON files and I haven't gotten it to fail yet.  Trying to think of what to do next."
+        },
+        {
+            "timestamp": 1618259053,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > > Patch Set 1:\n> > > \n> > > After this commit `entity-manager` fails continiously with core dump\n> > > ```\n> > > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1631\n> > > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1640\n> > > Apr 01 23:18:35 ethanolx systemd[1]: Started Process Core Dump (PID 1117/UID 0).\n> > > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Main process exited, code=dumped, status=11/SEGV\n> > > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Failed with result 'core-dump'.\n> > > ```\n> > > \n> > > But I think I've found an issue. In my JSON file some address are set like this:\n> > > ```\n> > > \"Address\": \"0x4A\"\n> > > ```\n> > > This is causing troubles for the EM. If I change this line to:\n> > > ```\n> > > \"Address\": 74\n> > > ```\n> > > Everything works correctly.\n> > > \n> > > But I don't have such problems with the EM if I simply revert \"Do tmpl substitutions using all properties on path\" commit instead of using this fix. So my JSON was working before this commit.\n> > \n> > Matt, could look into the above?\n> \n> I've tried the exact same ethanol* JSON files and I haven't gotten it to fail yet.  Trying to think of what to do next.\n\nAladyshev, is there any more information you can provide here?"
+        },
+        {
+            "timestamp": 1618259215,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > > Patch Set 1:\n> > > \n> > > > Patch Set 1:\n> > > > \n> > > > After this commit `entity-manager` fails continiously with core dump\n> > > > ```\n> > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1631\n> > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1640\n> > > > Apr 01 23:18:35 ethanolx systemd[1]: Started Process Core Dump (PID 1117/UID 0).\n> > > > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Main process exited, code=dumped, status=11/SEGV\n> > > > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Failed with result 'core-dump'.\n> > > > ```\n> > > > \n> > > > But I think I've found an issue. In my JSON file some address are set like this:\n> > > > ```\n> > > > \"Address\": \"0x4A\"\n> > > > ```\n> > > > This is causing troubles for the EM. If I change this line to:\n> > > > ```\n> > > > \"Address\": 74\n> > > > ```\n> > > > Everything works correctly.\n> > > > \n> > > > But I don't have such problems with the EM if I simply revert \"Do tmpl substitutions using all properties on path\" commit instead of using this fix. So my JSON was working before this commit.\n> > > \n> > > Matt, could look into the above?\n> > \n> > I've tried the exact same ethanol* JSON files and I haven't gotten it to fail yet.  Trying to think of what to do next.\n> \n> Aladyshev, is there any more information you can provide here?\n\nI think we've found that the issue is coming from this piece of code in the `exportDevice` function:\n\n```\n        else if (keyPair.key() == \"Address\")\n        {\n            address = std::make_shared<uint64_t>(\n                *keyPair.value().get_ptr<const uint64_t*>());\n        }\n```"
+        },
+        {
+            "timestamp": 1618264033,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1618264046,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618264173,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > > Patch Set 1:\n> > > \n> > > > Patch Set 1:\n> > > > \n> > > > > Patch Set 1:\n> > > > > \n> > > > > After this commit `entity-manager` fails continiously with core dump\n> > > > > ```\n> > > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: run 1614\n> > > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1631\n> > > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: Inventory Added\n> > > > > Apr 01 23:18:35 ethanolx entity-manager[1115]: ~PerformScan 1640\n> > > > > Apr 01 23:18:35 ethanolx systemd[1]: Started Process Core Dump (PID 1117/UID 0).\n> > > > > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Main process exited, code=dumped, status=11/SEGV\n> > > > > Apr 01 23:18:39 ethanolx systemd[1]: xyz.openbmc_project.EntityManager.service: Failed with result 'core-dump'.\n> > > > > ```\n> > > > > \n> > > > > But I think I've found an issue. In my JSON file some address are set like this:\n> > > > > ```\n> > > > > \"Address\": \"0x4A\"\n> > > > > ```\n> > > > > This is causing troubles for the EM. If I change this line to:\n> > > > > ```\n> > > > > \"Address\": 74\n> > > > > ```\n> > > > > Everything works correctly.\n> > > > > \n> > > > > But I don't have such problems with the EM if I simply revert \"Do tmpl substitutions using all properties on path\" commit instead of using this fix. So my JSON was working before this commit.\n> > > > \n> > > > Matt, could look into the above?\n> > > \n> > > I've tried the exact same ethanol* JSON files and I haven't gotten it to fail yet.  Trying to think of what to do next.\n> > \n> > Aladyshev, is there any more information you can provide here?\n> \n> I think we've found that the issue is coming from this piece of code in the `exportDevice` function:\n> \n> ```\n>         else if (keyPair.key() == \"Address\")\n>         {\n>             address = std::make_shared<uint64_t>(\n>                 *keyPair.value().get_ptr<const uint64_t*>());\n>         }\n> ```\n\nThe problem with the previous patch set was that in the PROBE=TRUE cases the templateCharReplace wrapper function was expecting at least some found interfaces, so it was never getting in to actually do the substitutions/number conversions."
+        },
+        {
+            "timestamp": 1618264472,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15278/ : SUCCESS"
+        },
+        {
+            "timestamp": 1618314187,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 2: Code-Review+1\n\nThe latest patchset successfully resolves the EM crash issue.\nThanks Matt!"
+        },
+        {
+            "timestamp": 1618337484,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2: Code-Review+2"
+        },
+        {
+            "timestamp": 1618337486,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 4bab932ba8846c9ff17997b88ab16e0cc93dbcab by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c28bd008e9297124a96669141a5ee27600c6c4ec",
+            "parents": [
+                "fea4f1a091f4fba4326920712701c7ad966db6aa"
+            ],
+            "ref": "refs/changes/58/42058/1",
+            "uploader": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "createdOn": 1617911419,
+            "author": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/EntityManager.cpp",
+                    "line": 1386,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Software engineering, making the impossible, possible ;)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 26,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -13
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 13
+        },
+        {
+            "number": 2,
+            "revision": "e927df453ec2954e9256db2b2886e06f5e8c8b09",
+            "parents": [
+                "086f19d287fdc7d7be9c52ad9aee7704e4f339f5"
+            ],
+            "ref": "refs/changes/58/42058/2",
+            "uploader": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "createdOn": 1618264033,
+            "author": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 26,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -14
+                }
+            ],
+            "sizeInsertions": 19,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 3,
+            "revision": "4bab932ba8846c9ff17997b88ab16e0cc93dbcab",
+            "parents": [
+                "75eea3ebbfef54be24d1ae2ea9b1b87b29ea0841"
+            ],
+            "ref": "refs/changes/58/42058/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1618337486,
+            "author": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 26,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -14
+                }
+            ],
+            "sizeInsertions": 19,
+            "sizeDeletions": 14
+        }
+    ]
+}

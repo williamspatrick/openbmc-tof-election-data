@@ -1,0 +1,161 @@
+{
+    "project": "openbmc/entity-manager",
+    "branch": "master",
+    "id": "Iee4c8f78133fceba9817e7ac7776d65410003f09",
+    "number": 38707,
+    "subject": "schema: Add virtual sensor schema",
+    "owner": {
+        "name": "Matt Spinler",
+        "email": "spinler@us.ibm.com",
+        "username": "spinler"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/entity-manager/+/38707",
+    "commitMessage": "schema: Add virtual sensor schema\n\nThis schema allows entity manager to define virtual sensors that are\nused by the virtual-sensor daemon from the phosphor-virtual-sensor\nrepository.\n\nVirtual sensors use exprtk math library expressions to calculate values\nfor xyz.openbmc_project.Sensor.Value D-Bus sensors.  These expressions\ncan make use of values of other sensors as well as predefined constants.\n\nThe example below defines the data for a\n/xyz/openbmc_project/sensors/temperature/LinearTemp sensor whose value\nis: 4.0 * (value of sensor 'Board_Temp') + 1.5.\n\n{\n    \"Name\": \"Fake sensor\",\n    \"Type\": \"VirtualSensor\",\n    \"VirtualSensorName\": \"LinearTemp\",\n    \"VirtualSensorType\": \"temperature\",\n    \"ConstParams\": [\n\t{\n\t    \"Name\": \"offset\",\n\t    \"Value\": 1.5\n\t},\n\t{\n\t    \"Name\": \"slope\",\n\t    \"Value\": 4.0\n\t}\n    ],\n    \"DBusParams\": [\n\t{\n\t    \"Name\": \"X\",\n\t    \"SensorName\": \"Board_Temp\",\n\t    \"SensorType\": \"temperature\"\n\t}\n    ],\n    \"Expression\": \"slope * X + offset\"\n}\n\nSigned-off-by: Matt Spinler <spinler@us.ibm.com>\nChange-Id: Iee4c8f78133fceba9817e7ac7776d65410003f09\n",
+    "createdOn": 1606851201,
+    "lastUpdated": 1618408361,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1606851201,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1606851229,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1606851495,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/8858/ : SUCCESS"
+        },
+        {
+            "timestamp": 1606852531,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1618408361,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Abandoned"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "ffab7e64f74de3dccd8263be0640167d3de6dad9",
+            "parents": [
+                "c3e83d584f9de5dc46fff505596f45f5dc3b2d8d"
+            ],
+            "ref": "refs/changes/07/38707/1",
+            "uploader": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "createdOn": 1606851201,
+            "author": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Many of my thoughts on this were captured in the phosphor-virtual-sensors design review, which largely glossed over them under the thought that enity-manager systems were not a use case it was targettting.  I struggle to see the actual value in a generic, \"apply platform specific transfer function to sensor\" implementation, and have serious concerns about how errors are handled, or its ability to scale in the future.  With that said, if you have some real world use cases that aren't covered by something else, we sort through the performance impacts, and we have a good answer for how to handle errors in a practical way, lets get those sorted out and we'll see if we can figure out a way to get this in for the use cases you need it for  (see below about actually providing use cases)."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please provide some actual use cases.  Arbitrary math expressions somewhat goes against the principals of entity-manager, as it moves easy individual math expression into the config language, which is the opposite of entity-manager design goal #2 \"Reduce the amount of code that is different between platforms\"\n\nI suspect that overall, theres going to be a subset of sensor actions that we'll need a library of, but I doubt that each platform needs an infinite ability to express arbitrary math equations."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "We already have mechanisms for changing the gain of an existing sensor (look at ADCsensor for an example) directly in the sensors themselves, which is more efficient.\n\nThe patch to add offset has been submitted, but thusfar nobody has found a use case that requires it, so it hasn't been merged yet.\n\nI would prefer we use the existing paradyms for these things, instead of inventing a generic catch all mechanism."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 36,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Entity-manager config files should have no knowledge of dbus.  If this ends up going through, this should be  changed to something like \"inputs\".  It would be good to model it after cfm sensor type or pid type, which is doing a very similar transform."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 40,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why does the config file need to state the input type?  This would be the only place where we require a type along with a sensor name, so we should be consistent."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "schemas/VirtualSensor.json",
+                    "type": "ADDED",
+                    "insertions": 199,
+                    "deletions": 0
+                },
+                {
+                    "file": "schemas/global.json",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 202,
+            "sizeDeletions": 0
+        }
+    ]
+}

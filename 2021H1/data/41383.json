@@ -1,0 +1,421 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I4402f2930847c1d47b22696631be26d33c78b6f9",
+    "number": 41383,
+    "subject": "Add SameSite=Strict on Set-Cookie",
+    "owner": {
+        "name": "Gunnar Mills",
+        "email": "gmills@us.ibm.com",
+        "username": "gtmills"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/41383",
+    "commitMessage": "Add SameSite=Strict on Set-Cookie\n\nSet SameSite to Strict since OpenBMC does not have functionality\nthat requires Lax or None.\n\nSameSite Strict provides a little protection against CSRF attacks\nby ensuring the cookie is only sent to requests originating from\nthe same site that set the cookie.\n\nThis came from some discussion on discord.\n\nFrom https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie\n\nSameSite=<samesite-value> Optional\n  Controls whether a cookie is sent with cross-origin requests,\nproviding some protection against cross-site request forgery attacks\n\nInline options are:\n\n  Strict: The browser sends the cookie only for same-site requests\n(that is, requests originating from the same site that set the\ncookie). If the request originated from a different URL than the\ncurrent one, no cookies with the SameSite=Strict attribute are sent.\n\n  Lax: The cookie is not sent on cross-site requests, such as calls\nto load images or frames, but is sent when a user is navigating to\nthe origin site from an external site (e.g. if following a link).\n  This is the default behavior if the SameSite attribute is not\nspecified.\n\n  None: The browser sends the cookie with both cross-site and\nsame-site requests. The Secure attribute must also be set when\nSameSite=None!\n\nNote: On Firefox 85, FireFox still doesn't have the Default set\nto SameSite=Lax. This can be changed via \"about:config\" and\n\"network.cookie.sameSite.laxByDefault\".\n\nTested: Webui-vue works. Redfish GUI browser works.\n        Websockets work on the GUI.\n        Tested GUI functions that call POST and PATCH.\n        Can see the XSRF-TOKEN and SESSION cookies are SameSite\n        Strict with this build. Before were SameSite None.\n        Browser DevTools -> Storage on Firefox to view cookies.\nSigned-off-by: Gunnar Mills <gmills@us.ibm.com>\n\nChange-Id: I4402f2930847c1d47b22696631be26d33c78b6f9\n",
+    "createdOn": 1616001674,
+    "lastUpdated": 1616119549,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1616001674,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1616001882,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1616005789,
+            "reviewer": {
+                "name": "Derick Montague",
+                "email": "derick.montague@ibm.com",
+                "username": "derick-montague"
+            },
+            "message": "Patch Set 2:\n\nOn the system we tested this by running locally. The cookie is being blocked and we are no longer able to run locally. We can work around this by copying code on the server. I think we need to be able to set a flag for build time that disables this so we can run locally. Can we use the existing flags to determine if the set-cookie header is set or not?"
+        },
+        {
+            "timestamp": 1616007557,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> On the system we tested this by running locally. The cookie is being blocked and we are no longer able to run locally.\n> We can work around this by copying code on the server. I think we need to be able to set a flag for build time that disables this so we can run locally. Can we use the existing flags to determine if the set-cookie header is set or not?\n\n\nAssuming you're talking about adding it under insecure-disable-xss (which, looking at it, is badly named, and should probably be called insecure-allow-xss, instead).\n\nSounds fine to me.\n\nAlternatively, I thought the newest versions of webpack had a proxy that allowed you to modify headers.  You could just remove the header in the proxy and not require the xss option."
+        },
+        {
+            "timestamp": 1616007634,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\nLets get the option added then this LGTM."
+        },
+        {
+            "timestamp": 1616010676,
+            "reviewer": {
+                "name": "Derick Montague",
+                "email": "derick.montague@ibm.com",
+                "username": "derick-montague"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> On the system we tested this by running locally. The cookie is being blocked and we are no longer able to run locally. We can work around this by copying code on the server. I think we need to be able to set a flag for build time that disables this so we can run locally. Can we use the existing flags to determine if the set-cookie header is set or not?\n\nI have to retract this statement. I was running on a different system. This does not create an issue running locally."
+        },
+        {
+            "timestamp": 1616010758,
+            "reviewer": {
+                "name": "Derick Montague",
+                "email": "derick.montague@ibm.com",
+                "username": "derick-montague"
+            },
+            "message": "Patch Set 2: Code-Review+1\n\n> Patch Set 2:\n> \n> Lets get the option added then this LGTM.\n\nAgree"
+        },
+        {
+            "timestamp": 1616011441,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2: Code-Review+1\n> \n> > Patch Set 2:\n> > \n> > Lets get the option added then this LGTM.\n> \n> Agree\n\nWhy? This doesn't break running locally.. I don't see a use case for why we need this excluded in insecure-disable-xss ? I.e. what is the use case this breaks?"
+        },
+        {
+            "timestamp": 1616011683,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616012025,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/13929/ : FAILURE"
+        },
+        {
+            "timestamp": 1616013480,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Uploaded patch set 3: Patch Set 2 was rebased."
+        },
+        {
+            "timestamp": 1616013504,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616014243,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13944/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616038077,
+            "reviewer": {
+                "name": "Derick Montague",
+                "email": "derick.montague@ibm.com",
+                "username": "derick-montague"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 2:\n> \n> > Patch Set 2: Code-Review+1\n> > \n> > > Patch Set 2:\n> > > \n> > > Lets get the option added then this LGTM.\n> > \n> > Agree\n> \n> Why? This doesn't break running locally.. I don't see a use case for why we need this excluded in insecure-disable-xss ? I.e. what is the use case this breaks?\n\nThat was a mistake on my part. This does not break local development."
+        },
+        {
+            "timestamp": 1616070296,
+            "reviewer": {
+                "name": "Dixsie Wolmers",
+                "email": "dixsiew@gmail.com",
+                "username": "dixsie"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1616102860,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3: Code-Review+2\n\n> Patch Set 2:\n> \n> > Patch Set 2: Code-Review+1\n> > \n> > > Patch Set 2:\n> > > \n> > > Lets get the option added then this LGTM.\n> > \n> > Agree\n> \n> Why? This doesn't break running locally.. I don't see a use case for why we need this excluded in insecure-disable-xss ? I.e. what is the use case this breaks?\n\nBecause at the time it was stated that it broke local development.  Considering this apparently doesn't (which is a little surprising, but I'll chalk that up to http magic I don't understand), it's fine as-is."
+        },
+        {
+            "timestamp": 1616102876,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4: Patch Set 3 was rebased"
+        },
+        {
+            "timestamp": 1616102891,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616103317,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14011/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616104803,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 636be396e4f3ecc09e446ca76db380fc0c5b57f9 by Ed Tanous"
+        },
+        {
+            "timestamp": 1616119549,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 5:\n\n> Patch Set 3: Code-Review+2\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 2: Code-Review+1\n> > > \n> > > > Patch Set 2:\n> > > > \n> > > > Lets get the option added then this LGTM.\n> > > \n> > > Agree\n> > \n> > Why? This doesn't break running locally.. I don't see a use case for why we need this excluded in insecure-disable-xss ? I.e. what is the use case this breaks?\n> \n> Because at the time it was stated that it broke local development.  Considering this apparently doesn't (which is a little surprising, but I'll chalk that up to http magic I don't understand), it's fine as-is.\n\nIf it does break something, ping me in discord and I will gladly put behind insecure-disable-xss."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "6ebf94a68acb2f0c5a544e6b29c60b30d468d6f7",
+            "parents": [
+                "5294c18e45bfcfa54acc323303706584b2c75df6"
+            ],
+            "ref": "refs/changes/83/41383/1",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1616001674,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 53,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/authorization.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "include/login_routes.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 2,
+            "revision": "d3a2d6321630029be838763e8bb64677cb4c909e",
+            "parents": [
+                "fb58d5d025fa9d57e16afed53c2c36b7b05f3d9a"
+            ],
+            "ref": "refs/changes/83/41383/2",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1616001882,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 53,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/authorization.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "include/login_routes.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 3,
+            "revision": "e6802f755506c5afb8face664ac8f930feabfadb",
+            "parents": [
+                "d78a443fa360a988936d591145e50fc411474d43"
+            ],
+            "ref": "refs/changes/83/41383/3",
+            "uploader": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "createdOn": 1616013480,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 53,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/authorization.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "include/login_routes.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 4,
+            "revision": "c5062d27a6483f3c72dea13f554df2b379b7e06b",
+            "parents": [
+                "7ea79e5e15814eb8566f3e6799f2d7eee23527a6"
+            ],
+            "ref": "refs/changes/83/41383/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1616102876,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 53,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/authorization.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "include/login_routes.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 5,
+            "revision": "636be396e4f3ecc09e446ca76db380fc0c5b57f9",
+            "parents": [
+                "fbcc252da12a6e614588426d5e61f0b1948859b4"
+            ],
+            "ref": "refs/changes/83/41383/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1616104803,
+            "author": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 53,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/authorization.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "include/login_routes.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 10
+        }
+    ]
+}

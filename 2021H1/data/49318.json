@@ -1,0 +1,515 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "topic": "wip",
+    "id": "I19156411ce46adff6c88ad97ee8f6af8c858fe3c",
+    "number": 49318,
+    "subject": "Make timer system use boost",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/49318",
+    "commitMessage": "Make timer system use boost\n\nThe original crow timeout system had a timer queue setup for handling\nmany thousands of connections at a time efficiently.  The most common\nuse cases for the bmc involve a handful of connections, so this code\ndoesn't help us much.\n\nThese days, boost asio also implements a very similar timer queue\nhttps://www.boost.org/doc/libs/1_72_0/boost/asio/detail/timer_queue.hpp\ninternally, so the only thing we're loosing here is the \"fuzzy\"\ncoalescing of timeout actions, for which it's tough to say if anyone\nwill even notice.\n\nThis commit implements a timer system that's self contained within each\nconnection, using steady_timer.  This is much more \"normal\" and how most\nof the beast examples implement timers.\n\nTested:\nMinimal touch testing to ensure that things work, but more testing is\nrequired, probably using sloworis to ensure that our timeouts are no\nlonger issues.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I19156411ce46adff6c88ad97ee8f6af8c858fe3c\n",
+    "createdOn": 1638559898,
+    "lastUpdated": 1639599618,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1638559898,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1638559905,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Topic set to wip"
+        },
+        {
+            "timestamp": 1638559918,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638560376,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31204/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638829522,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1638829542,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638830000,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31317/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638908177,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\nSunitha tested these 3. I am going to let her post the results but it tested well."
+        },
+        {
+            "timestamp": 1638908477,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> Sunitha tested these 3. I am going to let her post the results but it tested well.\n\nGood to know.  I'm assuming she ran through slororis or something to simulate the timeout paths?  That's going to be the key to test here is that the timeout paths still work properly.  The \"normal\" paths basically haven't changed."
+        },
+        {
+            "timestamp": 1638956517,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > Sunitha tested these 3. I am going to let her post the results but it tested well.\n> \n> Good to know.  I'm assuming she ran through slororis or something to simulate the timeout paths?  That's going to be the key to test here is that the timeout paths still work properly.  The \"normal\" paths basically haven't changed.\n\nI tested using BMC GUI + redfish validator instances running redfish commands in parallel. We already were hitting the timer queue max-size threshold with this setup. The connection socket was getting closed when this threshold reached. The client whos socket was closed used to hit SSLHandhshake exceptions. \n\nI did not simulate the timeout path. I verified that we are not hitting the timeout & ssl exception issues with this commit pulled into the test BMC."
+        },
+        {
+            "timestamp": 1639021915,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 2:\n> > > \n> > > Sunitha tested these 3. I am going to let her post the results but it tested well.\n> > \n> > Good to know.  I'm assuming she ran through slororis or something to simulate the timeout paths?  That's going to be the key to test here is that the timeout paths still work properly.  The \"normal\" paths basically haven't changed.\n> \n> I tested using BMC GUI + redfish validator instances running redfish commands in parallel. We already were hitting the timer queue max-size threshold with this setup. The connection socket was getting closed when this threshold reached. The client whos socket was closed used to hit SSLHandhshake exceptions. \n> \n> I did not simulate the timeout path. I verified that we are not hitting the timeout & ssl exception issues with this commit pulled into the test BMC.\n\nwe'll have to run those tests.  slororis was the tool we used last time to run the tests, although I'm sure there's others."
+        },
+        {
+            "timestamp": 1639102124,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1639102140,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639102598,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31727/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639110939,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n@Jason, do you remember how this was tested back in the day?  I know Intel had strong opinions on how the timeouts needed to work, but I'm not sure I ever knew what tool you guys were testing with."
+        },
+        {
+            "timestamp": 1639440269,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 4: Patch Set 3 was rebased."
+        },
+        {
+            "timestamp": 1639440344,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639440932,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31887/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639522876,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 3:\n> \n> @Jason, do you remember how this was tested back in the day?  I know Intel had strong opinions on how the timeouts needed to work, but I'm not sure I ever knew what tool you guys were testing with.\n\nI don't remember how we tested this in the past.  I have asked our validation team and am waiting for a response..."
+        },
+        {
+            "timestamp": 1639595144,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\nIn terms of overall status, I've heard from multiple people that this fixes quite a few hard-to-reproduce bugs.  Do we want to get this merged, and follow up in the short term if it causes any timeout bugs once it gets tested by the relevant companies?  In terms of the people that commonly review bmcweb patches, I think this has been reviewed and tested by most of the people that would see this.\n\nIMO, I think this could probably merge to enable more testing from people."
+        },
+        {
+            "timestamp": 1639595306,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4:\n> \n> In terms of overall status, I've heard from multiple people that this fixes quite a few hard-to-reproduce bugs.  Do we want to get this merged, and follow up in the short term if it causes any timeout bugs once it gets tested by the relevant companies?  In terms of the people that commonly review bmcweb patches, I think this has been reviewed and tested by most of the people that would see this.\n> \n> IMO, I think this could probably merge to enable more testing from people.\n\nI'm okay with this approach."
+        },
+        {
+            "timestamp": 1639597138,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\nSunitha tested using BMC GUI + redfish validator instances running redfish commands in parallel. \nThis seems reasonable to me.\nI would prefer we do some more testing here but as discussed in discord I am okay with merge and we can follow up if we hit any problems"
+        },
+        {
+            "timestamp": 1639599567,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4: Code-Review+2"
+        },
+        {
+            "timestamp": 1639599618,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 5dfb5b2d8826f568a0ad6f6430f01cd7a86ab07f by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3751009ad2c4f4b20a87a29f5f6e08b1594791a4",
+            "parents": [
+                "6afb06d91fbf0017840eb9189dc4f8ee771cb046"
+            ],
+            "ref": "refs/changes/18/49318/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1638559898,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 53,
+                    "deletions": -122
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -23
+                },
+                {
+                    "file": "http/timer_queue.hpp",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -97
+                },
+                {
+                    "file": "http/ut/http_server_fuzz_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 105,
+            "sizeDeletions": 242
+        },
+        {
+            "number": 2,
+            "revision": "e180c9a904d586daacf5799d9e2e420e4aea043e",
+            "parents": [
+                "6afb06d91fbf0017840eb9189dc4f8ee771cb046"
+            ],
+            "ref": "refs/changes/18/49318/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1638829522,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 53,
+                    "deletions": -122
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -23
+                },
+                {
+                    "file": "http/timer_queue.hpp",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -97
+                }
+            ],
+            "sizeInsertions": 60,
+            "sizeDeletions": 242
+        },
+        {
+            "number": 3,
+            "revision": "c399a5332cb1defdb9f24a64d9380645f3bd0fbe",
+            "parents": [
+                "41d61c8281ed9af50630c78f0a646e726139fb25"
+            ],
+            "ref": "refs/changes/18/49318/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1639102124,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 53,
+                    "deletions": -111
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -23
+                },
+                {
+                    "file": "http/timer_queue.hpp",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -97
+                }
+            ],
+            "sizeInsertions": 60,
+            "sizeDeletions": 231
+        },
+        {
+            "number": 4,
+            "revision": "da65d5bfa9b4738f778cf96bde9adaaec5dd25b9",
+            "parents": [
+                "1349014d9059af637f66ac82be05e021c02b9c2b"
+            ],
+            "ref": "refs/changes/18/49318/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1639440269,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 53,
+                    "deletions": -111
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -23
+                },
+                {
+                    "file": "http/timer_queue.hpp",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -97
+                }
+            ],
+            "sizeInsertions": 60,
+            "sizeDeletions": 231
+        },
+        {
+            "number": 5,
+            "revision": "5dfb5b2d8826f568a0ad6f6430f01cd7a86ab07f",
+            "parents": [
+                "5ae4b692fcee7d27c1e1a5a7c6efbd375a76dacc"
+            ],
+            "ref": "refs/changes/18/49318/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1639599618,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_client.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 53,
+                    "deletions": -111
+                },
+                {
+                    "file": "http/http_server.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -23
+                },
+                {
+                    "file": "http/timer_queue.hpp",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -97
+                }
+            ],
+            "sizeInsertions": 60,
+            "sizeDeletions": 231
+        }
+    ]
+}

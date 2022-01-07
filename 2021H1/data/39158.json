@@ -1,0 +1,1059 @@
+{
+    "project": "openbmc/sdbusplus",
+    "branch": "master",
+    "topic": "object_path::leaf",
+    "id": "I242d1965875ba1fe76a32fd78e381e90796706fc",
+    "number": 39158,
+    "subject": "Add filename() and parent_path() methods to object_path",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/sdbusplus/+/39158",
+    "commitMessage": "Add filename() and parent_path() methods to object_path\n\nIn practice, one very common operation done on a dbus path is to get the\nfinal member name in the dbus path, to use as unique IDs, or to pass\nitems to public interfaces.  This tends to lead to something like:\n\nsize_t pos = object_path.str.rfind('/');\nif(pos == std::string::npos){\n   // handle error\n}\npos++;\nif (pos >= object_path.str.size()){\n   // handle error\n}\n\nstd::string name = object_path.str.substr(pos);\n\nAs an aside, what I've written above is one of several \"right\" ways to\ndo it, and is among many other wrong ways that I've seen people try to\ncheck in.  The goal of this patchset is to add the above code as a\nmethod within object_path, to help people to use it, and to avoid using\nobject_path.str, which ideally would be a private member of that class.\n\nFunctionally, accomplishing the above this requires splitting\nstring_wrapper into two separate classes, as we continue to need the\nstring_wrapper instance to handle the signature type, but filename() and\nparent_path() on signature are non-sensical.  Therefore, this splits the\nfunctionality into string_wrapper and string_path_wrapper, each of which\nno longer need to be a template, given there is only one use.  We could\nalso get rid of the using, and move these classes out of details, but\nthat seemed better reserved for a later patch.\n\nTested:\nUnit tests written and passing.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I242d1965875ba1fe76a32fd78e381e90796706fc\n",
+    "createdOn": 1608252205,
+    "lastUpdated": 1611092782,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1608252205,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1608252216,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608252229,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Topic set to object_path::leaf"
+        },
+        {
+            "timestamp": 1608253125,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10079/ : SUCCESS"
+        },
+        {
+            "timestamp": 1610567798,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\nFriendly ping.  Is this something that's worth doing in sdbusplus?"
+        },
+        {
+            "timestamp": 1610638309,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)\n\nSorry I didn't give feedback sooner.  Seemed to not arrived in my email for whatever reason.\n\nI'm fine with this, but can you use function names to match std::filesystem::path?  Any reason to not use those functions in the implementation?\n\nI'm surprised we don't have any test cases that affect string_wrapper but it looks like we don't.\n\nDo you think there is any utility in a similar wrapper for interface names?  I'm not sure if there would be any reason to get \"Threshold\" out of \"xyz.openbmc_project.Sensor.Threshold\"."
+        },
+        {
+            "timestamp": 1610638768,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> (2 comments)\n> \n> Sorry I didn't give feedback sooner.  Seemed to not arrived in my email for whatever reason.\n> \n> I'm fine with this, but can you use function names to match std::filesystem::path?  Any reason to not use those functions in the implementation?\n\nI can, but the equivalents in filesystem path were filename() and root_directory() both seemed a bit odd, because these aren't files, dbus paths aren't aren't directories, but I guess having them be similar makes some sense.\n\n> \n> I'm surprised we don't have any test cases that affect string_wrapper but it looks like we don't.\n\nI was planning on writing some for at least the new additions.  If this stuff seems reasonable to you, I'll get it done.\n\n> \n> Do you think there is any utility in a similar wrapper for interface names?  I'm not sure if there would be any reason to get \"Threshold\" out of \"xyz.openbmc_project.Sensor.Threshold\".\n\nI can't really think of a good case for that kind of thing.  Generally the only time bmcweb uses the interfaces like that is when the last element is 1:1 with the name of the Redfish schema, which rarely happens, and inevitably leads to us having to fix it when we get a new interface that doesn't fit the mold."
+        },
+        {
+            "timestamp": 1610639351,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> > I'm fine with this, but can you use function names to match std::filesystem::path?  Any reason to not use those functions in the implementation?\n> \n> I can, but the equivalents in filesystem path were filename() and root_directory() both seemed a bit odd, because these aren't files, dbus paths aren't aren't directories, but I guess having them be similar makes some sense.\n\nI think you meant parent_path (https://en.cppreference.com/w/cpp/filesystem/path/parent_path) and not root_directory, right?  Agree the 'filename' is a little awkward in this context, but it seems better to reuse the actions in a similar standard entity rather than come up with new ones.  Unless you think it is going to require more thought cycles in reviewing applications to understand why someone is calling 'filename' on a dbus object path?"
+        },
+        {
+            "timestamp": 1610639653,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n> > Do you think there is any utility in a similar wrapper for interface names?  I'm not sure if there would be any reason to get \"Threshold\" out of \"xyz.openbmc_project.Sensor.Threshold\".\n> \n> I can't really think of a good case for that kind of thing.  Generally the only time bmcweb uses the interfaces like that is when the last element is 1:1 with the name of the Redfish schema, which rarely happens, and inevitably leads to us having to fix it when we get a new interface that doesn't fit the mold.\n\nThinking about it a little more, I don't think parsing class names is that useful, but maybe a more likely situation is obtaining a parent_path part of a service name.  We have services like \"xyz.openbmc_project.Postcode.Raw<N>\".  There might be cases where getting the \"xyz.openbmc_project.Postcode\" part is useful, but I think that is pretty rare.  YAGNI for now."
+        },
+        {
+            "timestamp": 1610644560,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > > Do you think there is any utility in a similar wrapper for interface names?  I'm not sure if there would be any reason to get \"Threshold\" out of \"xyz.openbmc_project.Sensor.Threshold\".\n> > \n> > I can't really think of a good case for that kind of thing.  Generally the only time bmcweb uses the interfaces like that is when the last element is 1:1 with the name of the Redfish schema, which rarely happens, and inevitably leads to us having to fix it when we get a new interface that doesn't fit the mold.\n> \n> Thinking about it a little more, I don't think parsing class names is that useful, but maybe a more likely situation is obtaining a parent_path part of a service name.  We have services like \"xyz.openbmc_project.Postcode.Raw<N>\".  There might be cases where getting the \"xyz.openbmc_project.Postcode\" part is useful, but I think that is pretty rare.  YAGNI for now.\n\nIf it comes up, we can always add it later.  The path one came up because I keep seeing people repeat the same wrong code over and over again in code review, to the point where it's even documented as a common error.\n\nI'll try to get some unit tests written up today."
+        },
+        {
+            "timestamp": 1610645201,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1610646154,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1610646165,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1610646185,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/10938/ : FAILURE"
+        },
+        {
+            "timestamp": 1610646224,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1610646235,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1610646259,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/10939/ : FAILURE"
+        },
+        {
+            "timestamp": 1610646540,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1610646550,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1610646569,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/10940/ : FAILURE"
+        },
+        {
+            "timestamp": 1610647203,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1610648572,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)\n\nI'm looking at the CI failure now.  the format-code stuff isn't making any sense, but I'll dig in and figure it out."
+        },
+        {
+            "timestamp": 1610658039,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1610658051,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1610658716,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10948/ : SUCCESS"
+        },
+        {
+            "timestamp": 1610662211,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1610662563,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1610712289,
+            "reviewer": {
+                "name": "Jozef Wludzik",
+                "email": "jozef.wludzik@intel.com",
+                "username": "jwludzik"
+            },
+            "message": "Patch Set 5:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1610714383,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1610730783,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1610730794,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1610730824,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1610731413,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1610731454,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10986/ : SUCCESS"
+        },
+        {
+            "timestamp": 1610958608,
+            "reviewer": {
+                "name": "Jozef Wludzik",
+                "email": "jozef.wludzik@intel.com",
+                "username": "jwludzik"
+            },
+            "message": "Patch Set 6:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611076639,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611091081,
+            "reviewer": {
+                "name": "Jozef Wludzik",
+                "email": "jozef.wludzik@intel.com",
+                "username": "jwludzik"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611091484,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611092769,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 6: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611092782,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully merged by Patrick Williams"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "ddee172084ee8d56bdda74d985250a34fe318959",
+            "parents": [
+                "0c76546f7d9ed25c75f5fd472a8478e2d59fb3cf"
+            ],
+            "ref": "refs/changes/58/39158/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1608252205,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Can you name this like std::filesystem::path -- filename() ?"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Will do."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 161,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Can you name this like std::filesystem::path -- parent_path() ?"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 161,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Will do."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/append.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 116,
+                    "deletions": -13
+                },
+                {
+                    "file": "include/sdbusplus/message/read.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 151,
+            "sizeDeletions": 17
+        },
+        {
+            "number": 2,
+            "revision": "965f9a221c364b43ad9d2e505042087cad99839c",
+            "parents": [
+                "4f65175142ae42dced8e512fe741bccb2a952915"
+            ],
+            "ref": "refs/changes/58/39158/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1610646154,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/append.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 121,
+                    "deletions": -13
+                },
+                {
+                    "file": "include/sdbusplus/message/read.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 176,
+            "sizeDeletions": 17
+        },
+        {
+            "number": 3,
+            "revision": "c432e36b674bec340c4d19d693df581dc3ba9b30",
+            "parents": [
+                "4f65175142ae42dced8e512fe741bccb2a952915"
+            ],
+            "ref": "refs/changes/58/39158/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1610646224,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "The path::filename returns an empty string rather than a std::optional.  Should we do the same?"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Sounds reasonable.  My thinking was that dbus paths aren't allowed to be filenameless, whereas std::filesystem::path can be a directory, but now that I think about it, it's roughly the same.\n\nThe other thinking is that std::optional makes it a lot more obvious that you need to check for errors before using the string, but I guess making it look like the standard probably trumps ease of use."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "parent_path always returns \"/\" in the case where a path like \"/\" is passed in.  std::optional isn't required."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Sounds reasonable, will fix."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I'd like these test cases to be compared with filesystem::path and have the same behavior."
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "There has to be some differences in some regards, right?\n\n\"abc\" is a valid std::filesystem::path, but is not a valid dbus path.  \".\", \"..\" ect are also valid std::filesystem::paths.  In the context of this patch, I really don't want to think through what a dbus relative paths would look like, as I don't think the added complexity is worth it.  Does that jive with you?\n\nAre you ok with the approach that \"Valid dbus paths will have the same behavior as the equivalent std::filesystem::path, but invalid dbus paths might return empty string more often\"?"
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "> ... Does that jive with you?\n\nYep.\n\n> Are you ok with the approach that \"Valid dbus paths will have the same behavior as the equivalent std::filesystem::path, but invalid dbus paths might return empty string more often\"?\n\nAbsolutely.  My preference would be that:\n- valid dbus paths operate in the same way as filesystem::path\n- invalid dbus paths are undefined behavior\n\nThis allows us to implement with filesystem::path and really covers all the useful cases of dbus path operations.  I'd like to do some refactoring to see if I can just make both string_wrapper classes so that they inherit from the underlying type (string vs path) and then we get a bunch of implementations for free.\n\n> There has to be some differences in some regards, right?\n\nAre there any if we treat invalid dbus paths as UB?"
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > ... Does that jive with you?\n> \n> Yep.\n> \n> > Are you ok with the approach that \"Valid dbus paths will have the same behavior as the equivalent std::filesystem::path, but invalid dbus paths might return empty string more often\"?\n> \n> Absolutely.  My preference would be that:\n> - valid dbus paths operate in the same way as filesystem::path\n> - invalid dbus paths are undefined behavior\n\nAt some point, it's be really nice if we had a constructor that didn't allow constructing invalid dbus paths, but that's a problem for another day.\n\n> \n> This allows us to implement with filesystem::path and really covers all the useful cases of dbus path operations.  I'd like to do some refactoring to see if I can just make both string_wrapper classes so that they inherit from the underlying type (string vs path) and then we get a bunch of implementations for free.\n> \n> > There has to be some differences in some regards, right?\n> \n> Are there any if we treat invalid dbus paths as UB?\n\nI don't think there are.  Sounds good to me.\n\n\nI can compare these against their std::filesystem::path bretheren (probably today)."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/bus.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sdbusplus/message/append.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 124,
+                    "deletions": -15
+                },
+                {
+                    "file": "include/sdbusplus/message/read.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 187,
+            "sizeDeletions": 20
+        },
+        {
+            "number": 4,
+            "revision": "168f4a146f26b0bbc4dfb3963a4ec26493b56d2f",
+            "parents": [
+                "4f65175142ae42dced8e512fe741bccb2a952915"
+            ],
+            "ref": "refs/changes/58/39158/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1610646540,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/bus.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sdbusplus/message/append.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 121,
+                    "deletions": -15
+                },
+                {
+                    "file": "include/sdbusplus/message/read.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 184,
+            "sizeDeletions": 20
+        },
+        {
+            "number": 5,
+            "revision": "2f58e986c2cb23a33531a56a9c0854d68f152875",
+            "parents": [
+                "4f65175142ae42dced8e512fe741bccb2a952915"
+            ],
+            "ref": "refs/changes/58/39158/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1610658039,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "nit single 'avoid'"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "nit change it to filename"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "And 'parent_path'. ;)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 3,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "nit not required"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 3,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "nit it is possible to merge those statements, same below"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not quite following.  The statement below (I assume you're talking about on line 164) is operating on different return types, and is different code than this block, so unless I'm missing something, can't be merged together without causing an extra string copy, which I'd like to avoid in this case."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "Missing, sorry for it. I suggest you to merge branches on line 148 and 153 and then do the same on line 164 and 168. I do not want to merge those functions (filename() and parent_path())"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "There's an increment in between the two statements, so I'm not sure how it could be joined without having to do the increment twice, or making the code less clear.\n\nAssuming I'm understanding correctly, you want me to write\n\nif (index == std::string::npos || \n    index + 1 >= str.size()){\n    return \"\";\n}\nindex++;  // Increment done a second time.\nreturn str.substr(index);\n\n\nMy preference would be to leave it as is, which IMO is clearer code, and in theory should require fewer intermediate registers.\nWith that said, Patrick is the maintainer, so if he wants to see the change above, I'm happy to make it."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "if (index == std::string::npos ||\n    ++index >= str.size()) {\n  return \"\";\n}\nreturn str.substr(index);\n\nExample with single increment. Anyway, up to you"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I find that relying on the behavior of the pre-increment within a branch conditional tends to obscure the intent, whereas the code that's there is much clearer what was intended and what the behavior is, even if it's 4 more lines than the alternative.\n\nWith that said, it's not really up to me, it's up to Patrick, so we'll see what he says is his preference."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I prefer readability over [premature] optimization.  The compiler will do the right thing for us, so don't try to be tricky."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 166,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "nit you don't have to construct string_path_wrapper. literal string is enough"
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 166,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not sure where you got that idea, but string_path_wrapper is not implicitly constructable from const char[], nor should it be.\n\nMore concretely, if I make the change you're suggesting, the compiler gives the error.\n\n../include/sdbusplus/message/native_types.hpp:165:20: error: could not convert \u2018\"/\"\u2019 from \u2018const char [2]\u2019 to \u2018sdbusplus::message::details::string_path_wrapper\u2019."
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "line": 166,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "Ok, fine for me. Thanks"
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "missing case where object_path has many slashes without gaps -> \"//\" and object_path do not have slash at the begging of the string -> \"abc/def\""
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "line": 63,
+                    "reviewer": {
+                        "name": "Jozef Wludzik",
+                        "email": "jozef.wludzik@intel.com",
+                        "username": "jwludzik"
+                    },
+                    "message": "missing case where object_path is empty - \"\""
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/append.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 119,
+                    "deletions": -13
+                },
+                {
+                    "file": "include/sdbusplus/message/read.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 176,
+            "sizeDeletions": 17
+        },
+        {
+            "number": 6,
+            "revision": "eb4bd724057c9a8b03193741545d52b7cbcd3b3d",
+            "parents": [
+                "4f65175142ae42dced8e512fe741bccb2a952915"
+            ],
+            "ref": "refs/changes/58/39158/6",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1610730783,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/message/append.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/sdbusplus/message/native_types.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 118,
+                    "deletions": -13
+                },
+                {
+                    "file": "include/sdbusplus/message/read.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/message/types.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 175,
+            "sizeDeletions": 17
+        }
+    ]
+}

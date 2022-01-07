@@ -1,0 +1,171 @@
+{
+    "project": "openbmc/phosphor-networkd",
+    "branch": "master",
+    "id": "If8b1b3ed2afb531f179e00da173f6f86a1bf0c18",
+    "number": 50156,
+    "subject": "Fetch dhcp sent ntp server ips & set eth intf obj",
+    "owner": {
+        "name": "Asmitha Karunanithi",
+        "email": "asmitk01@in.ibm.com",
+        "username": "asmithakarun"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-networkd/+/50156",
+    "commitMessage": "Fetch dhcp sent ntp server ips & set eth intf obj\n\nCurrently, whenever thd dhcp sends the ntp server ip\nlist, the networkd dbus object is not updated with\nthe same, also the config file is not updated.\n\nThe ntp server details are available in the dbus object\nhosted by systemd-timesyncd service.\n\nbusctl introspect org.freedesktop.timesync1 /org/freedesktop/timesync1\nNAME                                TYPE      SIGNATURE          RESULT/VALUE                             FLAGS\norg.freedesktop.timesync1.Manager   interface -                  -                                        -\n.FallbackNTPServers                 property  as                 4 \"time1.google.com\" \"time2.google.com\"\u2026 const\n.Frequency                          property  x                  0                                        -\n.LinkNTPServers                     property  as                 0                                        -\n.NTPMessage                         property  (uuuuittayttttbtt) 0 0 0 0 0 0 0 4 0 0 0 0 0 1844453508490\u2026 emits-change\n.PollIntervalMaxUSec                property  t                  2048000000                               const\n.PollIntervalMinUSec                property  t                  32000000                                 const\n.PollIntervalUSec                   property  t                  2048000000                               -\n.RootDistanceMaxUSec                property  t                  5000000                                  const\n.ServerAddress                      property  (iay)              2 4 1 1 1 1                              -\n.ServerName                         property  s                  \"1.1.1.1\"                                -\n.SystemNTPServers                   property  as                 0                                        const\n\nIn this change, networkd fetches the ntp server details from the\nabove dbus object, set them in the ethernet interface dbus object and\nupdate the config file (steps are mentioned below in Tested By section).\n\nTested By:\n\n* Change the ntp server ips in dhcp config file & restart dhcpd\n* timesyncd dbus object contains the new list of ips as below:\n\nbusctl introspect org.freedesktop.timesync1 /org/freedesktop/timesync1\nNAME                                TYPE      SIGNATURE          RESULT/VALUE                             FLAGS\norg.freedesktop.DBus.Introspectable interface -                  -                                        -\n.Introspect                         method    -                  s                                        -\norg.freedesktop.DBus.Peer           interface -                  -                                        -\n.GetMachineId                       method    -                  s                                        -\n.Ping                               method    -                  -                                        -\norg.freedesktop.DBus.Properties     interface -                  -                                        -\n.Get                                method    ss                 v                                        -\n.GetAll                             method    s                  a{sv}                                    -\n.Set                                method    ssv                -                                        -\n.PropertiesChanged                  signal    sa{sv}as           -                                        -\norg.freedesktop.timesync1.Manager   interface -                  -                                        -\n.FallbackNTPServers                 property  as                 4 \"time1.google.com\" \"time2.google.com\"\u2026 const\n.Frequency                          property  x                  0                                        -\n.LinkNTPServers                     property  as                 1 \"1.1.1.1\"                              -\n.NTPMessage                         property  (uuuuittayttttbtt) 0 0 0 0 0 0 0 4 0 0 0 0 0 1844453508490\u2026 emits-change\n.PollIntervalMaxUSec                property  t                  2048000000                               const\n.PollIntervalMinUSec                property  t                  32000000                                 const\n.PollIntervalUSec                   property  t                  2048000000                               -\n.RootDistanceMaxUSec                property  t                  5000000                                  const\n.ServerAddress                      property  (iay)              2 4 1 1 1 1                              -\n.ServerName                         property  s                  \"1.1.1.1\"                                -\n.SystemNTPServers                   property  as                 0                                        const\n\n* networkd restarts since network configuration has changed and during restart\nntp server details are loaded from timesyncd dbus object and set in dbus objects\nhosted by networkd as shown below:\n\nbusctl introspect xyz.openbmc_project.Network /xyz/openbmc_project/network/eth0\nNAME                                              TYPE      SIGNATURE RESULT/VALUE                             FLAGS\norg.freedesktop.DBus.Introspectable               interface -         -                                        -\n.Introspect                                       method    -         s                                        -\norg.freedesktop.DBus.Peer                         interface -         -                                        -\n.GetMachineId                                     method    -         s                                        -\n.Ping                                             method    -         -                                        -\norg.freedesktop.DBus.Properties                   interface -         -                                        -\n.Get                                              method    ss        v                                        -\n.GetAll                                           method    s         a{sv}                                    -\n.Set                                              method    ssv       -                                        -\n.PropertiesChanged                                signal    sa{sv}as  -                                        -\nxyz.openbmc_project.Collection.DeleteAll          interface -         -                                        -\n.DeleteAll                                        method    -         -                                        -\nxyz.openbmc_project.Network.EthernetInterface     interface -         -                                        -\n.AutoNeg                                          property  b         false                                    emits-change writable\n.DHCPEnabled                                      property  s         \"xyz.openbmc_project.Network.EthernetIn\u2026 emits-change writable\n.DefaultGateway                                   property  s         \"x.x.x.x\"                                emits-change writable\n.DefaultGateway6                                  property  s         \"\"                                       emits-change writable\n.DomainName                                       property  as        0                                        emits-change writable\n.IPv6AcceptRA                                     property  b         true                                     emits-change writable\n.InterfaceName                                    property  s         \"eth0\"                                   emits-change writable\n.LinkLocalAutoConf                                property  s         \"xyz.openbmc_project.Network.EthernetIn\u2026 emits-change writable\n.LinkUp                                           property  b         true                                     const\n.MTU                                              property  u         1500                                     emits-change writable\n.NICEnabled                                       property  b         true                                     emits-change writable\n.NTPServers                                       property  as        1 \"1.1.1.1\"                              emits-change writable\n.Nameservers                                      property  as        1 \"x.x.x.x\"                              emits-change writable\n.Speed                                            property  u         0                                        emits-change writable\n.StaticNameServers                                property  as        0                                        emits-change writable\nxyz.openbmc_project.Network.IP.Create             interface -         -                                        -\n.IP                                               method    ssys      o                                        -\nxyz.openbmc_project.Network.MACAddress            interface -         -                                        -\n.MACAddress                                       property  s         \"xx:xx:xx:xx:xx:xx\"                      emits-change writable\nxyz.openbmc_project.Network.Neighbor.CreateStatic interface -         -                                        -\n.Neighbor                                         method    ss        o                                        -\n\nbusctl introspect xyz.openbmc_project.Network /xyz/openbmc_project/network/eth1\nNAME                                              TYPE      SIGNATURE RESULT/VALUE                             FLAGS\norg.freedesktop.DBus.Introspectable               interface -         -                                        -\n.Introspect                                       method    -         s                                        -\norg.freedesktop.DBus.Peer                         interface -         -                                        -\n.GetMachineId                                     method    -         s                                        -\n.Ping                                             method    -         -                                        -\norg.freedesktop.DBus.Properties                   interface -         -                                        -\n.Get                                              method    ss        v                                        -\n.GetAll                                           method    s         a{sv}                                    -\n.Set                                              method    ssv       -                                        -\n.PropertiesChanged                                signal    sa{sv}as  -                                        -\nxyz.openbmc_project.Collection.DeleteAll          interface -         -                                        -\n.DeleteAll                                        method    -         -                                        -\nxyz.openbmc_project.Network.EthernetInterface     interface -         -                                        -\n.AutoNeg                                          property  b         false                                    emits-change writable\n.DHCPEnabled                                      property  s         \"xyz.openbmc_project.Network.EthernetIn\u2026 emits-change writable\n.DefaultGateway                                   property  s         \"x.x.x.x\"                                emits-change writable\n.DefaultGateway6                                  property  s         \"\"                                       emits-change writable\n.DomainName                                       property  as        0                                        emits-change writable\n.IPv6AcceptRA                                     property  b         true                                     emits-change writable\n.InterfaceName                                    property  s         \"eth1\"                                   emits-change writable\n.LinkLocalAutoConf                                property  s         \"xyz.openbmc_project.Network.EthernetIn\u2026 emits-change writable\n.LinkUp                                           property  b         true                                     const\n.MTU                                              property  u         1500                                     emits-change writable\n.NICEnabled                                       property  b         true                                     emits-change writable\n.NTPServers                                       property  as        1 \"1.1.1.1\"                              emits-change writable\n.Nameservers                                      property  as        1 \"x.x.x.x\"                              emits-change writable\n.Speed                                            property  u         0                                        emits-change writable\n.StaticNameServers                                property  as        0                                        emits-change writable\nxyz.openbmc_project.Network.IP.Create             interface -         -                                        -\n.IP                                               method    ssys      o                                        -\nxyz.openbmc_project.Network.MACAddress            interface -         -                                        -\n.MACAddress                                       property  s         \"yy:yy:yy:yy:yy:yy\"                      emits-change writable\nxyz.openbmc_project.Network.Neighbor.CreateStatic interface -         -                                        -\n.Neighbor                                         method    ss        o                                        -\n\n* Config file will be updated following the above step:\n\ncat /etc/systemd/network/00-bmc-eth0.network\n[Match]\nName=eth0\n[Link]\nMACAddress=xx:xx:xx:xx:xx:xx\n[Network]\nLinkLocalAddressing=yes\nIPv6AcceptRA=true\nNTP=1.1.1.1\nDHCP=true\n[IPv6AcceptRA]\nDHCPv6Client=true\n[DHCP]\nClientIdentifier=mac\nUseDNS=true\nUseNTP=true\nUseHostname=true\nSendHostname=true\n\ncat /etc/systemd/network/00-bmc-eth1.network\n[Match]\nName=eth1\n[Link]\nMACAddress=yy:yy:yy:yy:yy:yy\n[Network]\nLinkLocalAddressing=yes\nIPv6AcceptRA=true\nNTP=1.1.1.1\nDHCP=ipv6\n[IPv6AcceptRA]\nDHCPv6Client=true\n[Address]\nAddress=x.x.x.x/24\n[Route]\nGateway=x.x.x.1\n[DHCP]\nClientIdentifier=mac\nUseDNS=true\nUseNTP=true\nUseHostname=true\nSendHostname=true\n\nSigned-off-by: Asmitha Karunanithi <asmitk01@in.ibm.com>\nChange-Id: If8b1b3ed2afb531f179e00da173f6f86a1bf0c18\n",
+    "createdOn": 1641466273,
+    "lastUpdated": 1641532086,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1641466273,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1641466286,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641466286,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641466433,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/34984/ : FAILURE"
+        },
+        {
+            "timestamp": 1641532086,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\n(6 comments)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c2843c3f0b79bea3cbc3cac31e4b1e8b46f8dc4d",
+            "parents": [
+                "cc5a670f1650e76b66750365bd4beecf821969fa"
+            ],
+            "ref": "refs/changes/56/50156/1",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1641466273,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "typo"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I think output of this command need not be pasted in the commit message. This makes it too long"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 143,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Just explaining the logic should be good enough. \nLike:\nEthernet interface network config files will be updated with the NTP=<ip addresses>"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Please fix the CI failure as well"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Is this enabled by default on BMC ?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This can be a new method - loadNtpServers"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 188,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 38,
+            "sizeDeletions": 0
+        }
+    ]
+}

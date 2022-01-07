@@ -1,0 +1,233 @@
+{
+    "project": "openbmc/phosphor-net-ipmid",
+    "branch": "master",
+    "topic": "net-ipmid-cached-passwd-error",
+    "id": "Id4ea9f2d163c28acf40fec27346a86e5b80a09e6",
+    "number": 43207,
+    "subject": "net-ipmid create session fail due to cached password error",
+    "owner": {
+        "email": "shiunl@supermicro.com.tw",
+        "username": "Shiun-Lin"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-net-ipmid/+/43207",
+    "commitMessage": "net-ipmid create session fail due to cached password error\n\nnet-ipmid will cache password for faster auth. With a mechanism that check\npassword file fileLastUpdatedTime with time precision 1 second.\n\nerror:\nWhenever change-password completed more than once withing 1 second,\nnet-ipmid will using old non-updated password to send to PAM in the\nupcoming commands.\n\nfix:\nSet fileLastUpdatedTime to zero when receiving any of ipmi commands that\nmay update password. Leveraging current phosphor-ipmi-host auth design,\nmismatched file update time will force net-ipmid to reload password\nfile.\n\nvalidation:\n[ipmi set user passwd]\n(Note1. passwd must less then 19 bytes + 1 null byte, SetUserPasswd requisite)\n(1) set user passwd to 0penBmc0penBmc12345\n    ipmitool -I lanplus -H $BMCIP -U root -P 0penBmc raw 0x06 0x47 0x81\n    0x02 0x30 0x70 0x65 0x6e 0x42 0x6d 0x63 0x30 0x70 0x65 0x6e 0x42\n    0x6d 0x63 0x31 0x32 0x33 0x34 0x35 0x00\n(2) loop commands:\n    i. set user passwd to 0penBmc0penBmc12344\n        ipmitool -I lanplus -H $BMCIP -U root -P 0penBmc0penBmc12345 raw\n        0x06 0x47 0x81 0x02 0x30 0x70 0x65 0x6e 0x42 0x6d 0x63 0x30\n        0x70 0x65 0x6e 0x42 0x6d 0x63 0x31 0x32 0x33 0x34 0x34 0x00\n    ii. set user passwd to 0penBmc0penBmc12345\n        ipmitool -I lanplus -H $BMCIP -U root -P 0penBmc0penBmc12344 raw\n        0x06 0x47 0x81 0x02 0x30 0x70 0x65 0x6e 0x42 0x6d 0x63 0x30\n        0x70 0x65 0x6e 0x42 0x6d 0x63 0x31 0x32 0x33 0x34 0x35 0x00\n    iii. get device id to make sure new passwd is working\n        ipmitool -I lanplus -H $BMCIP -U root -P 0penBmc0penBmc12345 raw\n        0x6 0x1\n\nNote2. AST2600 is faster enough to handling change password command twice\nwithin one second. While AST2500 is not that fast and hard to make PAM\nupdate password file twice within one second. It is advised to reproduce\nthis issue and validate the fix with AST2600 boards.\n\nNote3. related to net-ipmid, the intra BMC channel cannot reproduce this\nissue. i.e. using ipmitool with -I lanplus to test it.\n\nValidated fix with Supermicro x12dpt-b6(ast2600) and x11dpd(ast2500)\n\nSigned-off-by: Shiun Lin <shiunl@supermicro.com.tw>\nChange-Id: Id4ea9f2d163c28acf40fec27346a86e5b80a09e6\n",
+    "createdOn": 1620956746,
+    "lastUpdated": 1622165839,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1620956746,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1620956758,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1622098687,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Patch Set 2: Patch Set 1 was rebased"
+        },
+        {
+            "timestamp": 1622098700,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622098725,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/18208/ : FAILURE"
+        },
+        {
+            "timestamp": 1622101367,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Topic set to net-ipmid-cached-passwd-error"
+        },
+        {
+            "timestamp": 1622104126,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Description \"Rebase\" removed from patch set 2"
+        },
+        {
+            "timestamp": 1622104159,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Description of patch set 2 set to \"Rebase\""
+        },
+        {
+            "timestamp": 1622164785,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Patch Set 3: Published edit on patch set 2."
+        },
+        {
+            "timestamp": 1622164805,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622164999,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/18277/ : FAILURE"
+        },
+        {
+            "timestamp": 1622165566,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Description of patch set 3 set to \"fix format code error\""
+        },
+        {
+            "timestamp": 1622165839,
+            "reviewer": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "message": "Patch Set 3:\n\ndepends on 43206 changes that add the ipmi::ipmiForceReloadPasswd"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "e099019109a2de2ef91c77befa1ae29ee3a77698",
+            "parents": [
+                "d4a4bed525f79c39705fa526b20ab663bb2c2069"
+            ],
+            "ref": "refs/changes/07/43207/1",
+            "uploader": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "createdOn": 1620956746,
+            "author": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "message_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "3a727bdeabb19df00dcb6b6d7ee4fd58bdf5c98f",
+            "parents": [
+                "7b645018775b85a0c61148e592d951841809eef9"
+            ],
+            "ref": "refs/changes/07/43207/2",
+            "uploader": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "createdOn": 1622098687,
+            "author": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "message_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "6c53769f13077c8a21c68e308a6ed8adc8c0dfb2",
+            "parents": [
+                "7b645018775b85a0c61148e592d951841809eef9"
+            ],
+            "ref": "refs/changes/07/43207/3",
+            "uploader": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "createdOn": 1622164785,
+            "author": {
+                "email": "shiunl@supermicro.com.tw",
+                "username": "Shiun-Lin"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "message_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 0
+        }
+    ]
+}

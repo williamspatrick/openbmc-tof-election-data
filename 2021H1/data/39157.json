@@ -1,0 +1,1226 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "topic": "object_path::leaf",
+    "id": "Ief1e0584394fb139678d3453265f7011bc931f3c",
+    "number": 39157,
+    "subject": "Start using sdbusplus::message::filename()",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/39157",
+    "commitMessage": "Start using sdbusplus::message::filename()\n\nLots of code gets checked in that does this path checking incorrectly.\nSo much so, that we have it documented in COMMON_ERRORS.md, yet, we\npersist.  This patchset starts using the new object_path::filename()\nmethod that was added recently to sdbusplus.  Overall, it deletes code,\nand makes for a much better developer experience.\n\nTested:\nPulled down several endpoints and verified that filename() method works\nproperly, and the collections are returned as expected.\n\ncurl -vvvv --insecure --user root:0penBmc https://192.168.7.2/redfish/v1/AccountService/Accounts\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: Ief1e0584394fb139678d3453265f7011bc931f3c\n",
+    "createdOn": 1608252195,
+    "lastUpdated": 1613757088,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1608252195,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1608252211,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608252242,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Topic set to object_path::leaf"
+        },
+        {
+            "timestamp": 1608252688,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/10078/ : FAILURE"
+        },
+        {
+            "timestamp": 1611097701,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1611097726,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611097759,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11125/ : FAILURE"
+        },
+        {
+            "timestamp": 1611101646,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\nrun clang-format?\n\nindex 1c90b84..3786c30 100644\n--- a/include/image_upload.hpp\n+++ b/include/image_upload.hpp\n@@ -77,13 +77,13 @@ inline void uploadImageHandler(const crow::Request& req, crow::Response& res)\n             {\n                 timeout.cancel();\n                 std::string leaf = path.filename();\n-                if(leaf.empty()){\n+                if (leaf.empty())\n+                {\n                     leaf = path.str;\n                 }\n \n-                res.jsonValue = {{\"data\", leaf},\n-                                 {\"message\", \"200 OK\"},\n-                                 {\"status\", \"ok\"}};\n+                res.jsonValue = {\n+                    {\"data\", leaf}, {\"message\", \"200 OK\"}, {\"status\", \"ok\"}};\n                 BMCWEB_LOG_DEBUG << \"ending response\";\n                 res.end();\n                 fwUpdateMatcher = nullptr;\ndiff --git a/redfish-core/include/utils/collection.hpp b/redfish-core/include/utils/collection.hpp\nindex 2249142..07d315b 100644\n--- a/redfish-core/include/utils/collection.hpp\n+++ b/redfish-core/include/utils/collection.hpp\n@@ -50,8 +50,7 @@ inline void\n                 {\n                     continue;\n                 }\n-                members.push_back(\n-                    {{\"@odata.id\", collectionPath + \"/\" + leaf}});\n+                members.push_back({{\"@odata.id\", collectionPath + \"/\" + leaf}});\n             }\n             aResp->res.jsonValue[\"Members@odata.count\"] = members.size();\n         },\ndiff --git a/redfish-core/include/utils/fw_utils.hpp b/redfish-core/include/utils/fw_utils.hpp\nindex b0f4582..1e29139 100644\n--- a/redfish-core/include/utils/fw_utils.hpp\n+++ b/redfish-core/include/utils/fw_utils.hpp\n@@ -127,9 +127,8 @@ inline void\n \n                         // Now grab its version info\n                         crow::connections::systemBus->async_method_call(\n-                            [aResp, swId, runningImage,\n-                             fwVersionPurpose, activeVersionPropName,\n-                             populateLinkToImages](\n+                            [aResp, swId, runningImage, fwVersionPurpose,\n+                             activeVersionPropName, populateLinkToImages](\n                                 const boost::system::error_code ec3,\n                                 const boost::container::flat_map<\n                                     std::string,\ndiff --git a/redfish-core/lib/ethernet.hpp b/redfish-core/lib/ethernet.hpp\nindex 1d7c22f..159eda2 100644\n--- a/redfish-core/lib/ethernet.hpp\n+++ b/redfish-core/lib/ethernet.hpp\n@@ -968,8 +968,7 @@ void getEthernetIfaceList(CallbackFunc&& callback)\n                     if (interface.first ==\n                         \"xyz.openbmc_project.Network.EthernetInterface\")\n                     {\n-                        std::string ifaceId =\n-                            objpath.first.filename();\n+                        std::string ifaceId = objpath.first.filename();\n                         if (ifaceId.empty())\n                         {\n                             continue;\ndiff --git a/redfish-core/lib/virtual_media.hpp b/redfish-core/lib/virtual_media.hpp\nindex 53bd265..b157867 100644\n--- a/redfish-core/lib/virtual_media.hpp\n+++ b/redfish-core/lib/virtual_media.hpp\n@@ -242,7 +242,8 @@ static void getVmData(const std::shared_ptr<AsyncResp>& aResp,\n             for (auto& item : subtree)\n             {\n                 std::string thispath = item.first.filename();\n-                if (thispath.empty()){\n+                if (thispath.empty())\n+                {\n                     continue;\n                 }"
+        },
+        {
+            "timestamp": 1611102768,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1611102875,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1611102916,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611103354,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11128/ : FAILURE"
+        },
+        {
+            "timestamp": 1611103989,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1611104001,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611105022,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11129/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611160366,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611165395,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611531061,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611590618,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611874519,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611874531,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1611874559,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611875570,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11557/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611924074,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613753749,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1613753763,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613754670,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12695/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613755512,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1613755525,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8: Patch Set 7 was rebased"
+        },
+        {
+            "timestamp": 1613755539,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613755970,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8: Code-Review+2"
+        },
+        {
+            "timestamp": 1613756436,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12701/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613757088,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 2dfd18ef79d3b0a2995ba731983479d492be5949 by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "f44869f648901b4dfe08470814bbf0dde6c6aacd",
+            "parents": [
+                "241128a8829fe36dbf91e5f186260da074866c4a"
+            ],
+            "ref": "refs/changes/57/39157/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1608252195,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -27
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -16
+                }
+            ],
+            "sizeInsertions": 75,
+            "sizeDeletions": 97
+        },
+        {
+            "number": 2,
+            "revision": "7255e1fa3cca745746f300975962ff3618c9e25e",
+            "parents": [
+                "c3c7fbaf33a0d374b9a1f7ac8a0cd1fc741e35b1"
+            ],
+            "ref": "refs/changes/57/39157/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1611097701,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "line": 75,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Lost a debug statement here. Don't think it matters a lot."
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "line": 213,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "path ?"
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "line": 244,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I don't think this follows our naming. \nthisPath ?\nalso could drop the this? path?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/dbus_utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -22
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "include/sessions.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -12
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -26
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -16
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 125
+        },
+        {
+            "number": 3,
+            "revision": "8a24c4a9db4c7e87079428188f7b703d70a65b62",
+            "parents": [
+                "c3c7fbaf33a0d374b9a1f7ac8a0cd1fc741e35b1"
+            ],
+            "ref": "refs/changes/57/39157/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1611102875,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/dbus_utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -22
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -7
+                },
+                {
+                    "file": "include/sessions.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -12
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 77,
+            "sizeDeletions": 123
+        },
+        {
+            "number": 4,
+            "revision": "f4ddcbf94cb7a892dbf701dc7d1bf335703f3812",
+            "parents": [
+                "c3c7fbaf33a0d374b9a1f7ac8a0cd1fc741e35b1"
+            ],
+            "ref": "refs/changes/57/39157/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1611103989,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "If 'collectionPath' were a real std::filesystem::path you could use the '/' operator on this and simplify it a little more."
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Good point.  Will fix."
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Fix and we can get this in? I also had a few comments if you could reply to."
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "it's on my list.  I'll try to get there today."
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "actually.... I lied.  I went to try this, and using a std::filesystem::path is way more invasive here than I'd like.  It would require us to use paths in way more places, and I don't think I'm prepared to update and test all the new collections to do that.\n\nWe could really use a \"uri path\" class for this kind of thing, but I'd have to think about that."
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Shouldn't the responses be a vector of object_path?  Might be an issue with our YAML/implementation here."
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "There has never been an implementation of the mapper that followed the YAML spec.  The old python mapper published strings, so when I went to replace it with the new mapper, that used strings as well to keep the API the same.  We could certainly try to make it correct, and i agree that would be better.\n\nThere's probably not even that many places to fix, and it's probably easy to grep for."
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I'll open an issue.\n\nhttps://github.com/openbmc/phosphor-objmgr/issues/20"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/dbus_utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -22
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -7
+                },
+                {
+                    "file": "include/sessions.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -12
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 80,
+            "sizeDeletions": 123
+        },
+        {
+            "number": 5,
+            "revision": "222b8fbab6e89494e077f9399acb6e13d5d3c426",
+            "parents": [
+                "349a2ac3921e17ff0e2bce47ba6698112d586e67"
+            ],
+            "ref": "refs/changes/57/39157/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1611874531,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -7
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 68,
+            "sizeDeletions": 89
+        },
+        {
+            "number": 6,
+            "revision": "565690e8e608ced9fffbe168f2a55a4398e7301c",
+            "parents": [
+                "2e9bb25b7b5d130969fa3aa4eb8059723acd7a12"
+            ],
+            "ref": "refs/changes/57/39157/6",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1613753749,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -7
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 68,
+            "sizeDeletions": 89
+        },
+        {
+            "number": 7,
+            "revision": "2811190468d89a5022e8516c0a9fdbbd40bfa213",
+            "parents": [
+                "0a4d40c2130deb5396daab0f3dafdce9718eb5c8"
+            ],
+            "ref": "refs/changes/57/39157/7",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1613755512,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -7
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 68,
+            "sizeDeletions": 89
+        },
+        {
+            "number": 8,
+            "revision": "783beb4dc26ae57a5cf6e3e75d3264c9bfee68a2",
+            "parents": [
+                "65f7365901fad2437456f4edcdac41e03f0ca259"
+            ],
+            "ref": "refs/changes/57/39157/8",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1613755525,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -7
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 68,
+            "sizeDeletions": 89
+        },
+        {
+            "number": 9,
+            "revision": "2dfd18ef79d3b0a2995ba731983479d492be5949",
+            "parents": [
+                "cb2ed190a7890e7ec3e6f5bde74e4d0abdee4bd1"
+            ],
+            "ref": "refs/changes/57/39157/9",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1613757088,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -7
+                },
+                {
+                    "file": "redfish-core/include/utils/collection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/include/utils/fw_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -24
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -9
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 68,
+            "sizeDeletions": 89
+        }
+    ]
+}

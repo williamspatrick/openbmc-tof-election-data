@@ -1,0 +1,579 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I2f27b06d0791f4dec8f9b6ccc3eeead24695ad75",
+    "number": 27503,
+    "subject": "collect messages from PAM",
+    "owner": {
+        "name": "Joseph Reynolds",
+        "email": "joseph-reynolds@charter.net",
+        "username": "joseph-reynolds"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/27503",
+    "commitMessage": "collect messages from PAM\n\nProvide feedback from Linux PAM about why the new password is not accepted.\nThis contains details needed to diagnose the problem, such as: the new password\nis too short, or not complex enough, etc.\n\nThe password value is not formatted into the message.  Instead, the value\nappears as the string \"[redacted]\".\n\nThis response is not exactly correct, but better than before.  See\nhttps://redfishforum.com/thread/246/message-send-patch-password-failure\n\nPerformance. This change adds minimal overhead to the regular authentication\nvia the pamAuthenticateUser function: a few more bytes of automatic storage\nand a little code bloat.\n\nTested: yes\n  PATCH ... /redfish/v1/AccountService/Accounts/testuser\n            '{\"Password\": \"password\"}'\n  gives the following response (verbatim, lines wrapped):\n{\n  \"Password@Message.ExtendedInfo\": [\n    {\n      \"@odata.type\": \"/redfish/v1/$metadata#Message.v1_0_0.Message\",\n      \"Message\": \"The value [redacted] for the property Password is of a\n                  different format than the property can accept.\",\n      \"MessageArgs\": [\n        \"[redacted]\",\n        \"Password\"\n      ],\n      \"MessageId\": \"Base.1.4.0.PropertyValueFormatError\",\n      \"Oem\": {\n        \"OpenBMC\": {\n          \"diagnosticMessages\": [\n            \"BAD PASSWORD: it is based on a dictionary word\"\n          ]\n        }\n      },\n      \"Resolution\": \"Correct the value for the property in the request body\n                     and resubmit the request if the operation failed.\",\n      \"Severity\": \"Warning\"\n    }\n  ]\n}\n\nThe following responses were observed:\n abc: BAD PASSWORD: it is WAY too short\n 0penBmc: BAD PASSWORD: is too simple\n password: BAD PASSWORD: it is based on a dictionary word\n 0penBmc12345678: BAD PASSWORD: it is too simplistic/systematic\n\nThis also adds a return statement to the \"if\" body when Linux PAM returns\nPAM_USER_UNKNOWN.  The code was tested with an undefined user and gave the\nexpected error message.\n\nChange-Id: I2f27b06d0791f4dec8f9b6ccc3eeead24695ad75\nSigned-off-by: Joseph Reynolds <joseph-reynolds@charter.net>\n",
+    "createdOn": 1574381557,
+    "lastUpdated": 1610139897,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1574381557,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1574381586,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1574381599,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/39662/"
+        },
+        {
+            "timestamp": 1574381622,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://openpower.xyz/job/openbmc-repository-ci/39662/ : FAILURE"
+        },
+        {
+            "timestamp": 1574381718,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1574382867,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1574382894,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1574382905,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/39664/"
+        },
+        {
+            "timestamp": 1574383144,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://openpower.xyz/job/openbmc-repository-ci/39664/ : SUCCESS"
+        },
+        {
+            "timestamp": 1574442098,
+            "reviewer": {
+                "name": "James Feist",
+                "email": "james.feist@linux.intel.com",
+                "username": "feistjj"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1574545004,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)\n\nFYA, I've asked about this patch in the openbmc email list, archived here:\nhttps://lists.ozlabs.org/pipermail/openbmc/2019-November/019600.html\nCorrection: the email should state the patch is *not* exactly correct.  I'm looking for advice about the correct way to do this."
+        },
+        {
+            "timestamp": 1574707499,
+            "reviewer": {
+                "name": "James Feist",
+                "email": "james.feist@linux.intel.com",
+                "username": "feistjj"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1574717290,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1574717321,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1574717332,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://openpower.xyz/job/openbmc-repository-ci/39759/"
+        },
+        {
+            "timestamp": 1574717643,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://openpower.xyz/job/openbmc-repository-ci/39759/ : SUCCESS"
+        },
+        {
+            "timestamp": 1574717789,
+            "reviewer": {
+                "name": "James Feist",
+                "email": "james.feist@linux.intel.com",
+                "username": "feistjj"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1574719809,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1574720473,
+            "reviewer": {
+                "name": "James Feist",
+                "email": "james.feist@linux.intel.com",
+                "username": "feistjj"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1575374525,
+            "reviewer": {
+                "name": "Richard Marian Thomaiyar",
+                "email": "richard.marian.thomaiyar@linux.intel.com",
+                "username": "rthomaiy"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)\n\nNote: I like this approach, and i am ok with this changes,\nJust few clarifications required"
+        },
+        {
+            "timestamp": 1575399961,
+            "reviewer": {
+                "name": "James Feist",
+                "email": "james.feist@linux.intel.com",
+                "username": "feistjj"
+            },
+            "message": "Patch Set 4: -Code-Review\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1575490879,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1588607549,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 4:\n\nRedfish added the PropertyValueIncorrect message to the Base.1.7.0 message registry which could be used here, but it does not have a field for the Linux-PAM messages.  See discussion here: https://redfishforum.com/thread/246/message-send-patch-password-failure"
+        },
+        {
+            "timestamp": 1589836275,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1589994511,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1610139897,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Abandoned\n\nAbandoning due to lack of response from submitter.  Please reopen if this is still being worked."
+        }
+    ],
+    "wip": true,
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "593bfd8ff96cc0f65f0922c5a6397e1bf506f676",
+            "parents": [
+                "99dc9c72e7dfa1c12517508ec36d0b29ca307427"
+            ],
+            "ref": "refs/changes/03/27503/1",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1574381557,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/pam_authenticate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 80,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 2,
+            "revision": "da7c03568c896b6e6e80c64915f77c0c33a42bd3",
+            "parents": [
+                "99dc9c72e7dfa1c12517508ec36d0b29ca307427"
+            ],
+            "ref": "refs/changes/03/27503/2",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1574381718,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/pam_authenticate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 44,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 80,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 3,
+            "revision": "617bd8e2f4c962b930c7eca70fa0f1649cb47954",
+            "parents": [
+                "99dc9c72e7dfa1c12517508ec36d0b29ca307427"
+            ],
+            "ref": "refs/changes/03/27503/3",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1574382867,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1731,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "nit: imagine this should have retVal checked before iterating through the result?"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1731,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Ywah, I might want to log this after the \"pamUpdatePassword Failed\" message.  Should this be logged always, that is, regardless of the retVal?"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1731,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "It's a nit, I think it's probably safe as is as you're using a range based loop? Author's choice on this one."
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1737,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I'll add this to my tests and the commit message.\nI think this is a bug fix."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/pam_authenticate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 42,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 39,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 17
+        },
+        {
+            "number": 4,
+            "revision": "7eaef8bdb707f29b050b69357c532cf1877e73dd",
+            "parents": [
+                "2658d9859a89d2d3c02326e5e2b944480119e0c3"
+            ],
+            "ref": "refs/changes/03/27503/4",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1574717290,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Can you run the validator on this?"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1733,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "@jfei --> Are you ok with this? Earlier based on our discussion,  we will not \"return\" from PATCH if it is not internal error, i.e. take action on next subsequent things.\ni.e. if new password and user disable is given, we will still proceed for user disable.\nthis changes the behavior.\nSame @1776"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1733,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "Fine with me as is"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1741,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "I think we decided that this was fine as the password was already sent over the same channel, there's no real harm in sending it back"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1741,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I understand that transport layer is secure, but I think someone could be logging the responses, so I prefer to redact the password value.  In the Redfish forum I articulated my case for a new message for this situation. https://redfishforum.com/post/832/thread"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1741,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1748,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "nit: DiagnosticMessages"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1748,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "this requires update in the schema files right?"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1748,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "It looks like from my reading it's just should be an array of messages, so it could just have a Description field and longDescription, and probably doesn't need the Oem part. Just needs to be added to the OpenBmc registry redfish-core/include/registries/openbmc_message_registry.hpp\n\n\nsomething like (from error_messages.cpp):\nmessages::addMessageToJson(res.jsonValue, nlohmann::json{  {\"@odata.type\", \"/redfish/v1/$metadata#Message.v1_0_0.Message\"},\n             {\"MessageId\", \"OpenBmc.PasswordRejected\"}, ....}, \"Password);\n\n\n\nReference:\n\nhttps://github.com/openbmc/bmcweb/blob/5fd7ba65ac0e49dff95e4a0b334c9a314e870918/static/redfish/v1/JsonSchemas/redfish-error/redfish-error.json#L41\nhttp://redfish.dmtf.org/schemas/v1/Message.v1_0_8.json#/definitions/Message"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1748,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1748,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I was struggling for what message to use or adapt.  Thanks for your help.  Having a new message (like \"OpenBmc.PasswordRejected\") in the @Message.ExtendedInfo seems much closer to correct.  I'll try it here and propose something for the Redfish standard."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 63,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/pam_authenticate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 42,
+                    "deletions": -13
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 40,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 82,
+            "sizeDeletions": 18
+        }
+    ]
+}

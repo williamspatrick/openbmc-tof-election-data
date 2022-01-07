@@ -1,0 +1,546 @@
+{
+    "project": "openbmc/openbmc",
+    "branch": "master",
+    "id": "Ibc0dc8c62408e8282520c9b70e41ab75c10137f6",
+    "number": 45530,
+    "subject": "meta-ampere: power control: refactor power soft/off functions",
+    "owner": {
+        "email": "thu@os.amperecomputing.com",
+        "username": "ThuBaNguyen"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/45530",
+    "commitMessage": "meta-ampere: power control: refactor power soft/off functions\n\nThe current ampere-hostctl package removes the power off/on services\nof phosphor-state-manager and uses Ampere services. This solution is\nnot correct. Ampere platform should use power control functions of\nphosphor-state-manager. And only appends or overides the default\nservices by Ampere's services if need.\n\nBy default, to handle power soft action, phosphor-state-manager will\ntrigger obmc-host-shutdown@0.target. This target then call\nxyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service to request OS\nshutdown. When the host OS shutdown is already done, the target will\ntrigger obmc-chassis-poweroff@0.target to turn off the chassis. The\ndefault xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service uses\nIpmi inband to communicate with the host. It is different with Ampere\nMt.Jade platform. We use the GPIO pin SHD_REQ to request shutdown the\nhost OS. The host will trigger SHD_ACK when shutdown is done. So\n*.Ipmi.Internal.SoftPowerOff.service will be overide by Ampere service\nnamed ampere.*.Ipmi.Internal.SoftPowerOff.service. This service will\ntrigger SHD_REQ pin and wait for SHD_ACK before start\nobmc-chassis-poweroff@0.target.\n\nThis commit removes ampere-chassis-poweroff, ampere-host-shutdown\nserives which handle power off/soft actions and restore\nphosphor-state-manager's services. It also supports\nampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service which\nwill overide xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service.\n\nTested:\n    1. Create \"power soft\" actions use ipmitool, redfish and BMC web.\n    2. Make sure the power order will be shutdown the host then power\n       of the chassis.\n    3. Create \"power off\" actions use ipmitool, redfish and BMC web.\n    4. Make sure the power action will be power off the chassis.\n\nSigned-off-by: ThuBaNguyen <thu@os.amperecomputing.com>\nChange-Id: Ibc0dc8c62408e8282520c9b70e41ab75c10137f6\n",
+    "createdOn": 1627961742,
+    "lastUpdated": 1628048086,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1627961742,
+            "reviewer": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1627961806,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627961815,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/5691/"
+        },
+        {
+            "timestamp": 1627963753,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/5691/ : FAILURE"
+        },
+        {
+            "timestamp": 1628038729,
+            "reviewer": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1628038792,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628038802,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/5723/"
+        },
+        {
+            "timestamp": 1628040129,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/5723/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628041444,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 2:\n\nBuild Successful \n\nIBM Hardware CI : witherspoon hardware tests passed"
+        },
+        {
+            "timestamp": 1628041776,
+            "reviewer": {
+                "name": "Thang Q. Nguyen",
+                "email": "thang@os.amperecomputing.com",
+                "username": "thangqn-ampere"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1628046397,
+            "reviewer": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1628047690,
+            "reviewer": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "message": "Uploaded patch set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1628048082,
+            "reviewer": {
+                "name": "Thang Q. Nguyen",
+                "email": "thang@os.amperecomputing.com",
+                "username": "thangqn-ampere"
+            },
+            "message": "Patch Set 4: Code-Review+2"
+        },
+        {
+            "timestamp": 1628048086,
+            "reviewer": {
+                "name": "Thang Q. Nguyen",
+                "email": "thang@os.amperecomputing.com",
+                "username": "thangqn-ampere"
+            },
+            "message": "Change has been successfully rebased and submitted as 98f43bec14af073da25f53db2122fe3546f54095 by Thang Q. Nguyen"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "171ed6f1f8281e4e8f1104aadd762f6f4008ca79",
+            "parents": [
+                "abe9e3dc17b7eab566bafabcb492d499eaa7eefc"
+            ],
+            "ref": "refs/changes/30/45530/1",
+            "uploader": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "createdOn": 1627961742,
+            "author": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl.bb",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-chassis-poweroff.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-host-shutdown.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/files/ampere_power_util.sh",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-phosphor/state/phosphor-state-manager_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -8
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere-phosphor-softpoweroff",
+                    "type": "ADDED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 59
+        },
+        {
+            "number": 2,
+            "revision": "e358c098f40c5012815dab475d4f72ae338991cd",
+            "parents": [
+                "4d515f3ce887f3e94d77bae6c33400ffd7d0b492"
+            ],
+            "ref": "refs/changes/30/45530/2",
+            "uploader": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "createdOn": 1628038729,
+            "author": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Thang Q. Nguyen",
+                        "email": "thang@os.amperecomputing.com",
+                        "username": "thangqn-ampere"
+                    },
+                    "message": "Please use Ampere instead of ampere."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Thang Q. Nguyen",
+                        "email": "thang@os.amperecomputing.com",
+                        "username": "thangqn-ampere"
+                    },
+                    "message": "will be overridden by Ampere"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl.bb",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-chassis-poweroff.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-host-shutdown.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/files/ampere_power_util.sh",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-phosphor/state/phosphor-state-manager_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -8
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere-phosphor-softpoweroff",
+                    "type": "ADDED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 59
+        },
+        {
+            "number": 3,
+            "revision": "a01e36e988d0c91f42467c11708c5b599a8b0a80",
+            "parents": [
+                "f800582597a403c182cdb3b0962a76d219d544a1"
+            ],
+            "ref": "refs/changes/30/45530/3",
+            "uploader": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "createdOn": 1628046397,
+            "author": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl.bb",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-chassis-poweroff.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-host-shutdown.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/files/ampere_power_util.sh",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-phosphor/state/phosphor-state-manager_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -8
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere-phosphor-softpoweroff",
+                    "type": "ADDED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 59
+        },
+        {
+            "number": 4,
+            "revision": "1e298a5a2a61162f1717e7ca66e61689e3496e7e",
+            "parents": [
+                "f800582597a403c182cdb3b0962a76d219d544a1"
+            ],
+            "ref": "refs/changes/30/45530/4",
+            "uploader": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "createdOn": 1628047690,
+            "author": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl.bb",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-chassis-poweroff.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-host-shutdown.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/files/ampere_power_util.sh",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-phosphor/state/phosphor-state-manager_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -8
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere-phosphor-softpoweroff",
+                    "type": "ADDED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 59
+        },
+        {
+            "number": 5,
+            "revision": "98f43bec14af073da25f53db2122fe3546f54095",
+            "parents": [
+                "eb53d86e93295398d743d1eb90cd92900ef5cc02"
+            ],
+            "ref": "refs/changes/30/45530/5",
+            "uploader": {
+                "name": "Thang Q. Nguyen",
+                "email": "thang@os.amperecomputing.com",
+                "username": "thangqn-ampere"
+            },
+            "createdOn": 1628048086,
+            "author": {
+                "email": "thu@os.amperecomputing.com",
+                "username": "ThuBaNguyen"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl.bb",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-chassis-poweroff.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/ampere-hostctrl/ampere-host-shutdown.service",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-ac01/host/files/ampere_power_util.sh",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -15
+                },
+                {
+                    "file": "meta-ampere/meta-common/recipes-phosphor/state/phosphor-state-manager_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -8
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere-phosphor-softpoweroff",
+                    "type": "ADDED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host/ampere.xyz.openbmc_project.Ipmi.Internal.SoftPowerOff.service",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-ampere/meta-jade/recipes-phosphor/ipmi/phosphor-ipmi-host_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 59
+        }
+    ]
+}

@@ -1,0 +1,795 @@
+{
+    "project": "openbmc/openpower-vpd-parser",
+    "branch": "master",
+    "id": "I9301ac73e0b4a7a767861a294ce865804d930a2d",
+    "number": 38814,
+    "subject": "Minor update: SystemIM",
+    "owner": {
+        "email": "priyanga24@in.ibm.com",
+        "username": "PriyangaRamasamy"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openpower-vpd-parser/+/38814",
+    "commitMessage": "Minor update: SystemIM\n\nSystem IM could be corrupted or not supported by the vpd parser.\nCapturing that case and logging PEL with a severity \"ERROR\".\n\nTested on simics:\n-> Corrupt the system vpd IM value at 0x05FB\ndd if=/dev/zero of=/sys/bus/i2c/drivers/at24/8-0050/eeprom bs=1 count=1 seek=1531\n\n000005d0  00 50 46 02 00 00 78 84  2c 00 52 54 04 56 53 42  |.PF...x.,.RT.VSB|\n000005e0  50 44 52 10 56 50 44 20  52 4f 4f 54 20 4e 4f 44  |PDR.VPD ROOT NOD|\n000005f0  45 20 20 20 50 41 01 59  49 4d 04 00 00 10 01 50  |E   PA.YIM.....P|\n00000600  46 04 00 00 00 00 78 84  b0 00 52 54 04 56 53 59\n\n-> Execute the vpd parser\nroot@rainier:/tmp# ./ibm-read-vpd-IM --file /sys/bus/i2c/drivers/at24/8-0050/eeprom\nErroneous/Unsupported IM in System VPD. PEL logged.\nstd::exception\nroot@rainier:/tmp#\n\n-> PEL\n\"Private Header\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Created by\":               \"0x4000\",\n    \"Created at\":               \"04/21/2021 05:28:21\",\n    \"Committed at\":             \"04/21/2021 05:28:21\",\n    \"Creator Subsystem\":        \"BMC\",\n    \"CSSVER\":                   \"\",\n    \"Platform Log Id\":          \"0x50000008\",\n    \"Entry Id\":                 \"0x50000008\",\n    \"BMC Event Log Id\":         \"8\"\n},\n\"User Header\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Log Committed by\":         \"0x2000\",\n    \"Subsystem\":                \"CEC Hardware: VPD Interface\",\n    \"Event Scope\":              \"Entire Platform\",\n    \"Event Severity\":           \"Unrecoverable Error\",\n    \"Event Type\":               \"Not Applicable\",\n    \"Action Flags\": [\n                                \"Service Action Required\",\n                                \"Report Externally\",\n                                \"HMC Call Home\"\n    ],\n    \"Host Transmission\":        \"Not Sent\"\n},\n\"Primary SRC\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"1\",\n    \"Created by\":               \"0x4000\",\n    \"SRC Version\":              \"0x02\",\n    \"SRC Format\":               \"0x55\",\n    \"Virtual Progress SRC\":     \"False\",\n    \"I5/OS Service Event Bit\":  \"False\",\n    \"Hypervisor Dump Initiated\":\"False\",\n    \"Power Control Net Fault\":  \"False\",\n    \"Backplane CCIN\":           \"\",\n    \"Deconfigured\":             \"False\",\n    \"Guarded\":                  \"False\",\n    \"Error Details\": {\n        \"Message\":              \"A VPD data exception occurred.\"\n    },\n    \"Valid Word Count\":         \"0x09\",\n    \"Reference Code\":           \"BD554001\",\n    \"Hex Word 2\":               \"00000055\",\n    \"Hex Word 3\":               \"00000010\",\n    \"Hex Word 4\":               \"00000000\",\n    \"Hex Word 5\":               \"00000000\",\n    \"Hex Word 6\":               \"00000000\",\n    \"Hex Word 7\":               \"00000000\",\n    \"Hex Word 8\":               \"00000000\",\n    \"Hex Word 9\":               \"00000000\",\n    \"Callout Section\": {\n        \"Callout Count\":        \"1\",\n        \"Callouts\": [{\n            \"FRU Type\":         \"Normal Hardware FRU\",\n            \"Priority\":         \"Mandatory, replace all with this type as a unit\",\n            \"Location Code\":    \"U78DA.ND0.1234567-P0\",\n            \"Part Number\":      \"F191014\",\n            \"CCIN\":             \"2E2D\",\n            \"Serial Number\":    \"YL2E2D010000\"\n        }]\n    }\n},\n\"Extended User Header\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Created by\":               \"0x2000\",\n    \"Reporting Machine Type\":   \"\",\n    \"Reporting Serial Number\":  \"\",\n    \"FW Released Ver\":          \"\",\n    \"FW SubSys Version\":        \"fw1020.00-18.0\",\n    \"Common Ref Time\":          \"00/00/0000 00:00:00\",\n    \"Symptom Id Len\":           \"20\",\n    \"Symptom Id\":               \"BD554001_00000010\"\n},\n\"Failing MTMS\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Created by\":               \"0x2000\",\n    \"Machine Type Model\":       \"\",\n    \"Serial Number\":            \"\"\n},\n\"User Data 0\": {\n    \"Section Version\": \"1\",\n    \"Sub-section type\": \"1\",\n    \"Created by\": \"0x2000\",\n    \"BMC Version ID\": \"fw1020.00-18.0-14-g5b4915816\",\n    \"BMCState\": \"Ready\",\n    \"ChassisState\": \"Off\",\n    \"HostState\": \"Off\",\n    \"Process Name\": \"Unknown\"\n},\n\"User Data 1\": {\n    \"Section Version\": \"1\",\n    \"Sub-section type\": \"1\",\n    \"Created by\": \"0x2000\",\n    \"CALLOUT_INVENTORY_PATH\": \"/xyz/openbmc_project/inventory/system/chassis/motherboard\",\n    \"DESCRIPTION\": \"System IM value is erroneous/not supported.\",\n    \"INVALID IM VALUE\": \"00001001\"\n}\n}\n\nSigned-off-by: PriyangaRamasamy <priyanga24@in.ibm.com>\nChange-Id: I9301ac73e0b4a7a767861a294ce865804d930a2d\n",
+    "createdOn": 1607278741,
+    "lastUpdated": 1619164855,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1607278741,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1607278754,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1607278788,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/9108/ : FAILURE"
+        },
+        {
+            "timestamp": 1607320026,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1607320042,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1607320153,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9128/ : SUCCESS"
+        },
+        {
+            "timestamp": 1610433279,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 3: Patch Set 2 was rebased"
+        },
+        {
+            "timestamp": 1610433292,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1610433428,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10777/ : SUCCESS"
+        },
+        {
+            "timestamp": 1610467754,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1618897838,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 3: Code-Review-1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1618980845,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1618980864,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618980960,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15848/ : SUCCESS"
+        },
+        {
+            "timestamp": 1618981532,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 4: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618983224,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1618983239,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618983529,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15850/ : SUCCESS"
+        },
+        {
+            "timestamp": 1618983776,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618984886,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 5: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618986726,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618987324,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618988218,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618988229,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618988702,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1618988724,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618988777,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618989016,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15863/ : SUCCESS"
+        },
+        {
+            "timestamp": 1618990767,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 6: Code-Review-1\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1619021617,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 6:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1619021620,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1619021631,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619021931,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15895/ : SUCCESS"
+        },
+        {
+            "timestamp": 1619149667,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        },
+        {
+            "timestamp": 1619156274,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        },
+        {
+            "timestamp": 1619164838,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 7: Code-Review+2"
+        },
+        {
+            "timestamp": 1619164855,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Change has been successfully rebased and submitted as a504c3ee9e939a0c33d3c37c1cab59614c3ddb46 by Santosh Puranik"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "06c54e79bf76fa248bee1728e1ff3087fa8ca8fd",
+            "parents": [
+                "a20be8ec061ad4053c523adfc44d83f91b38b29c"
+            ],
+            "ref": "refs/changes/14/38814/1",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1607278741,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 5,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "9756355fa9fe926ce56fbeee538a6b4912bde3a5",
+            "parents": [
+                "a20be8ec061ad4053c523adfc44d83f91b38b29c"
+            ],
+            "ref": "refs/changes/14/38814/2",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1607320026,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 5,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "7668c0d72637ed979eaaebf73f1aa7d6e6b3ce48",
+            "parents": [
+                "9094d4f6453ca8fcca2d6d62967631cb8bedbcc6"
+            ],
+            "ref": "refs/changes/14/38814/3",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1610433279,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Remove"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 884,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "We need to create a PEL - and capture the IM value as userdata."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 5,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "650bf73911295496cdc494348c2e060e066b2d33",
+            "parents": [
+                "c0d1c0a3c657538693d1e07297b3153aeb6cb374"
+            ],
+            "ref": "refs/changes/14/38814/4",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1618980845,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 896,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "We need to callout by \"CALLOUT_INVENTORY_PATH\" here - See line 1064"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 896,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 124,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "a683a8a5225215dbe3a8873a0382d74d7e0cd3c8",
+            "parents": [
+                "c0d1c0a3c657538693d1e07297b3153aeb6cb374"
+            ],
+            "ref": "refs/changes/14/38814/5",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1618983224,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Why we need this here? We are again throwing the exception which will be caught at line 1084 and will output the what()."
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "the cerr << at line 1086 just prints the type of exception and not the display data which is thrown."
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "I did not get that. These are two identical lines, You are throwing the same exception again from here. Why the output of these lines will be different?"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "I think since the exception object e thrown at 1052 goes out of scope and destroyed at  line 1084. \ne.what() at line 1084 not able to extract the relevant exception data. so it just prints \"std::exception\""
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "A minor update, I missed that it is throwing the object.\nSo why we need to throw the object? Do we need the info that it is a std::exception at line 1086? \nIf yes then I am fine with this change. \nIf no then just use a throw here instead of throw e, this way we get the same msg at line 1086 and we can get rid of cerr here and unnecessary info \"std::exception\" at line 1086."
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 133,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 17,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "7c09de4dd9098d5872ef44ece739f7f5b6fac092",
+            "parents": [
+                "c0d1c0a3c657538693d1e07297b3153aeb6cb374"
+            ],
+            "ref": "refs/changes/14/38814/6",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1618988702,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 891,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Would be good if you delete this additional line"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 891,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 895,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "It is less verbose to just pass this directly at line 903 instead of capturing it in a local variable"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 895,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 897,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "This creates a copy of the string, you should use a get_ref"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 897,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "+1, this was actually a bug"
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1051,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "yup"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 133,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 17,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 7,
+            "revision": "469e30ae937902c5e21c80c20ab5e3c9d9fc9599",
+            "parents": [
+                "c0d1c0a3c657538693d1e07297b3153aeb6cb374"
+            ],
+            "ref": "refs/changes/14/38814/7",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1619021620,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 133,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 8,
+            "revision": "a504c3ee9e939a0c33d3c37c1cab59614c3ddb46",
+            "parents": [
+                "794ad8259bfee997a023366c8d82d8656cef9911"
+            ],
+            "ref": "refs/changes/14/38814/8",
+            "uploader": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "createdOn": 1619164855,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 133,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 1
+        }
+    ]
+}

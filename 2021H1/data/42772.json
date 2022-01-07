@@ -1,0 +1,997 @@
+{
+    "project": "openbmc/phosphor-host-ipmid",
+    "branch": "master",
+    "id": "Ib26c443480382224092a83662e060df3b759da5c",
+    "number": 42772,
+    "subject": "dbus-sdr: sensorcommands: Add a basic handler to set sensor readings",
+    "owner": {
+        "name": "Willy Tu",
+        "email": "wltu@google.com",
+        "username": "wltu"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/42772",
+    "commitMessage": "dbus-sdr: sensorcommands: Add a basic handler to set sensor readings\n\nFEATURE_DYNAMIC_SENSORS_WRITE is used to enable the set sensor handler.\nTo enable the sensor writes add `--enable-dynamic_sensors_write` to the\ncompile flags.\n\nConvert sensor writes to double from raw IPMI value.\nThe 8-bit value in the IPMI Set Sensor command is not a\nliteral value. It is a floating point value encoded using\nthe m, b, rExp, and bExp that are reported in the SDR.\n\nConvert the raw 8-bit value to a floating point value according to the\nIPMI spec. This implementation only supports linear sensors.\nsdr_convert_sensor_reading() from ipmitool is a good reference should\nyou need a more feature complete implementation in the future [1].\n\n  [1]: https://github.com/ipmitool/ipmitool/blob/42a023ff0726c80e8cc7d30315b987fe568a981d/lib/ipmi_sdr.c#L360\n\nInterpreting bSigned correctly if IPMI indicates the byte is signed\nBreaking up the complicated math expression into multiple lines\nMaking sure std::pow uses the correct type override of double\nAdding the input byte to the logging\n\nTested:\n\n// Before\n$ ipmitool sensor list | grep fan\nfan0_pwm         | 69.776     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan1_pwm         | 69.776     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan2_pwm         | 69.776     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan3_pwm         | 68.600     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan4_pwm         | 89.768     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan0_tach        | 8428.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan1_tach        | 8330.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan2_tach        | 8330.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan3_tach        | 8918.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan4_tach        | 8134.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\n\n// After setting fan3 to 0 pwm.\n$ ipmitool sensor list | grep fan\nfan0_pwm         | 69.776     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan1_pwm         | 69.776     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan2_pwm         | 69.776     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan3_pwm         | 3.920      | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan4_pwm         | 89.768     | unspecified | ok    | na        | na        | na        | na        | na        | na\nfan0_tach        | 8428.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan1_tach        | 8330.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan2_tach        | 8330.000   | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan3_tach        | 0.000      | RPM        | ok    | na        | na        | na        | na        | na        | na\nfan4_tach        | 8134.000   | RPM        | ok    | na        | na        | na        | na        | na        | na       | na        | na        | na        | na\n\nSigned-off-by: Peter Lundgren <peterlundgren@google.com>\nSigned-off-by: Josh Lehan <krellan@google.com>\nChange-Id: Ib26c443480382224092a83662e060df3b759da5c\nSigned-off-by: Willy Tu <wltu@google.com>\n",
+    "hashtags": [
+        "dbus-sdr-vr-sensors"
+    ],
+    "createdOn": 1619732980,
+    "lastUpdated": 1621448079,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1619732980,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1619733007,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619733120,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1619733144,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619733147,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/16438/ : ABORTED"
+        },
+        {
+            "timestamp": 1619733744,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16445/ : SUCCESS"
+        },
+        {
+            "timestamp": 1619733948,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Hashtag added: dbus-sdr-vr-sensors"
+        },
+        {
+            "timestamp": 1619762922,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 2:\n\nMigrating https://gerrit.openbmc-project.xyz/c/openbmc/intel-ipmi-oem/+/41665 over to here and abandoning the other change."
+        },
+        {
+            "timestamp": 1619802722,
+            "reviewer": {
+                "name": "Peter Lundgren",
+                "email": "peterlundgren@google.com",
+                "username": "peterlundgren"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1620149321,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 3: Patch Set 2 was rebased"
+        },
+        {
+            "timestamp": 1620149341,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620149485,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16650/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620256516,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1620257716,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1620316378,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 4: Patch Set 3 was rebased"
+        },
+        {
+            "timestamp": 1620316391,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620316566,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16816/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620321058,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1620321071,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620321283,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16819/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620321465,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1620322587,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 6: Patch Set 5 was rebased"
+        },
+        {
+            "timestamp": 1620322601,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620322744,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16820/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620329410,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1620329432,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620329438,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 8: Patch Set 7 was rebased"
+        },
+        {
+            "timestamp": 1620329451,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620329454,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/16823/ : ABORTED"
+        },
+        {
+            "timestamp": 1620329504,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1620329786,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16824/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620426647,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 8:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1620430225,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1620430245,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620430337,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 9:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1620430388,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16879/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620684868,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 9: Code-Review+1"
+        },
+        {
+            "timestamp": 1620926879,
+            "reviewer": {
+                "name": "Hao Jiang",
+                "email": "jianghao@google.com",
+                "username": "drakedog2008"
+            },
+            "message": "Patch Set 9: Code-Review+1\n\nLGTM"
+        },
+        {
+            "timestamp": 1621007041,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 9:\n\nping"
+        },
+        {
+            "timestamp": 1621033998,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9: Code-Review+1\n\n(1 comment)\n\nI'm +1ing this because I don't think the comment below should hold it up, but I do think it's unnecessary (or I'm missing something critical about the security implications here)."
+        },
+        {
+            "timestamp": 1621034231,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1621357740,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 9:\n\nping"
+        },
+        {
+            "timestamp": 1621448072,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 9: Code-Review+2"
+        },
+        {
+            "timestamp": 1621448079,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Change has been successfully rebased and submitted as dbafbce64c6de3cdbbf5ebd4b53e12f80db78a5a by Vernon Mauery"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "48d733c0912d665ecad2bca3210a1bde22f9df62",
+            "parents": [
+                "76eb04038702b7584ac6af92a339ccdc72d29d47"
+            ],
+            "ref": "refs/changes/72/42772/1",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1619732980,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 99,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 99,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "9ba538695700b2ca61f5ac00063d5a841001aefc",
+            "parents": [
+                "76eb04038702b7584ac6af92a339ccdc72d29d47"
+            ],
+            "ref": "refs/changes/72/42772/2",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1619733120,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 99,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 99,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "f02158cb617fdd2b6844c0bb785467d5aab4ccb9",
+            "parents": [
+                "60c4daaa7b0fbe47f344af1094c4e685b9b1dfc7"
+            ],
+            "ref": "refs/changes/72/42772/3",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1620149321,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 46,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "The ipmi spec seems to think that there is a way to set this on a per-sensor basis with SDRs. Although, with the OpenBMC setup, if the DBus sensor set command fails, maybe that sensor doesn't support this, so I guess the SDRs would only be helpful if users would like to know prior to attempting to set something that it will work.\n\nAlso, this is the sort of thing that would be more helpful as a configure option so that it can be set without patching."
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 46,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1.  I had a comment in drafts but didn't hit submit.  This seems odd that IPMI would enforce this.  We should be enforcing this in the sensors themselves, and quanta has patches to add this already.  I suspect IPMI can just \"send the request and ask forgiveness later\" and rely on the return code to determine when to send unsupported back."
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 46,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I have added it as a confiture option and set it to false by default.\n\n----\n\nI think Josh Lehan was saying that if we have sensor controlled write permission... it would prevent debugging with dbus calls to the sensors manually. That's why he wanted to have service side control over it to prevent ipmi/redfish calls from updating it.\n\nI am not sure which one it better... since I am not exactly sure how valuable it is being able to update the sensor values manually during debugging."
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 276,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "these two should probably be combined into \n\nuint15_t assertOffset, bool resvd1, uint15_t deassertOffset, bool resvd2\n\nfor properly following the spec. Also, the spec seems to infer that bytes 4-10 are optional."
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 276,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 276,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done.\n\nThanks for the feedback. Do we also want to split out bytes 4-10 as a different variable for optional"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 99,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 99,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "4d17875c4ebecbec95ca37f0c9a0d3e8ff908ead",
+            "parents": [
+                "a55c953dd2bba16f2d43b186f920b18da4a3493f"
+            ],
+            "ref": "refs/changes/72/42772/4",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1620316378,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 99,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 99,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "22c0e969107689aea47b7e559c0bf351a63e8512",
+            "parents": [
+                "60c4daaa7b0fbe47f344af1094c4e685b9b1dfc7"
+            ],
+            "ref": "refs/changes/72/42772/5",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1620321058,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "Makefile.am",
+                    "line": 184,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I can't seem to get this to work...\n\nIn the makefile, it is added after libdynamiccmds_la_CXXFLAGS was already used without `-DFEATURE_DYNAMIC_SENSORS_WRITE`. \n\nAny suggestion on this issue?"
+                },
+                {
+                    "file": "Makefile.am",
+                    "line": 184,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I think I have fixed it... \n\nNeed\n\n```\nAS_IF([test x$dynamic_sensors_write = xtrue],\n    AC_MSG_NOTICE([Enabling dynamic sensors write feature])\n    [cpp_flags=\"$cpp_flags -DFEATURE_DYNAMIC_SENSORS_WRITE\"]\n    AC_SUBST([CPPFLAGS], [$cpp_flags]),\n    AC_MSG_WARN([Disabling dynamic sensors write feature])\n)\n```\n\ninstead. I forgot to follow the example."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 96,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 113,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "9df94b333298f1532b3e9c5625659e4420711f57",
+            "parents": [
+                "a55c953dd2bba16f2d43b186f920b18da4a3493f"
+            ],
+            "ref": "refs/changes/72/42772/6",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1620322587,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "Makefile.am",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 96,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 113,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 7,
+            "revision": "b1e4fec345f6ee135788b7674db843db3f030896",
+            "parents": [
+                "60c4daaa7b0fbe47f344af1094c4e685b9b1dfc7"
+            ],
+            "ref": "refs/changes/72/42772/7",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1620329410,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 96,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 115,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 8,
+            "revision": "efd2f603bcdf4a6586a3b14dcdc8116b8c89f3df",
+            "parents": [
+                "a55c953dd2bba16f2d43b186f920b18da4a3493f"
+            ],
+            "ref": "refs/changes/72/42772/8",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1620329438,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 278,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "I would prefer this was around the whole function, so it was not included at all."
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 278,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done. I have added to wrap around the handler registration."
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 1511,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "This looks like it is unrelated. Should this be here?"
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 1511,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done. Thanks. yeah, we don't need this."
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 1652,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "#ifdef FEATURE_DYNAMIC_SENSORS_WRITE"
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "line": 1652,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done. I have also updated the commit message to reflect this."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 60,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 96,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 115,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 9,
+            "revision": "69084073439b021d16ed9fd19abe8a02cf3cc72f",
+            "parents": [
+                "a55c953dd2bba16f2d43b186f920b18da4a3493f"
+            ],
+            "ref": "refs/changes/72/42772/9",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1620430225,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "configure.ac",
+                    "line": 271,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Does this really need to be a compile option?  Assuming we do this as planned, where the sensors control whether or not they're settable, there should be no security implications, right?\n\n\nWith that said, I'm fine if this is temporary staging until Quantas patch lands in dbus-sensors, but ultimately I don't think this behavior should be configurable at this level.  dbus daemons should enforce the appropriate read-write behavior, otherwise we need to add this option into every protocol stack individually."
+                },
+                {
+                    "file": "configure.ac",
+                    "line": 271,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "yes, that is the main reason to having this configurable option for now. I want to get this patch moving, since there are a few more after this that will need to go in.\n\nWill definitely want to remove this once the Quanta's changes are in."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 87,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 106,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 10,
+            "revision": "dbafbce64c6de3cdbbf5ebd4b53e12f80db78a5a",
+            "parents": [
+                "0a2abc803ffb4e01d10d4c9fb78475c3012df496"
+            ],
+            "ref": "refs/changes/72/42772/10",
+            "uploader": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "createdOn": 1621448079,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "configure.ac",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus-sdr/sensorcommands.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 87,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 106,
+            "sizeDeletions": 0
+        }
+    ]
+}

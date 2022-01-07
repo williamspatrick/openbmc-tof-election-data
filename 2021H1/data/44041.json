@@ -1,0 +1,1088 @@
+{
+    "project": "openbmc/pldm",
+    "branch": "master",
+    "id": "I38f2075b969c5391f6276b22bfdbf2285b874eca",
+    "number": 44041,
+    "subject": "PLDM: Create BMC PDRs dynamically when the D-Bus object shows up",
+    "owner": {
+        "name": "Pavithra Barithaya",
+        "email": "pavithra.b@ibm.com",
+        "username": "Pavithrab7"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/pldm/+/44041",
+    "commitMessage": "PLDM: Create BMC PDRs dynamically when the D-Bus object shows up\n\nThis commit creates the PDRs only when the object path is found\non the DBus. The intent behind this commit is as follows.\n\n- if we have PDR json with an object path /xyz/openbmc_project/foo.\n  and whenever we get a GETPDR command, we should generate the PDR\n  only when the object path is found on the dbus.\n- if the object path is not found, then pldm should register the\n  watcher code that will watch out for dbus Interface Added Signal\n  from /xyz/openbmc_project/foo.\n- When the /xyz/openbmc_project/foo get added on to dbus by another\n  service,it generates an Interface Added Signal on to dbus and\n  once pldm receives that signal it should automatically generate\n  the PDR.\n\nFor the composite sensor, if one of the sensor/effecter doesnot have a\nDBus object path created, PDR gets created but a GetStateSensorReading on\nthat sensor will return Sensor Unavailable error.\n\nTested: stopped one of the service that creates the object path\nand when a GETPDR command was called PDRs which did not have\nan object path were not created. Restarted the service and the\ncorresponding PDRs where created.\nexample:\nsystemctl stop xyz.openbmc_project.State.Host\n pldmtool platform getpdr -d 0\nD-Bus object path does not exist and wait for the interface added signal, effecter ID: 1\nD-Bus object path does not exist and wait for the interface added signal, effecter ID: 111\nD-Bus object path does not exist and wait for the interface added signal, effecter ID: 113\n{\n    \"nextRecordHandle\": 2,\n    \"responseCount\": 20,\n    \"recordHandle\": 1,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"FRU Record Set PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 10,\n    \"PLDMTerminusHandle\": 0,\n    \"FRURecordSetIdentifier\": 1,\n    \"entityType\": \"[Physical] System (Logical)\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 0\n}\nPDRs for effecter ID 1, 111, 113 were not created.\nsystemctl restart xyz.openbmc_project.State.Host\nPDRs for those effecter IDs were created.\nSimilarly verified for the state sensor and numeric effecter PDRs.\n\nFor composite sensor -\ncase where one of the DBus path was not present for sensor id 1.\npldmtool platform GetStateSensorReadings -i 1 -r 0\nsd_bus_call: xyz.openbmc_project.Common.Error.ResourceNotFound: path or object not found\n{\n    \"compositeSensorCount\": 2,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Normal\",\n    \"sensorOpState[1]\": \"Sensor Unavailable\",\n    \"presentState[1]\": \"Sensor Normal\",\n    \"previousState[1]\": \"Sensor Unknown\",\n    \"eventState[1]\": \"Sensor Unknown\"\n}\n\nSigned-off-by: Pavithra Barithaya <pavithra.b@ibm.com>\nChange-Id: I38f2075b969c5391f6276b22bfdbf2285b874eca\n",
+    "createdOn": 1623680026,
+    "lastUpdated": 1630568183,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1623680026,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1623680038,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623680040,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1623680048,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2134/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1623680211,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2134/ : ppc64le CI Build Failed\n\nhttps://jenkins.openbmc.org/job/ci-repository/19618/ : FAILURE"
+        },
+        {
+            "timestamp": 1623680231,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1623680243,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623680253,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2135/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1623680911,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2135/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/19619/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623928584,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1623928596,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623928605,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2198/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1623929285,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2198/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/20000/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623999653,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1623999680,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623999690,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2216/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1624000628,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2216/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/20096/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624000769,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Set Ready For Review"
+        },
+        {
+            "timestamp": 1624011395,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1625032273,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1625032287,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625032296,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2376/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1625032414,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 6: Commit message was updated."
+        },
+        {
+            "timestamp": 1625032542,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Patch Set 6:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1625032995,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2376/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/21095/ : SUCCESS"
+        },
+        {
+            "timestamp": 1626233590,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1626238859,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1626581471,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 6:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1626655648,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1626698920,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Patch Set 6:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1626965845,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 6:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1626966023,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 6:\n\nAlso, when we add these PDR's dynamically..do we need to send the PDR repo change event ? is it already being done ? or do we need to tackle that in a different comment ?"
+        },
+        {
+            "timestamp": 1627913002,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1627913029,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627913030,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Patch Set 7:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1627913037,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2661/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1627913054,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Patch Set 7:\n\n> Patch Set 6:\n> \n> Also, when we add these PDR's dynamically..do we need to send the PDR repo change event ? is it already being done ? or do we need to tackle that in a different comment ?\n\nI guess this needs to a different commit"
+        },
+        {
+            "timestamp": 1627914505,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2661/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/23537/ : SUCCESS"
+        },
+        {
+            "timestamp": 1630565908,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1630565923,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630565931,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2975/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1630566230,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2975/ : ppc64le CI Build Failed\n\nhttps://jenkins.openbmc.org/job/ci-repository/25495/ : FAILURE"
+        },
+        {
+            "timestamp": 1630567317,
+            "reviewer": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1630567332,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630567341,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2976/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1630568183,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2976/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/25497/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "294af889afd09774d1960519d6a0c81fb8bdef2a",
+            "parents": [
+                "afbdb6d191da2b5a1d9b438a8595f5f9a9585af2"
+            ],
+            "ref": "refs/changes/41/44041/1",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1623680026,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 72,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 72,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 2,
+            "revision": "ab3fc21d5420dc7d8a51dcf5fa76781f43423781",
+            "parents": [
+                "afbdb6d191da2b5a1d9b438a8595f5f9a9585af2"
+            ],
+            "ref": "refs/changes/41/44041/2",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1623680231,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 84,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 84,
+            "sizeDeletions": 8
+        },
+        {
+            "number": 3,
+            "revision": "c0fb96157b20f7fa4acd6b696ee15fe6599baaf7",
+            "parents": [
+                "afbdb6d191da2b5a1d9b438a8595f5f9a9585af2"
+            ],
+            "ref": "refs/changes/41/44041/3",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1623928584,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 167,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 8
+        },
+        {
+            "number": 4,
+            "revision": "5d65e4414b42a1ac28671515c04021d06ff8c3d7",
+            "parents": [
+                "afbdb6d191da2b5a1d9b438a8595f5f9a9585af2"
+            ],
+            "ref": "refs/changes/41/44041/4",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1623999653,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Remove"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 264,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "I am not following:\nIn the composite sensor, if a Dbus is not created, can we not create all the PDRs?"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 264,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "Ack, yes I was not creating the PDR earlier, now I made that change in the recent patchset and updated the commit message."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 53,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_numeric_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 72,
+                    "deletions": -6
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 82,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 264,
+            "sizeDeletions": 22
+        },
+        {
+            "number": 5,
+            "revision": "978383027a638b09f94d929b82a6338a195e3694",
+            "parents": [
+                "afbdb6d191da2b5a1d9b438a8595f5f9a9585af2"
+            ],
+            "ref": "refs/changes/41/44041/5",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1625032273,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 73,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_numeric_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 72,
+                    "deletions": -6
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 84,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 95,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 269,
+            "sizeDeletions": 22
+        },
+        {
+            "number": 6,
+            "revision": "abb7517690044ef9165a74ca53860253a014baab",
+            "parents": [
+                "afbdb6d191da2b5a1d9b438a8595f5f9a9585af2"
+            ],
+            "ref": "refs/changes/41/44041/6",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1625032414,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "emplace is better than insert"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "do you wanna limit the number of entries in json to 256 ?"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "I didn't follow this."
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "uint8_t max value can be 256 , so 257 will be stored as 0. so we cannot having an assumption that we can have <256 json entries right ?\n\nWhat happens when we have 257 entries,in the map, 257th value will replace 0th index"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "changed it to auto."
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "I think this is wrong.\nBecause if we have two sensors, one of them has no service, but it cannot affect us to create the other\n\n@Manoj, @Sapma, what do you think?"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "in a composite sensor case, we might have two sensors that can be mapped to two different dbus objects correct ?\n\n> but it cannot affect us to create the other\ncan you explain more on why do you think so ?"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "> in a composite sensor case, we might have two sensors that can be mapped to two different dbus objects correct ?\n\nCorrect\n\n> can you explain more on why do you think so ?\n\nIf one sensor can get the correct DBus Object, but the other sensor can not get the correct DBus Object, then we need to add the correct sensor to the PdrEntity, right?"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "yes George and Manoj, now that is happening, In case of composite sensor when one sensor does not have a Dbus object and another one has we create PDR but a getStatesensorreading command will throw error. I have explained in the commit message about how the output looks using pldmtool. Did I answer the question?"
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "> If one sensor can get the correct DBus Object, but the other sensor can not get the correct DBus Object, then we need to add the correct sensor to the PdrEntity, right?\n\nI agree with pavitra here, we have a single PDR for composite sensors, so when one of the sensor in a composite sensor does not exist, it's okay to create the PDR and then return SENSOR state to unavailable for the sensor that does not have the dbus backend."
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "line": 204,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "do you need a sorted map ? cant we just use unordered_map instead ?"
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "line": 204,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "line": 210,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "same here"
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "line": 210,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "line": 217,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "nit : probably , you can have one single rather than 3 individual maps ?\n\nstd::array<std::map<uint8_t, std::unique_ptr<sdbusplus::bus::match::match>>, 3> MatchPointers ?"
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "line": 217,
+                    "reviewer": {
+                        "name": "Pavithra Barithaya",
+                        "email": "pavithra.b@ibm.com",
+                        "username": "Pavithrab7"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 73,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_numeric_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 72,
+                    "deletions": -6
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 84,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 95,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 269,
+            "sizeDeletions": 22
+        },
+        {
+            "number": 7,
+            "revision": "4f8e8e63c2df777bf9d01a287b65edafcfde0821",
+            "parents": [
+                "d169dd164c3bc0d0a0b3d394bb75983a8cdf268b"
+            ],
+            "ref": "refs/changes/41/44041/7",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1627913002,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 73,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_numeric_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 72,
+                    "deletions": -6
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 82,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 255,
+            "sizeDeletions": 22
+        },
+        {
+            "number": 8,
+            "revision": "277fba1bdb63a431ed7b74d05b793cfe47da05ae",
+            "parents": [
+                "adbb24526a166d6a9d3b6329a6c98c7dd6b5c4ac"
+            ],
+            "ref": "refs/changes/41/44041/8",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1630565908,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 73,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_numeric_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 80,
+                    "deletions": -6
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 91,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 101,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 280,
+            "sizeDeletions": 22
+        },
+        {
+            "number": 9,
+            "revision": "881b11ffedbcc7f116c6e9faf440ff28f2961cf2",
+            "parents": [
+                "adbb24526a166d6a9d3b6329a6c98c7dd6b5c4ac"
+            ],
+            "ref": "refs/changes/41/44041/9",
+            "uploader": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "createdOn": 1630567317,
+            "author": {
+                "name": "Pavithra Barithaya",
+                "email": "pavithra.b@ibm.com",
+                "username": "Pavithrab7"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 73,
+                    "deletions": 0
+                },
+                {
+                    "file": "libpldmresponder/pdr_numeric_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -6
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_effecter.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 91,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/pdr_state_sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 101,
+                    "deletions": -8
+                },
+                {
+                    "file": "libpldmresponder/platform.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 279,
+            "sizeDeletions": 22
+        }
+    ]
+}

@@ -1,0 +1,188 @@
+{
+    "project": "openbmc/phosphor-host-ipmid",
+    "branch": "master",
+    "id": "Ie192d7ce1e5b85ba1ea28ccf53dbc915b654ff68",
+    "number": 43511,
+    "subject": "user_channel: passwd_mgr: replace size_t with unsigned int in struct MetaPassStruct \tNote: size_t is 8 bytes in aarch64, \t      but data fields in /etc/ipmi_pass are 4 bytes, \t      so ipmid will crash, \t      when it passes the parameters reading from ipmi_pass to HMAC()",
+    "owner": {
+        "name": "Medad",
+        "email": "ctcchien@nuvoton.com",
+        "username": "medadyoung"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/43511",
+    "commitMessage": "user_channel: passwd_mgr: replace size_t with unsigned int in struct MetaPassStruct\n\tNote: size_t is 8 bytes in aarch64,\n\t      but data fields in /etc/ipmi_pass are 4 bytes,\n\t      so ipmid will crash,\n\t      when it passes the parameters reading from ipmi_pass to HMAC()\n\nSigned-off-by: Medad CChien <ctcchien@nuvoton.com>\nChange-Id: Ie192d7ce1e5b85ba1ea28ccf53dbc915b654ff68\n",
+    "createdOn": 1621922697,
+    "lastUpdated": 1629269731,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1621922697,
+            "reviewer": {
+                "name": "Medad",
+                "email": "ctcchien@nuvoton.com",
+                "username": "medadyoung"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1621922714,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1621922859,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/18007/ : SUCCESS"
+        },
+        {
+            "timestamp": 1621957947,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1621986496,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 1:\n\nI do not think this is the correct solution. size_t is intended for use as sizes. The size of the entire struct is used whenever it is written or read, so changing the size of the entries of the struct should not change anything there. There is some other underlying issue here."
+        },
+        {
+            "timestamp": 1622012876,
+            "reviewer": {
+                "name": "Medad",
+                "email": "ctcchien@nuvoton.com",
+                "username": "medadyoung"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> I do not think this is the correct solution. size_t is intended for use as sizes. The size of the entire struct is used whenever it is written or read, so changing the size of the entries of the struct should not change anything there. There is some other underlying issue here.\n\nI got it, so maybe we should create the other ipmi_pass file for 64 bits processor"
+        },
+        {
+            "timestamp": 1622969942,
+            "reviewer": {
+                "name": "Tomer Maimon",
+                "email": "tmaimon77@gmail.com",
+                "username": "tmaimon"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> I do not think this is the correct solution. size_t is intended for use as sizes. The size of the entire struct is used whenever it is written or read, so changing the size of the entries of the struct should not change anything there. There is some other underlying issue here.\n\nHi Vernon,\n\nThanks a lot for your support!\n\nFrom the Arm Compiler armclang Reference Guide\nType of size_t (5.7).\nThe type of size_t is unsigned int for AArch32 state and unsigned long for AArch64 state.\nhttps://developer.arm.com/documentation/100067/0612/Standard-C---Implementation-Definition/Expressions\n\nWhat do you suggest to do?\n\nTomer"
+        },
+        {
+            "timestamp": 1627339753,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > I do not think this is the correct solution. size_t is intended for use as sizes. The size of the entire struct is used whenever it is written or read, so changing the size of the entries of the struct should not change anything there. There is some other underlying issue here.\n> \n> Hi Vernon,\n> \n> Thanks a lot for your support!\n> \n> From the Arm Compiler armclang Reference Guide\n> Type of size_t (5.7).\n> The type of size_t is unsigned int for AArch32 state and unsigned long for AArch64 state.\n> https://developer.arm.com/documentation/100067/0612/Standard-C---Implementation-Definition/Expressions\n> \n> What do you suggest to do?\n> \n> Tomer\n\nWhat I am trying to get at here is that on a 64-bit system, the file should be a different size than on a 32-bit system. size_t is almost always the right kind of integer to use when dealing with sizes. Thus the chosen type. For this application, there should be no cross-platform sharing of this data file, so inter-platform compatibility for the same data file need not be preserved.\n\nWe need to figure out where the actual problem is (what assumption is being made about struct sizes and offsets) and modify the code to handle that."
+        },
+        {
+            "timestamp": 1627340954,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 1:\n\nA little more digging shows that the /etc/ipmi_pass file is originally provided by the pam-ipmi project.\n\nModifying that project so it builds the empty file based on architecture, rather than hard-coded to 32-bit, is probably the most correct solution."
+        },
+        {
+            "timestamp": 1627341211,
+            "reviewer": {
+                "name": "Bruce Mitchell",
+                "email": "bruce.mitchell@linux.vnet.ibm.com",
+                "username": "BMC-Bruce"
+            },
+            "message": "Patch Set 1:\n\nThe Subject line is way longer than 50 characters.\nhttps://chris.beams.io/posts/git-commit/#limit-50"
+        },
+        {
+            "timestamp": 1628519131,
+            "reviewer": {
+                "name": "Bruce Mitchell",
+                "email": "bruce.mitchell@linux.vnet.ibm.com",
+                "username": "BMC-Bruce"
+            },
+            "message": "Removed reviewer Bruce Mitchell."
+        },
+        {
+            "timestamp": 1629269731,
+            "reviewer": {
+                "name": "Medad",
+                "email": "ctcchien@nuvoton.com",
+                "username": "medadyoung"
+            },
+            "message": "Abandoned"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "a10ece4e7248348d02d940441beb3ec600d1ea68",
+            "parents": [
+                "7a0e5dfcfa49f4a60e2d0ddd9f90c64d177a7f14"
+            ],
+            "ref": "refs/changes/11/43511/1",
+            "uploader": {
+                "name": "Medad",
+                "email": "ctcchien@nuvoton.com",
+                "username": "medadyoung"
+            },
+            "createdOn": 1621922697,
+            "author": {
+                "name": "Medad",
+                "email": "ctcchien@nuvoton.com",
+                "username": "medadyoung"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "commit message format https://github.com/openbmc/docs/blob/master/CONTRIBUTING.md#formatting-commit-messages"
+                },
+                {
+                    "file": "user_channel/passwd_mgr.cpp",
+                    "line": 54,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "uint32_t"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/passwd_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 10,
+            "sizeDeletions": 10
+        }
+    ]
+}

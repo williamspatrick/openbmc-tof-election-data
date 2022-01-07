@@ -1,0 +1,487 @@
+{
+    "project": "openbmc/docs",
+    "branch": "master",
+    "id": "Ied992cb5ed1e4165cdc697665a4226d5dce3a254",
+    "number": 41652,
+    "subject": "Design for user role configuration",
+    "owner": {
+        "name": "Joseph Reynolds",
+        "email": "joseph-reynolds@charter.net",
+        "username": "joseph-reynolds"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/docs/+/41652",
+    "commitMessage": "Design for user role configuration\n\nThis commit adds a design for how a project built on OpenBMC can\ncustomize bitbake recipes to create roles and OEM privileges for\nPhosphor user manager and BMCWeb.\n\nSigned-off-by: Joseph Reynolds <joseph-reynolds@charter.net>\nChange-Id: Ied992cb5ed1e4165cdc697665a4226d5dce3a254\n",
+    "createdOn": 1616778386,
+    "lastUpdated": 1617137222,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1616778386,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1617036789,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(20 comments)\n\nThis is looking a little rough, but it's getting there.  Please think through the long term maintenance of this feature in regards to systems.  Namely:\n\n1. Building multiple times per machine isn't going to fly.\n2. In the past, runtime privilege registry (and privilege registry endpoints) have been requested.  Please make sure your design comprehends that in at least some way.\n3. You still need to solve the per-route privilege mapping, or none of this has any effect on the redfish service itself.\n4. I'd like to see a mechanism that doesn't require every custom system to write out the complete role targets.  Changing from defaults will be pretty rare, so I'd like to keep the configuration files based on a \"diff against standard\", such that including new base privilege registries from the standard doesn't require editing N systems worth of configuration file.  The first thing that comes to mind is keeping json-patch objects to be able to add/remove/diff the configurations easily.  I haven't looked in depth."
+        },
+        {
+            "timestamp": 1617137222,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(20 comments)\n\nThanks for the encouragement and the quick review.\n\nAs noted in the comments, the intent of this design is to address only: custom roles, OEM privileges, and role-to-privilege mapping.  It is not intended to address customizable privilege registries (the operation-to-privilege mapping).  I apologize if the design did not make that clear: I will rewrite to clarify that.\n\nAs you pointed out, being able to customize the role-to-privilege map without the ability customize the operation-to-privilege mapping is mostly useless.  Nevertheless, I see it as an important building block deserving a separate design.  What do you think?\n\n--\n\nI believe my comments address your 4 main comments:\n> 1. Building multiple times per machine...\n\nThis one is expensive to solve in general.  See my comments.  When this is implemented, I intend to use it right away to define my OemIBMServiceAgent role and OemIBMPerformService privilege for selected machines.  So we'll get there.\n\n> 2. [Mention past attempts to customize] runtime privilege registry.\n\nI am not aware of any attempted designs (other than my earlier attempts) that limit their scope to customized roles and privileges, but omit the privilege registry (but I will look again).\n\n> 3. [S]olve the per-route privilege mapping.\n\nThis design avoids the \"per-route privilege mapping\" problem by avoiding the \"customized privilege registry\" problem.  As I explained above, I think separating these designs is valid.\n\n> 4. [Don't] require every custom system to write out the complete role targets.\n\nAgreed.  I proposed a better approach in the comments."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c7b613288b6cd9c89d72b83e616fe919e53558e2",
+            "parents": [
+                "f0ca2e418c0b4669d3a759775f654343f0b9e504"
+            ],
+            "ref": "refs/changes/52/41652/1",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1616778386,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Also IPMID?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Yes, thanks I'll add ipmid."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 50,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Replace with \"a developer\"  There might be no need for this to happen in bitbake data."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 50,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Agreed.  Should I use the term \"system integrator\"?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 63,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This isn't a requirement, this is an implementation detail.  Please write your requirements in terms of what a user or developer needs to be able to configure.\n\nThere's also nothing in the design that requires these be in bmcweb, although we might conclude that."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 63,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I found it hard to formulate the requirements.  I'll re-word this as you suggest."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Um......   Considering the operation-to-privilege mapping is based on Redfish base registry, and doesn't include OEM, how would it be at all useful if the design had no effect?  Maybe you might want to clarify a little?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I think this sentence should be moved to the \"Problem\" or \"Background\" section of this design and expanded there.  What I meant was...\n\nI think the \"Problem\" section needs to talk about the \"authority\" problem and how it breaks down into two parts (privilege model, and the operation-to-privilege mapping) as explained in the Redfish DSP0266_1.12.0 or later > Security details > Authorization.  Then explain this design only addresses the privilege model, and specifically only the role-to-privilege mapping.\n\nIn this sense, this design is is addressing only half of the authorization problem.  Nevertheless, I believe this design is a relatively independent enabling piece of the overall effort."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This makes it sound like we use a file at all.  Today it's all in code."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Sorry.  In my previous life the designs were required to be written as though they were already approved and implemented.  I'll clarify this point."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "How do we avoid duplicating this data between systems?  If OpenBMC \"Invents\" another role, how do we avoid having to edit N config files."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I struggled with this too.  I started with a more conventional configuration data like:\nREDFISH_ROLES=\"Administrator Operator ReadOnly NoAccess\"\nREDFISH_ROLE_TO_PRIVILEGE_MAP_Administrator=\"Login ConfigureManager ConfigureUsers ConfigureComponents\" ConfigureSelf\"\netc.\n\nIn this way, it would be easier to modify this data using conventional bitbake operations, e.g., REDFISH_ROLES += \"OemNewRole\".  Do you like that approach better?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "if we're going to have system-specific variants of this, how will we make sure we keep up to date with the base registry?  Do we need a design where every file is a diff on top of the base registry, so we're not having to edit N platforms worth of systems every time we update?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "See my general response in the comment immediately above.  I like your idea that customizations should be a delta set of changes.\nIf we use that approach outlined there, then we could customize like this:\nREDFISH_ROLE_TO_PRIVILEGE_MAP_Administrator += \"OemNewPrivilege\""
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If you have this, why is StandardRoles and CustomRoles required at all?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I'm not sure what you are asking here.  My intention was:\n1. The redfish-role-info file (including this RoleInfo field) should completely specify the \"privilege model\".  Consequently, the standard and custom roles should be enumerated.\n2. The data passed in via the redfish-role-info file would define what roles showed up when a user would GET the Role object.  I was simply trying to point out the correlation between this design and the Role schema.\n\nNote the redfish-role-info file is a subset of the information in the Role schema, but my design choice was to not use the Role schema directly.  And if we move away from the redfish-role-info file as discussed in the comments above, this issue goes away."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please remove this item entirely.  Redfish gives no ordering definition in the spec, so we don't have a requirement for an ordering definition in openbmc.  The order of items might change at any time and should be treated as an implementation detail."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I would argue the opposite.  Even though Redfish does not specify the ordering sequence, users may expect the same sequence of roles and of privileges as presented in the Redfish spec and they are already accustomed to in OpenBMC.  Can this design specify that sequence is important?\nIf we remove this but leave it as an important implementation detail, does that mean it belongs in the design?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 191,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Your design seems to completely miss the fact that the new privileges need to be mapped into the actual route table.  I don't see how you're going to do that with your current design;  The way I would imagine is for each system to include a privilege registry file, but doing that would duplicate a lot of data you have above, so I'd like to see them at least de-duplicated.  For example, all the privilege levels can be gotten directly from the privilege registry."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 191,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Yes, I agree the design completely missed that.  As I mentioned in a previous comment, that choice was intentional, and I will address that in the introduction of this design."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 193,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can you please talk through how the privilege registry route would work in your design?  I suspect it doesn't, but for non-standard ipmlementations, would be required."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 193,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This design does not address the privilege registry.  I'll clarify that in the introduction."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please make a better attempt at this section.  One sentence feels a bit rushed, especially considering it's a design others have proposed before, and gives the user more utility, and decreases the complexity within openbmc itself.  Please talk through these pros and cons.\n\nAlso, please come up with at least one other alternative."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I had not considered that making a general way to customize the privilege model was proposed before.  I'll check the old emails and old designs.\n\nWhat other alternatives do you see?  Either a general way to specify the privilege model (as described in this design) or developer will fork or patch bmcweb with their customizations.\n\nAre you looking for alternate ways to customize the privilege model?"
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 231,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Considering now every system has its own redfish config, I wouldn't really call that trivial if we ever need to change the schema around."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 231,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I understand; thanks for pointing that out.  I meant this statement from the point of view of a system that did not customize the privilege model.\nI'll have to give this some more thought."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 235,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This seems like more of a requirement than an impact."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 235,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Agreed.  I'll move this to the correct section."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 239,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please try again here.  Considering you're adding an explicit way to be incompatible with Redfish, simply saying they're \"out of scope\" does seem right."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 239,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "What I meant was: If you use this design to create custom roles and OEM privileges, then you you are explicitly going outside Redfish's standard model so you need to carefully design and review each piece of your custom authority model.  That work is outside the scope of this design.\n\nTry #2:\nAlthough Redfish defines the authority model which says how custom roles and OEM privileges are applied, the overall effect on authorization, user management, and the overall security of the system is outside the scope of this design."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 243,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please try again here.  Only testing the defaults doesn't really work in this context.  That would imply that no system actually checked in a custom registry, which would mean we have no examples."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 243,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Agreed.  This work is hard because it has multiple pieces:\n- A customizable privilege model (this design)\n- A customizable privilege registry (as discussed in the email list)\n- My intention to use both of the above pieces on my system.\n- CI testing."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 245,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please work with Andrew on this.  I suspect that there aren't CI resources to build the image multiple times per-system, and run CI testing multiple times per system.  If there truly is, great, but even so, if all subsystems took this track, we'd tie up way too many resources, so please propose a better solution."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 245,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "An obvious solution is for the bmcweb executable program to be built with multiple privilege models.  (Using Redfish's definition of privilege model: maps users to roles and maps roles to privileges.)\nWhich privilege model to be used could be selected by a command-line argument (so changing privilege models requires restarting BMCWeb).\n\nHowever, I don't like that solution at all, and present it only for discussion.\n\nThis solution is exactly parallel with the idea that bmcweb carry multiple operation-to-privilege maps (that is, multiple privilege registries).\n\nIf I recall correctly, in an email you had expressed the desire for a single bmcweb image be able to have multiple privilege registries.  Do you also need it to have multiple role mappings?  (I don't have this requirement.)  Let me know.  If so, that will add a small about of complexity, but I can add it the design."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: \"Match the default specification\""
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Agreed, will change."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 248,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: redfish.  bmcweb is an implementation detail as far as testing is concerned."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 248,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Agreed.  I'll list the D-Bus and REST endpoints."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 250,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "More detail needed here.  \"Ensure BMCWeb applies them correctly\" doesn't really give any indication of the test or how it works.  Are you planning on walking through all routes and testing the privilege levels?  If so, great, that would probably be required of something like this."
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "line": 250,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "...specifically:\n - ensure each role is presented in URI /redfish/v1/AccountService/Roles.\n - ensure each role's properties are represented correctly under URI /redfish/v1/AccountService/Roles: privileges, OEM privileges, and if it is custom.\n - For each role and each privilege, ensure the access control is effectively applied to allow or disallow representative operations.  For example:\n     - Create a user with role OemNewRole.\n     - Have that user try to modify another user, perhaps using PATCH /redfish/v1/AccountService/Accounts/OTHERUSER {\"Locked\": false} as a representative operation that requires the ConfigureUsers privilege.\n     - Note if the operation succeeds or fails with HTTP status 401 Unauthorized.\n     - Validate against the expected result (which depends if OemNewRole has ConfigureUsers or not)."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "designs/user-role-config.md",
+                    "type": "ADDED",
+                    "insertions": 261,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 261,
+            "sizeDeletions": 0
+        }
+    ]
+}

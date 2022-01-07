@@ -1,0 +1,1937 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "Ic29385ea8231ba976bbf415af2803df2d30cb10a",
+    "number": 40211,
+    "subject": "EventService: Move subscription persistent data",
+    "owner": {
+        "email": "Jun-Lin.Chen@quantatw.com",
+        "username": "kmfic567"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/40211",
+    "commitMessage": "EventService: Move subscription persistent data\n\nThis commit resolves https://github.com/openbmc/bmcweb/issues/168\nCurrent store mechanism makes it very difficult to keep in sync with\nthe existing files, and has caused several bugs because the path it\nuses different than the existing bmcweb_persistent_data.json, and it's\nmissing several error checks.\n\nIf there has old config in /var/lib/bmcweb/eventservice_config.json.\nRestart bmcweb will move old config to bmcweb_presistent_data.json and\ndelete the old config.\n\n\nTested:\n - Create new Subscription via POST\nhttps://${bmc}/redfish/v1/EventService/Subscriptions/\n\nThe subscription is successfully created and GET succussfully.\nRestart bmcweb or reboot.\nThe subscription will restore.\n\n - Delete the Subscription via DELETE\nhttps://${bmc}/redfish/v1/EventService/Subscriptions/${subscription_id}\n\nThe subscription is successfully delete.\nbmcweb_persistent_data.json will delete subscription content.\n\n - Modify EventService config via PATCH\nhttps://{{bmc}}/redfish/v1/EventService\n\nGET https://{{bmc}}/redfish/v1/EventService and the changes applied.\nbmcweb_persistent_data.json will apply modification after PATCH.\nRestart bmcweb or reboot\nThe config maintains the changed.\n\nSigned-off-by: JunLin Chen <Jun-Lin.Chen@quantatw.com>\nChange-Id: Ic29385ea8231ba976bbf415af2803df2d30cb10a\n",
+    "createdOn": 1612254540,
+    "lastUpdated": 1627313124,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1612254540,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1612254556,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1612386990,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(6 comments)\n\nThis is an excellent start, but we need to break apart the reading and writing of config files from the current state of entity-manager, to avoid the dependency between the subsystems."
+        },
+        {
+            "timestamp": 1612431238,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1612469845,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613701888,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1613701906,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1613969773,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\nHi JunLin, Can this also persist the event subscriber's id ? similar to how we persist the session-id"
+        },
+        {
+            "timestamp": 1614232699,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1614232730,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1614233009,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 2:\n> \n> Hi JunLin, Can this also persist the event subscriber's id ? similar to how we persist the session-id\n\nI try to add the code for persist id. But still maintains the behavior that the subscription id will be non-sequential when it is created.\nDoes need to change the id based on the creation such like subscription/1, subscription/2, subscription/3?"
+        },
+        {
+            "timestamp": 1614234201,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1614321024,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> > Patch Set 2:\n> > \n> > Hi JunLin, Can this also persist the event subscriber's id ? similar to how we persist the session-id\n> \n> I try to add the code for persist id. But still maintains the behavior that the subscription id will be non-sequential when it is created.\n> Does need to change the id based on the creation such like subscription/1, subscription/2, subscription/3?\n\nI was referring to the id which is for example 777063716 in the subscriber url /redfish/v1/EventService/Subscriptions/777063716\nThis id needs to be persisted, and should not change after a BMC reboot or bmcweb restart. This need not be a sequential number."
+        },
+        {
+            "timestamp": 1614324101,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> > Patch Set 3:\n> > \n> > > Patch Set 2:\n> > > \n> > > Hi JunLin, Can this also persist the event subscriber's id ? similar to how we persist the session-id\n> > \n> > I try to add the code for persist id. But still maintains the behavior that the subscription id will be non-sequential when it is created.\n> > Does need to change the id based on the creation such like subscription/1, subscription/2, subscription/3?\n> \n> I was referring to the id which is for example 777063716 in the subscriber url /redfish/v1/EventService/Subscriptions/777063716\n> This id needs to be persisted, and should not change after a BMC reboot or bmcweb restart. This need not be a sequential number.\n\nThis Patch Set is as you would expect, the subscription id is still keep the original creation method in addSubscription function and can be persisted in bmcweb_persistent_data.json to be reloaded."
+        },
+        {
+            "timestamp": 1614488101,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> > Patch Set 3:\n> > \n> > > Patch Set 3:\n> > > \n> > > > Patch Set 2:\n> > > > \n> > > > Hi JunLin, Can this also persist the event subscriber's id ? similar to how we persist the session-id\n> > > \n> > > I try to add the code for persist id. But still maintains the behavior that the subscription id will be non-sequential when it is created.\n> > > Does need to change the id based on the creation such like subscription/1, subscription/2, subscription/3?\n> > \n> > I was referring to the id which is for example 777063716 in the subscriber url /redfish/v1/EventService/Subscriptions/777063716\n> > This id needs to be persisted, and should not change after a BMC reboot or bmcweb restart. This need not be a sequential number.\n> \n> This Patch Set is as you would expect, the subscription id is still keep the original creation method in addSubscription function and can be persisted in bmcweb_persistent_data.json to be reloaded.\n\nThanks JunLin. I saw them"
+        },
+        {
+            "timestamp": 1614539176,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(6 comments)\n\n> Patch Set 2:\n> \n> Hi JunLin, Can this also persist the event subscriber's id ? similar to how we persist the session-id\n\nThis patch is rearranging the persistent data.  Persisting the subscriber IDs would be a different patch."
+        },
+        {
+            "timestamp": 1614539243,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1614539419,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618969216,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1618969230,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1618972052,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1618972066,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1618976149,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nHi JunLin, \nThank you for the patch. \nCould you get your company to add you to their CI group? \nGet the \"User not approved, see admin, no CI\" to go away."
+        },
+        {
+            "timestamp": 1618976928,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15845/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620005361,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1622437395,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 5: Code-Review+1"
+        },
+        {
+            "timestamp": 1623924872,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 5:\n\nHi all, Is this commit good to get merged?"
+        },
+        {
+            "timestamp": 1624009520,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1624009538,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624009951,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20109/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624010123,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 6:\n\n> Patch Set 5:\n> \n> Hi all, Is this commit good to get merged?\n\nFix merge conflict."
+        },
+        {
+            "timestamp": 1624041599,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(9 comments)\n\nLots of minor things;  nothing terribly major."
+        },
+        {
+            "timestamp": 1624042557,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\none thing I don't see anywhere is propogating forward the old behavior.  We need something like:\n\nif old file exists:\n   Open old file\n   read json\n   write contents into new structure in common file.\n   delete old file\n\n\nThis will allow for backward compatibility for people upgrading."
+        },
+        {
+            "timestamp": 1624472694,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1624522435,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 7: Patch Set 6 was rebased"
+        },
+        {
+            "timestamp": 1624522481,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624522955,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20569/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624868726,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1624868742,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624869162,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20881/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624929896,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 8:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1624948774,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 8: Code-Review+1"
+        },
+        {
+            "timestamp": 1626726889,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 8: Code-Review+1\n\n(2 comments)\n\nSeems good to me but want Ed to look at this one."
+        },
+        {
+            "timestamp": 1626740645,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n> Patch Set 6:\n> \n> one thing I don't see anywhere is propogating forward the old behavior.  We need something like:\n> \n> if old file exists:\n>    Open old file\n>    read json\n>    write contents into new structure in common file.\n>    delete old file\n> \n> \n> This will allow for backward compatibility for people upgrading.\n\nThis comment looks like it was ignored in the newest patch?"
+        },
+        {
+            "timestamp": 1626767165,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1626767198,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1626767543,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/22349/ : FAILURE"
+        },
+        {
+            "timestamp": 1626767636,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 9:\n\n(2 comments)\n\n> Patch Set 8:\n> \n> > Patch Set 6:\n> > \n> > one thing I don't see anywhere is propogating forward the old behavior.  We need something like:\n> > \n> > if old file exists:\n> >    Open old file\n> >    read json\n> >    write contents into new structure in common file.\n> >    delete old file\n> > \n> > \n> > This will allow for backward compatibility for people upgrading.\n> \n> This comment looks like it was ignored in the newest patch?\n\nAdd loadOldbehavoir() to propagating forward the old behavior."
+        },
+        {
+            "timestamp": 1626767876,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1626767894,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1626768331,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/22357/ : SUCCESS"
+        },
+        {
+            "timestamp": 1626924879,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1626924895,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1626925483,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/22506/ : SUCCESS"
+        },
+        {
+            "timestamp": 1626931889,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 12: Commit message was updated."
+        },
+        {
+            "timestamp": 1626983975,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)\n\nFix your commit message, then this looks good to me."
+        },
+        {
+            "timestamp": 1627002099,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 13: Commit message was updated."
+        },
+        {
+            "timestamp": 1627002251,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 14: Commit message was updated."
+        },
+        {
+            "timestamp": 1627003292,
+            "reviewer": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "message": "Patch Set 15: Commit message was updated."
+        },
+        {
+            "timestamp": 1627036328,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 15:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627071642,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 15:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627071683,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 15: Code-Review+1"
+        },
+        {
+            "timestamp": 1627071704,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 15:\n\nLooks good to me, but I want to understand Sunithas comment before we merge this."
+        },
+        {
+            "timestamp": 1627276038,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 15: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627313122,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 15: Code-Review+2"
+        },
+        {
+            "timestamp": 1627313124,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 28afb49c480790e763b8491be0b5a8e35964dbc9 by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "a9de38ce0c39859d9bc5f78a84b7fc47323d17f7",
+            "parents": [
+                "6a9f85f9050e2c0f38148e295d7e25f56d05c6de"
+            ],
+            "ref": "refs/changes/11/40211/1",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1612254540,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 8,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This file should not have event service manager as a dependency."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 8,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "I move the event_service_manager.hpp to namespace persistent_data,\nIt means the include is similiar like #include <sessions.hpp> below."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "These are each only used in one place.  Please inline."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 25,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "These return to event_service_manager.hpp because persistent.hpp not to use them."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Event service needs to be pulling this config from persistent data, we can't be pushing it into it on read."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "If not pushing it into memory via this function, Redfish will not get the event service config.(it will be false 0 0)\nMay I ask you mean it should not call the functions under the redfish namespace. so all variables event service config and subscriptions should merge here likes sessions.hpp style. \nIt will not calling event service manager after modification."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> If not pushing it into memory via this function, Redfish will not get the event service config.(it will be false 0 0)\n\nhence why the event service code needs to pull this information, similar to how the session service pulls it.\n\n> May I ask you mean it should not call the functions under the redfish namespace. so all variables event service config and subscriptions should merge here likes sessions.hpp style. \n\nThe key here is that persistent data is intended to be a pull interface.  Clients that want to use it pull data from it, and request changes and writes when needed.  The class itself should not be calling into the various subsystems to push the data to them.\n\n> It will not calling event service manager after modification.\n\nExcellent."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "I move the namespace of event_service_manager.hpp to \"persistent_data\" from \"redfish\" and want its level like sessions.hpp."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 235,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "We should not be directly calling event service manager here."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 278,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "These need to be moved away from these helpers the match the get_if style of the other things in this file."
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 282,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "same problem here."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 198,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -238
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 208,
+            "sizeDeletions": 239
+        },
+        {
+            "number": 2,
+            "revision": "12c469271dcfca48568cf6c4a9845c8f3a1a238f",
+            "parents": [
+                "6a9f85f9050e2c0f38148e295d7e25f56d05c6de"
+            ],
+            "ref": "refs/changes/11/40211/2",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1613701888,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 141,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The persistent_data class should have nothing to do with sending an event.  I haven't read through this whole patchset yet, but this is certainly incorrect."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 69,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 242,
+                    "deletions": -257
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 41,
+                    "deletions": -28
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 364,
+            "sizeDeletions": 296
+        },
+        {
+            "number": 3,
+            "revision": "c15085f97199a2214265bc09d670c9a5aff102c0",
+            "parents": [
+                "ee135e246d8348048b5409b5ed0b81d9c1820c30"
+            ],
+            "ref": "refs/changes/11/40211/3",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1614232699,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This should be done in a different commit."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This literally says nothing about how you tested it.  How did you validate it?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: tabs in your commit message."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "How?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can you also add to your verification steps creating subscriptions on with the old code, then ensuring that they restore properly with the new code.  I don't see that you've handled that case in the code."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Add verification steps in patchset 5."
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The event service manager itself should not be in the persistent data namespace."
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "line": 37,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Restore to redfish namespace"
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "line": 1318,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This design is better, but I still don't like that it imposes a hard dependency on event service manager needing to know how to parse json.  Event service manager should only need the Subscription struct, and the persistent_data class should be able to parse the json into that struct."
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "line": 1318,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "This function will move to the Subscription struct under persistent_data namespace."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 261,
+                    "deletions": -258
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 42,
+                    "deletions": -29
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 383,
+            "sizeDeletions": 298
+        },
+        {
+            "number": 4,
+            "revision": "5280e5e9a68da8936a5a513dd552a642b5ad0923",
+            "parents": [
+                "c47b845812c16495803a858a7bc63f5511daf27d"
+            ],
+            "ref": "refs/changes/11/40211/4",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1618969216,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "type": "ADDED",
+                    "insertions": 188,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 82,
+                    "deletions": -203
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -13
+                }
+            ],
+            "sizeInsertions": 351,
+            "sizeDeletions": 216
+        },
+        {
+            "number": 5,
+            "revision": "b8594cb17c9d6f09a53470c35c8c5ede1ecfce3a",
+            "parents": [
+                "c47b845812c16495803a858a7bc63f5511daf27d"
+            ],
+            "ref": "refs/changes/11/40211/5",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1618972052,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "type": "ADDED",
+                    "insertions": 188,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -203
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -13
+                }
+            ],
+            "sizeInsertions": 345,
+            "sizeDeletions": 216
+        },
+        {
+            "number": 6,
+            "revision": "c567fb1753d2210c57f04243ad9508073ec4cf79",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/6",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1624009520,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Thanks for this commit! \nWe follow https://chris.beams.io/posts/git-commit/ for commit msgs \n\nLimit the subject line to 50 characters\nWrap the body at 72 characters\n\nCan the subject be more like \"EventService: Move persistent data\" or something that doesn't repeat EventService and persistent json twice and is under 50 chars. \n\nCan you wrap the body below ( i care less about testing data) but for the commit msg body (e.g. line 10) definitely makes it easier to read. \nSee https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/44060 as an example"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "The subject already changed"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "You can use \"resolves https://github.com/openbmc/bmcweb/issues/168\" or \"resolves #openbmc/bmcweb#168\" or a lot of other keywords and it will automatically close when this is merged. \nhttps://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Can you add a why we need this commit? \nE.g. I took from https://github.com/openbmc/bmcweb/issues/168 \n\n\"This makes it very difficult to keep in sync with the existing files, and has caused several bugs because the path it uses is different than the existing bmcweb_persistent_data.json, and it's missing several error code checks.\""
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Underscore naming convention please event_service_store.hpp."
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 0,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You inherit from shared_from_this, but don't actually use shared_from_this() anywhere.  I suspect this can be removed."
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 10,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This operation can throw.  Please use get_ptr to verify type first."
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 35,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This operation can throw if value() is not of the correct type.  Please iterate through the config manually, verifying the type with get_ptr at each level"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 66,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 117,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "probably take out \"security\".  This doesn't really have anything to do with security.  Maybe change security to field?"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 117,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 143,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "FYI, this is the pattern you should be using on line 35."
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 153,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Needs range checked before loading into a smaller value."
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 153,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "line": 163,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "same here."
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "line": 635,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I suspect this can just be:\npersistent_data::UserSubscription& newSub =\n                *it.second;"
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "line": 635,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "I think it used like Line 743: std::shared_ptr<Subscription> entry = it.second;"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "type": "ADDED",
+                    "insertions": 188,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -203
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 344,
+            "sizeDeletions": 215
+        },
+        {
+            "number": 7,
+            "revision": "990329c28d43d5a19eeb4e8d6cb77d1e483da819",
+            "parents": [
+                "49e429ca172365bd4ba16c924501321c73527cbe"
+            ],
+            "ref": "refs/changes/11/40211/7",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1624522435,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/eventservicestore.hpp",
+                    "type": "ADDED",
+                    "insertions": 188,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -203
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 344,
+            "sizeDeletions": 215
+        },
+        {
+            "number": 8,
+            "revision": "09109a769e8d7cf8cf4f3591ca608a76ea7446c7",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/8",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1624868726,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/event_service_store.hpp",
+                    "line": 187,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Would think this would be a BMCWEB_LOG_ERROR. Specially if the one on line 173 is."
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "line": 187,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Modify to BMCWEB LOG_ERROR"
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "would prefer a more descriptive var name here.. \ne.g. eventServiceConfig, eventService"
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "email": "Jun-Lin.Chen@quantatw.com",
+                        "username": "kmfic567"
+                    },
+                    "message": "Modify to eventServiceConfig"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 262,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -203
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 418,
+            "sizeDeletions": 215
+        },
+        {
+            "number": 9,
+            "revision": "44f993277509f6953a05467c3f300250e87baf84",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/9",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1626767165,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 157,
+                    "deletions": -200
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 504,
+            "sizeDeletions": 212
+        },
+        {
+            "number": 10,
+            "revision": "4b726abc8ba7d027e79f49fdfd7636f358798fef",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/10",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1626767876,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 148,
+                    "deletions": -194
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 495,
+            "sizeDeletions": 206
+        },
+        {
+            "number": 11,
+            "revision": "317943c9039daca4e5d81e9e6511a0b63c4fa0a9",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/11",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1626924879,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -194
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 499,
+            "sizeDeletions": 206
+        },
+        {
+            "number": 12,
+            "revision": "734cfa1cb9cc769f6b1da839f26ab3106d248ffa",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/12",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1626931889,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "wrap your commits 50/72 please."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 31,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -194
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 499,
+            "sizeDeletions": 206
+        },
+        {
+            "number": 13,
+            "revision": "724dac55a4ea084bfb73e069e15bc880b7a0d7ba",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/13",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1627002099,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -194
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 499,
+            "sizeDeletions": 206
+        },
+        {
+            "number": 14,
+            "revision": "1917956f627632ebf7239fd274570d14e0590c44",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/14",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1627002251,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -194
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 499,
+            "sizeDeletions": 206
+        },
+        {
+            "number": 15,
+            "revision": "1dca36cbce47e1c1dce3e83185e70535c2a40bb4",
+            "parents": [
+                "b937830fe5a7adba40e63f6059bf2c543733de33"
+            ],
+            "ref": "refs/changes/11/40211/15",
+            "uploader": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "createdOn": 1627003292,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "line": 169,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Here the persistent subscription data should be parsed and the subscribers should be listed when user performs a GET on /redfish/v1/EventService/Subscriptions after a BMC reset"
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "line": 169,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not following.  Isn't that already what it does?  The file is loaded at startup, so there's no need to re-read the file."
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "line": 169,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "My bad. Due to the other bug(fixed via https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/45186) we were not listing the subscribers. This is good to go."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -194
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 499,
+            "sizeDeletions": 206
+        },
+        {
+            "number": 16,
+            "revision": "28afb49c480790e763b8491be0b5a8e35964dbc9",
+            "parents": [
+                "02bdd9672c7619cc1e11fe3daed8e3ec092b207b"
+            ],
+            "ref": "refs/changes/11/40211/16",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1627313124,
+            "author": {
+                "email": "Jun-Lin.Chen@quantatw.com",
+                "username": "kmfic567"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/event_service_store.hpp",
+                    "type": "ADDED",
+                    "insertions": 264,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/persistent_data.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -194
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 499,
+            "sizeDeletions": 206
+        }
+    ]
+}

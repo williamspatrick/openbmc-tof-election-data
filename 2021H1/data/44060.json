@@ -1,0 +1,1774 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I83e62b70e97f56dc57d43b9081f333a02fe85495",
+    "number": 44060,
+    "subject": "Remove ambiguous privileges constructor",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/44060",
+    "commitMessage": "Remove ambiguous privileges constructor\n\nThere are a number of endpoints that assume that a given routes\nprivileges are governed by a single set of privileges, instead of\nmultiple sets ORed together.  To handle this, there were two overloads\nof the privileges() method, one that took a vector of Privileges, and\none that took an initializer_list of const char*.  Unfortunately, this\nleads some code in AccountService to pick the wrong overload when it's\ncalled like this\n.privileges( {{\"ConfigureUsers\"}, {\"ConfigureManager\"},\n{\"ConfigureSelf\"}})\n\nThis is supposed to be \"User must have ConfigureUsers, or\nConfigureManager, or ConfigureSelf\".  Currently, because it selects the\nwrong overload, it computes to \"User must have ConfigureUsers AND\nConfigureManager AND ConfigureSelf.\n\nThe double braces are supposed to cause this to form a vector of\nPrivileges, but it appears that the initializer list gets consumed, and\nthe single invocation of initializer list is called.  Interestingly,\ntrying to put in a privileges overload of\nintializer_list<initializer_list<const char*>> causes the compilation to\nfail with an ambiguous call error, which is what I would've expected to\nsee previously in this case, but alas, I'm only a novice when it comes\nto how the C++ standard works in these edge cases.  This is likely due\nin part to the fact that they were templates of an unused template param\n(seemingly copied from the previous method) and SFINAE rules around\ntemplates.\n\nThis commit functionally removes one of the privileges overloads, and\nadds a second set of braces to every privileges call that previously had\na single set of braces.  Previous code will not compile now, which is\nIMO a good thing.\n\nThis likely popped up in the Node class removal, because the Node class\nexplicitly constructs a vector of Privilege objects, ensuing it can hit\nthe right overload\n\nTested:\nRan Redfish service validator\n\nTested the specific use case outlined on discord with:\nCreating a new user with operator privilege:\n```\nredfishtool -S Always -u root -p 0penBmc -vvvvvvvvv -r 192.168.7.2\nAccountService adduser foo mysuperPass1 Operator\n```\n\nThen attempting to list accounts:\n```\ncurl -vvvv --insecure --user foo:mysuperPass1\nhttps://192.168.7.2/redfish/v1/AccountService/Accounts/foo\n```\n\nWhich succeeded and returned the account in question.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I83e62b70e97f56dc57d43b9081f333a02fe85495\n",
+    "createdOn": 1623710704,
+    "lastUpdated": 1623806361,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1623710704,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1623710722,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623710755,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/19676/ : FAILURE"
+        },
+        {
+            "timestamp": 1623721574,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1623721592,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623722006,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19686/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623766564,
+            "reviewer": {
+                "name": "Abhishek Patel",
+                "email": "Abhishek.Patel@ibm.com",
+                "username": "patelabhishek9893"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1623775744,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3: Published edit on patch set 2."
+        },
+        {
+            "timestamp": 1623775761,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623775765,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1623775977,
+            "reviewer": {
+                "name": "Abhishek Patel",
+                "email": "Abhishek.Patel@ibm.com",
+                "username": "patelabhishek9893"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1623776177,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19786/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623779166,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1623782059,
+            "reviewer": {
+                "name": "Abhishek Patel",
+                "email": "Abhishek.Patel@ibm.com",
+                "username": "patelabhishek9893"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1623782210,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1623782454,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1623782460,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1623782482,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623782495,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 5: New patch set was added with same tree, parent, and commit message as Patch Set 4."
+        },
+        {
+            "timestamp": 1623782508,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1623782512,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623782515,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/19794/ : ABORTED"
+        },
+        {
+            "timestamp": 1623782920,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19795/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623795495,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1623795512,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623795923,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19809/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623805246,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1623806321,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6: Code-Review+2"
+        },
+        {
+            "timestamp": 1623806329,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully merged by Ed Tanous"
+        },
+        {
+            "timestamp": 1623806361,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\nMerging quickly to fix the regression.  If anyone has issue with this, happy to discuss still."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "df82e31bb2cdef9d425d249aac33fb0221d6cee1",
+            "parents": [
+                "11c57e2f6f896f3cc0c1ec658a2877c2456b564b"
+            ],
+            "ref": "refs/changes/60/44060/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1623710704,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 64,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -11
+                },
+                {
+                    "file": "include/dbus_monitor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/kvm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/obmc_console.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -10
+                },
+                {
+                    "file": "include/vm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/precheck.hpp",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -37
+                },
+                {
+                    "file": "redfish-core/lib/managers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/roles.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/thermal.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 194,
+            "sizeDeletions": 177
+        },
+        {
+            "number": 2,
+            "revision": "32f0ebf762d35dd5c8a3a4a541338a21efc81c3b",
+            "parents": [
+                "11c57e2f6f896f3cc0c1ec658a2877c2456b564b"
+            ],
+            "ref": "refs/changes/60/44060/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1623721574,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "http/routing.hpp",
+                    "line": 437,
+                    "reviewer": {
+                        "name": "Abhishek Patel",
+                        "email": "Abhishek.Patel@ibm.com",
+                        "username": "patelabhishek9893"
+                    },
+                    "message": "Question why we are creating set of char* set std::initializer_list<std::initializer_list<const char*>>& p, rather then std::initializer_list<const char*>& p? Because at the end we are adding them individually."
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "line": 437,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Because it's a set of sets.  The top level set determines the parameters that are ORed together, and the second set determines the parameters that are ANDed together;  More information is available in the Redfish spec and the PrivilegeRegistry documentation if you're interested."
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "line": 437,
+                    "reviewer": {
+                        "name": "Abhishek Patel",
+                        "email": "Abhishek.Patel@ibm.com",
+                        "username": "patelabhishek9893"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "line": 205,
+                    "reviewer": {
+                        "name": "Abhishek Patel",
+                        "email": "Abhishek.Patel@ibm.com",
+                        "username": "patelabhishek9893"
+                    },
+                    "message": "why it is public? is that for test?"
+                },
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "line": 205,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Yep, this was a mistake, and I didn't mean to add this file.  Fixed."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 64,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -11
+                },
+                {
+                    "file": "include/dbus_monitor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/kvm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/obmc_console.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -10
+                },
+                {
+                    "file": "include/vm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -37
+                },
+                {
+                    "file": "redfish-core/lib/managers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/roles.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/thermal.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 175
+        },
+        {
+            "number": 3,
+            "revision": "5dad86e0ae06a3a5078664d7e09dd444bdfe553c",
+            "parents": [
+                "11c57e2f6f896f3cc0c1ec658a2877c2456b564b"
+            ],
+            "ref": "refs/changes/60/44060/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1623775744,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Empty line."
+                },
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "That serves me right for trying to edit within gerrit.  Fixing shortly."
+                },
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 64,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -11
+                },
+                {
+                    "file": "include/dbus_monitor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/kvm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/obmc_console.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -10
+                },
+                {
+                    "file": "include/vm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/privileges.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -37
+                },
+                {
+                    "file": "redfish-core/lib/managers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/roles.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/thermal.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 175
+        },
+        {
+            "number": 4,
+            "revision": "d2eaec485cfdedee4ff164358bd4f3d44e3a5065",
+            "parents": [
+                "938f25685f4b93d632fe5169cf5e258164538114"
+            ],
+            "ref": "refs/changes/60/44060/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1623782454,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 64,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -11
+                },
+                {
+                    "file": "include/dbus_monitor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/kvm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/obmc_console.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -10
+                },
+                {
+                    "file": "include/vm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -37
+                },
+                {
+                    "file": "redfish-core/lib/managers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/roles.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/thermal.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 167,
+            "sizeDeletions": 175
+        },
+        {
+            "number": 5,
+            "revision": "3ee3217103768453679345ae53020160aa4e76f0",
+            "parents": [
+                "938f25685f4b93d632fe5169cf5e258164538114"
+            ],
+            "ref": "refs/changes/60/44060/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1623782495,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "NO_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 64,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -11
+                },
+                {
+                    "file": "include/dbus_monitor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/kvm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/obmc_console.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -10
+                },
+                {
+                    "file": "include/vm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -37
+                },
+                {
+                    "file": "redfish-core/lib/managers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/roles.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/thermal.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 167,
+            "sizeDeletions": 175
+        },
+        {
+            "number": 6,
+            "revision": "432a890cfca335e565b770b1604ed4e547c5a732",
+            "parents": [
+                "f9a6708c4c6490257e2eb6a8c04458f500902476"
+            ],
+            "ref": "refs/changes/60/44060/6",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1623795495,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 64,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/routing.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -11
+                },
+                {
+                    "file": "include/dbus_monitor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -9
+                },
+                {
+                    "file": "include/image_upload.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "include/kvm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/obmc_console.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -10
+                },
+                {
+                    "file": "include/vm_websocket.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/event_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -37
+                },
+                {
+                    "file": "redfish-core/lib/managers.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/metric_report_definition.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/network_protocol.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/power.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/roles.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/telemetry_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/thermal.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/virtual_media.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 167,
+            "sizeDeletions": 175
+        }
+    ]
+}

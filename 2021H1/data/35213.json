@@ -1,0 +1,3393 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I838d39d5765ddc8701f7e5c533a93eebde021cbf",
+    "number": 35213,
+    "subject": "Validate the path during ConfigFile upload",
+    "owner": {
+        "name": "Sunitha Harish",
+        "email": "sunithaharish04@gmail.com",
+        "username": "sunharis"
+    },
+    "assignee": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/35213",
+    "commitMessage": "Validate the path during ConfigFile upload\n\nThe IBM management console usecase - ConfigFile upload was allowing\nto create or modify any file at the BMC when the path url is given\nas below.\nPUT https://${bmc}/ibm/v1/Host/ConfigFiles/../../../../../<any file under root dir> --data-binary \"junk data\"\n\nThis commit adds validation to the \"path\" variable after the \"ConfigFiles/\"\nin the url - so that only the ConfigFiles are created or modified.\n\nThe filename validation includes:\n  Restrict the maximum filename length to 20 characters\n  Restrict the allowed charaters to [A-Za-z0-9-]\n\nThe minimum size of the file allowed is 100 bytes\nThe maximum size of the file allowed is 500KB\nMaximum total size of the ConfigFile directory at BMC file system allowed is 10MB\n\nTested by:\n\n  1. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/../../../../../etc/p2 --data-binary \"some data\"\n     Bad Request\n\n  2. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/../../../etc/p2 --data-binary \"some data\"\n     Bad Request\n\n  3. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/../etc/p2 --data-binary \"some data\"\n     Bad Request\n\n  4. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/etc/p2 --data-binary \"some data\"\n     {\n       \"Description\": \"Error while creating the file\"\n     }\n\n  5. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/mydir/p2 --data-binary \"some data\"\n     {\n       \"Description\": \"Error while creating the file\"\n     }\n\n  6. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/ --data-binary \"some data\"\n     Not Found\n\n  7. PUT https://${bmc}/ibm/v1/Host/ConfigFiles --data-binary \"some data\"\n     Method Not Allowed\n\n  8. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/p2/../p2 --data-binary \"some data\"\n     Bad Request\n\n  9. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/p2/p2 --data-binary \"some data\"\n     {\n       \"Description\": \"Error while creating the file\"\n     }\n\n  10. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/p2/../../../p2 --data-binary \"some data\"\n      Bad Request\n\n  11. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/./../../p2 --data-binary \"some data\"\n      Bad Request\n\n  12. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/. --data-binary \"some data\"\n      Bad Request\n\n  13. PUT https://${bmc}/ibm/v1/Host/../ConfigFiles/p2 --data-binary \"some data\"\n      Not Found\n\n  14. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/p2 --data-binary \"some data\"\n      {\n        \"Description\": \"File Created\"\n      }\n\n  15. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/p2 --data-binary \"some data\"\n      {\n        \"Description\": \"File Updated\"\n      }\n\n  16. PUT https://${bmc}/ibm/v1/Host/ConfigFiles/p2.ext --data-binary \"some data\"\n      {\n        \"Description\": \"File Created\"\n      }\n  17. Tested sending filename greater than 20 charaters\n      Bad Request\n  18. Tested sending filename with special charaters\n      Bad Request\n  19. Tested sending filesize less than 100bytes\n      Bad request\n  20. Tested sending filesize greater than 500KB\n      Bad request\n  21. Tested uploading the file when the directory size is nearly full\n      Bad request\n  22. Added unit test for isValidConfigFileName\n\nSigned-off-by: Sunitha Harish <sunharis@in.ibm.com>\nChange-Id: I838d39d5765ddc8701f7e5c533a93eebde021cbf\n",
+    "createdOn": 1596116324,
+    "lastUpdated": 1613171013,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1596116324,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1596116338,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1596116344,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/2188/"
+        },
+        {
+            "timestamp": 1596116666,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/2188/ : SUCCESS"
+        },
+        {
+            "timestamp": 1596119899,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1596120341,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1596121798,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1596526467,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1596603344,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1596610917,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)\n\nA little annoyed at this, as a pointed out this attack before this subsystem was merged.  Also annoyed that this patchset doesn't actually fix it."
+        },
+        {
+            "timestamp": 1596749296,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1596794133,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 1:\n\nThanks Ed and Joseph for the comments. I will work on them and update this commit."
+        },
+        {
+            "timestamp": 1596819699,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1596819842,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> Thanks Ed and Joseph for the comments. I will work on them and update this commit.\n\nPlease rededicate yourself to applying more rigor in testing in the future.  We're building a construct here that is VERY hard to get right, despite the small amount of code.  It will probably  require 10X the number of test cases as you have in your commit message.  I'd also recommend running some kind of fuzzer on it, but that's at your discretion."
+        },
+        {
+            "timestamp": 1597045071,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)\n\n> > Patch Set 1:\n > >\n > > Thanks Ed and Joseph for the comments. I will work on them and\n > update this commit.\n > \n > Please rededicate yourself to applying more rigor in testing in the\n > future.  We're building a construct here that is VERY hard to get\n > right, despite the small amount of code.  It will probably  require\n > 10X the number of test cases as you have in your commit message. \n > I'd also recommend running some kind of fuzzer on it, but that's at\n > your discretion.\n\nWe will be running the security test cases on this commit. Ed, do you have some recommendations on any fuzzer tools ?"
+        },
+        {
+            "timestamp": 1597053163,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1597053176,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1597053182,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/2682/"
+        },
+        {
+            "timestamp": 1597053501,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/2682/ : SUCCESS"
+        },
+        {
+            "timestamp": 1597053782,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1597053869,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1597053881,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1597053887,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/2683/"
+        },
+        {
+            "timestamp": 1597055032,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/2683/ : SUCCESS"
+        },
+        {
+            "timestamp": 1597071189,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 1:\n> \n> (2 comments)\n> \n> > > Patch Set 1:\n>  > >\n>  > > Thanks Ed and Joseph for the comments. I will work on them and\n>  > update this commit.\n>  > \n>  > Please rededicate yourself to applying more rigor in testing in the\n>  > future.  We're building a construct here that is VERY hard to get\n>  > right, despite the small amount of code.  It will probably  require\n>  > 10X the number of test cases as you have in your commit message. \n>  > I'd also recommend running some kind of fuzzer on it, but that's at\n>  > your discretion.\n> \n> We will be running the security test cases on this commit. Ed, do you have some recommendations on any fuzzer tools ?\n\nAFL Fuzzer\nand clangs libfuzzer are two that I've run in the past on small sections of code.\n\nUltimately, I'd like to get bmcweb to the point where we can fuzz the HTTP front end with coverage directed libfuzzer, but we're not there yet.\n\n\nAgain, I suspect the right answer here is to disallow uploading of arbitrary files, and impose an allowlist of paths.  That's how most other patches in bmcweb do it, and ends up being much more secure.\n\nIf you're curious about something missing, I'll pose a question: are there any characters that the filesystem doesn't allow in filenames?"
+        },
+        {
+            "timestamp": 1598396081,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 4:\n\n> If you're curious about something missing, I'll pose a question: are there any characters that the filesystem doesn't allow in filenames?\n\nDon't answer, it's a trick question!  :-)  See https://en.wikipedia.org/wiki/Filename#Encoding_interoperability\n\nThe kernel processes byte data and handles byte value 47 specially.  Most popular character encodings (https://en.wikipedia.org/wiki/Character_encoding) like ASCII and Unicode UTF-8 treat byte value 47 (0x2f) encodes the solidus character '/'.  The kernel treats byte value 47 as a pathname separator, for example, \"subdir/file\", so the slash cannot appear in a filename component when interpreted as ASCII or UTF-8.\n\nNote also that byte value 0 is the NULL terminator for C language encoded strings that are passed into the kernel.  So if you try to pass the 0 byte in, you'll only truncate your input.  For example, attempting to invoke creat(\"filname-with-\\0-null\", ...) will result in the kernel using \"filname-with-\" and ignoring the bytes containing \"\\0-null\\0\"."
+        },
+        {
+            "timestamp": 1598396278,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4:\n> \n> > If you're curious about something missing, I'll pose a question: are there any characters that the filesystem doesn't allow in filenames?\n> \n> Don't answer, it's a trick question!  :-)  See https://en.wikipedia.org/wiki/Filename#Encoding_interoperability\n> \n> The kernel processes byte data and handles byte value 47 specially.  Most popular character encodings (https://en.wikipedia.org/wiki/Character_encoding) like ASCII and Unicode UTF-8 treat byte value 47 (0x2f) encodes the solidus character '/'.  The kernel treats byte value 47 as a pathname separator, for example, \"subdir/file\", so the slash cannot appear in a filename component when interpreted as ASCII or UTF-8.\n> \n> Note also that byte value 0 is the NULL terminator for C language encoded strings that are passed into the kernel.  So if you try to pass the 0 byte in, you'll only truncate your input.  For example, attempting to invoke creat(\"filname-with-\\0-null\", ...) will result in the kernel using \"filname-with-\" and ignoring the bytes containing \"\\0-null\\0\".\n\nWell done.  Now, given what you now know about filesystem interop and injection attacks, would you build an API that allows arbitrary user-directed files to be uploaded to the bmc filesystem directly?"
+        },
+        {
+            "timestamp": 1604606061,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\nIs this still being worked?"
+        },
+        {
+            "timestamp": 1604717787,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 4:\n\nEd, Joseph, Are we saying that there can not be a REST API which will allow the REST endpoint to write the file on to BMC file system?"
+        },
+        {
+            "timestamp": 1604899085,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4:\n> \n> Ed, Joseph, Are we saying that there can not be a REST API which will allow the REST endpoint to write the file on to BMC file system?\n\nFiles can be written, that's fine, but you cannot be accepting said filename path from the user.  That operation is dangerous, and has been the cause of numerous security issues over the years.  Create an endpoint per file you expect, and write them to fixed, unique, non-overlapping locations in the filesystem."
+        },
+        {
+            "timestamp": 1605087132,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 4:\n\n> > Patch Set 4:\n > >\n > > Ed, Joseph, Are we saying that there can not be a REST API which\n > will allow the REST endpoint to write the file on to BMC file\n > system?\n > \n > Files can be written, that's fine, but you cannot be accepting said\n > filename path from the user.  That operation is dangerous, and has\n > been the cause of numerous security issues over the years.  Create\n > an endpoint per file you expect, and write them to fixed, unique,\n > non-overlapping locations in the filesystem.\n\nThe requirement is : The filename is chosen by the client. BMC provides a storage for that file.\n\nThe path where the file stored is fixed by the BMC. That is the reason this is a REST PUT operation, where the file upload is being performed as per the http put command. The changes made in this commit fixes the bug where BMC was allowing arbitrary path file uploads. \n\nIf the same filename is uploaded again, it will be a file update operation for BMC, where it will overwrite the existing file with the new content which the client provides. BMC will not be checking the content of the file to see if its changed or not."
+        },
+        {
+            "timestamp": 1605115680,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4:\n> \n> > > Patch Set 4:\n>  > >\n>  > > Ed, Joseph, Are we saying that there can not be a REST API which\n>  > will allow the REST endpoint to write the file on to BMC file\n>  > system?\n>  > \n>  > Files can be written, that's fine, but you cannot be accepting said\n>  > filename path from the user.  That operation is dangerous, and has\n>  > been the cause of numerous security issues over the years.  Create\n>  > an endpoint per file you expect, and write them to fixed, unique,\n>  > non-overlapping locations in the filesystem.\n> \n> The requirement is : The filename is chosen by the client. BMC provides a storage for that file.\n\nIf the filename MUST be chosen by the client, then it shouldn't be written to the BMC filesystem path.  One option would be to store the \"filename\" in a separate place, with pointers to the actual file, which would use a more concrete naming structure that doesn't have possible attacks.\n\nWith that said, whomever wrote that requirement for you somewhat tied your hands a bit, and made a very attack-surface heavy API.  You might point this out to them, and close with someone on your security team (Joseph Reynolds comes to mind) about how you can redefine your requirements to build a more secure API, it seems like a good idea.  Alternatively, we could just add the _INSECURE flag to the ibm management console option if security isn't required in your use case.\n\n> \n> The path where the file stored is fixed by the BMC. That is the reason this is a REST PUT operation, where the file upload is being performed as per the http put command. The changes made in this commit fixes the bug where BMC was allowing arbitrary path file uploads.\n\nIt doesn't fully fix it.  It only fixes the one case you found.\n\n> \n> If the same filename is uploaded again, it will be a file update operation for BMC, where it will overwrite the existing file with the new content which the client provides. BMC will not be checking the content of the file to see if its changed or not.\n\nIf the only requirement is that overwrite semantics are obeyed, maybe you could write a hash of the filename to the filesystem?  Assuming you used base64 encoding, you'd be able to upload the file without fear of causing an injection attack, but still \"overwrite\" with new files when an old one is present."
+        },
+        {
+            "timestamp": 1606127201,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1606127213,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1606127661,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 5:\n\n> > Patch Set 4:\n > >\n > > > > Patch Set 4:\n > >  > >\n > >  > > Ed, Joseph, Are we saying that there can not be a REST API\n > which\n > >  > will allow the REST endpoint to write the file on to BMC file\n > >  > system?\n > >  >\n > >  > Files can be written, that's fine, but you cannot be accepting\n > said\n > >  > filename path from the user.  That operation is dangerous, and\n > has\n > >  > been the cause of numerous security issues over the years. \n > Create\n > >  > an endpoint per file you expect, and write them to fixed,\n > unique,\n > >  > non-overlapping locations in the filesystem.\n > >\n > > The requirement is : The filename is chosen by the client. BMC\n > provides a storage for that file.\n > \n > If the filename MUST be chosen by the client, then it shouldn't be\n > written to the BMC filesystem path.  One option would be to store\n > the \"filename\" in a separate place, with pointers to the actual\n > file, which would use a more concrete naming structure that doesn't\n > have possible attacks.\n > \n > With that said, whomever wrote that requirement for you somewhat\n > tied your hands a bit, and made a very attack-surface heavy API. \n > You might point this out to them, and close with someone on your\n > security team (Joseph Reynolds comes to mind) about how you can\n > redefine your requirements to build a more secure API, it seems\n > like a good idea.  Alternatively, we could just add the _INSECURE\n > flag to the ibm management console option if security isn't\n > required in your use case.\n > \n > >\n > > The path where the file stored is fixed by the BMC. That is the\n > reason this is a REST PUT operation, where the file upload is being\n > performed as per the http put command. The changes made in this\n > commit fixes the bug where BMC was allowing arbitrary path file\n > uploads.\n > \n > It doesn't fully fix it.  It only fixes the one case you found.\n > \n > >\n > > If the same filename is uploaded again, it will be a file update\n > operation for BMC, where it will overwrite the existing file with\n > the new content which the client provides. BMC will not be checking\n > the content of the file to see if its changed or not.\n > \n > If the only requirement is that overwrite semantics are obeyed,\n > maybe you could write a hash of the filename to the filesystem? \n > Assuming you used base64 encoding, you'd be able to upload the file\n > without fear of causing an injection attack, but still \"overwrite\"\n > with new files when an old one is present.\n\nI have added filename length restriction and the allowed character validation. Generating hashed filename is not a feasible solution"
+        },
+        {
+            "timestamp": 1606128435,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/8342/ : SUCCESS"
+        },
+        {
+            "timestamp": 1606139877,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 5:\n\n> \n> I have added filename length restriction and the allowed character validation. Generating hashed filename is not a feasible solution\n\nCan you explain more why a hashed filename is not a feasible solution? \n\nI liked Ed's suggestion above to meet our requirements: \n\n If the filename MUST be chosen by the client, then it shouldn't be written to the BMC filesystem path.  One option would be to store the \"filename\" in a separate place, with pointers to the actual file, which would use a more concrete naming structure that doesn't have possible attacks. \n\nWe have a filename interface in D-Bus already, https://github.com/openbmc/phosphor-dbus-interfaces/blob/05375b14e5a68ac249da6a8cd68e3d522a7ed022/xyz/openbmc_project/Common/TFTP.interface.yaml that we might be able to use"
+        },
+        {
+            "timestamp": 1606141342,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 5:\n\n> >\n > > I have added filename length restriction and the allowed\n > character validation. Generating hashed filename is not a feasible\n > solution\n > \n > Can you explain more why a hashed filename is not a feasible\n > solution?\n > \n > I liked Ed's suggestion above to meet our requirements:\n > \n > If the filename MUST be chosen by the client, then it shouldn't be\n > written to the BMC filesystem path.  One option would be to store\n > the \"filename\" in a separate place, with pointers to the actual\n > file, which would use a more concrete naming structure that doesn't\n > have possible attacks.\n > \n > We have a filename interface in D-Bus already, https://github.com/openbmc/phosphor-dbus-interfaces/blob/05375b14e5a68ac249da6a8cd68e3d522a7ed022/xyz/openbmc_project/Common/TFTP.interface.yaml\n > that we might be able to use\n\nAs discussed in the workshops that we had during design phase, the BMC is a storage for the files which are managed by the Management Console. The filename is chosen by the client, and the client does operations on the relevant filenames. BMC does not interpret any data in this path - other than doing GET, PUT and DELETE operations on the filenames provided by the client. There is no POST operation. \n\nChanging this would need considerable re-design at the client side as well."
+        },
+        {
+            "timestamp": 1606149041,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n> Patch Set 5:\n> \n> > >\n>  > > I have added filename length restriction and the allowed\n>  > character validation. Generating hashed filename is not a feasible\n>  > solution\n>  > \n>  > Can you explain more why a hashed filename is not a feasible\n>  > solution?\n>  > \n>  > I liked Ed's suggestion above to meet our requirements:\n>  > \n>  > If the filename MUST be chosen by the client, then it shouldn't be\n>  > written to the BMC filesystem path.  One option would be to store\n>  > the \"filename\" in a separate place, with pointers to the actual\n>  > file, which would use a more concrete naming structure that doesn't\n>  > have possible attacks.\n>  > \n>  > We have a filename interface in D-Bus already, https://github.com/openbmc/phosphor-dbus-interfaces/blob/05375b14e5a68ac249da6a8cd68e3d522a7ed022/xyz/openbmc_project/Common/TFTP.interface.yaml\n>  > that we might be able to use\n> \n> As discussed in the workshops that we had during design phase, the BMC is a storage for the files which are managed by the Management Console. The filename is chosen by the client, and the client does operations on the relevant filenames. BMC does not interpret any data in this path - other than doing GET, PUT and DELETE operations on the filenames provided by the client. There is no POST operation. \n> \n\nThe implementation I proposed would meet all of those requirements.\n\n> Changing this would need considerable re-design at the client side as well.\n\nThe change I proposed doesn't change the client-facing API at all, so I'm not really following this statement."
+        },
+        {
+            "timestamp": 1606922238,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 5:\n\nWe reviewed the requirements for these \"config save area\" file APIs.  Some key points:\n1. These APIs are intended as a limited-use file server.  The service processor stores the files but does not use them in any other way.  The use case is for redundant management consoles (multiple IBM HMCs) to coordinate to manage the BMC's host's hypervisor. \n2. GET/PUT/DELETE operations must be supported.  Also GET on the collection, and DELETE all.\n3. The filename is chosen by the client and has a maximum of 20 characters from [A-Za-z9-0-].\n4. Each file is about 500Kb and has a specific format, so the API should check the format (perhaps a magic number check) and enforce a maximum size for each file.\n5. The collection of files is flat (meaning all the files are in the same subdirectory) and has a maximum aggregate size (which effectively limits the number of files that can be present).  The API PUT operation should check the aggregate size limit (overall size of all \"config save area\" files in the subdirectory)."
+        },
+        {
+            "timestamp": 1606922927,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 5:\n\nI would like to avoid using hash-encoded filenames.  Given the clarified requirements and updated checks for limited character set and limited length, I don't think this is needed.  I think the API can simply validate the filename (as currently coded) and directly manipulate files in the BMC's subdirectory using the name provided.\n\nI am going through considerations in https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload  for additional check the APIs should do, and additional test cases.  Is there a recommended public resource to use for this?"
+        },
+        {
+            "timestamp": 1606924528,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n> Patch Set 5:\n> \n> I would like to avoid using hash-encoded filenames.  Given the clarified requirements and updated checks for limited character set and limited length, I don't think this is needed.\n\nAgreed;  Your last set of requirement should be sufficient, with the addition that files are written without group sharing or execute permissions, and any GET request is returned with the appropriate content-type such that the file can't be accidentally interpreted as javascript/html.\n\n>  I think the API can simply validate the filename (as currently coded) and directly manipulate files in the BMC's subdirectory using the name provided.\n\nAssuming you limit to alphanumeric and limit the length, yes, this should work fine.\n\n> \n> I am going through considerations in https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload  for additional check the APIs should do, and additional test cases.  Is there a recommended public resource to use for this?\n\nMost of my experience comes from having to fix CVEs on BMCs when other developers tried to be clever in an identical way.  That owasp page is new to me, so I'll give it a look.  I still really don't like that we have an arbitrary file upload at all, but considering this is under the IBM option, I guess I'm ok with it."
+        },
+        {
+            "timestamp": 1607012384,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 5:\n\n> > Patch Set 5:\n > >\n > > I would like to avoid using hash-encoded filenames.  Given the\n > clarified requirements and updated checks for limited character set\n > and limited length, I don't think this is needed.\n > \n > Agreed;  Your last set of requirement should be sufficient, with\n > the addition that files are written without group sharing or\n > execute permissions, and any GET request is returned with the\n > appropriate content-type such that the file can't be accidentally\n > interpreted as javascript/html.\n > \n > >  I think the API can simply validate the filename (as currently\n > coded) and directly manipulate files in the BMC's subdirectory\n > using the name provided.\n > \n > Assuming you limit to alphanumeric and limit the length, yes, this\n > should work fine.\n > \n > >\n > > I am going through considerations in https://owasp.org/www-community/vulnerabilities/Unrestricted_File_Upload\n >  for additional check the APIs should do, and additional test\n > cases.  Is there a recommended public resource to use for this?\n > \n > Most of my experience comes from having to fix CVEs on BMCs when\n > other developers tried to be clever in an identical way.  That\n > owasp page is new to me, so I'll give it a look.  I still really\n > don't like that we have an arbitrary file upload at all, but\n > considering this is under the IBM option, I guess I'm ok with it.\n\nThe below validations should be in place as per the discussion with Joseph.\n\n1. The file size (min and max).\n2. The file\u2019s magic number (if this is feasible).\n3. The total amount of storage used by all the files in the directory.\n4. Ensure files have no group permissions and no execute permission.\n\nWe already have 1 and 4. \n2 needs a handshake with the management console team - so that they will send the file with an eye catcher. This can be implemented only if they are in agreement.\n3 is part of some other commit - we will pull that here."
+        },
+        {
+            "timestamp": 1608027508,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1608027524,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608027921,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/9801/ : FAILURE"
+        },
+        {
+            "timestamp": 1608029548,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1608029574,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608030525,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9804/ : SUCCESS"
+        },
+        {
+            "timestamp": 1608048695,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 7:\n\n(5 comments)\n\nLooks better.  A few items to look at.  Note this does not check the file's content, and that is okay."
+        },
+        {
+            "timestamp": 1608050769,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 7:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1608095477,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1608095497,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608095511,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 8:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1608096471,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9896/ : SUCCESS"
+        },
+        {
+            "timestamp": 1608351479,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)\n\nLooks better."
+        },
+        {
+            "timestamp": 1609738391,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1609738406,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1609738434,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 9:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1609739402,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10404/ : SUCCESS"
+        },
+        {
+            "timestamp": 1609741283,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1609878094,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 9:\n\nPS9 looks good to me modulo Ed's comments."
+        },
+        {
+            "timestamp": 1609923002,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1609923014,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1609923036,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 10:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1609924014,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10547/ : SUCCESS"
+        },
+        {
+            "timestamp": 1610422991,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 10:\n\nHi Ed, Any feedbacks please"
+        },
+        {
+            "timestamp": 1610425702,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1610688897,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1610725679,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611241773,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1611241788,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611241980,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611242787,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11256/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611244967,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611245161,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 11:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611245939,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 11:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611247888,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611248376,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1611248392,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611248686,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 12:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1611249466,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11260/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611251273,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1611551504,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1611551519,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611551600,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 13:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611552473,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11346/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611589880,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611829210,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1611829226,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611829532,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611829613,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11511/ : FAILURE"
+        },
+        {
+            "timestamp": 1611832829,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1611832846,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611833993,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11514/ : FAILURE"
+        },
+        {
+            "timestamp": 1611834508,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1611834531,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611834963,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11518/ : FAILURE"
+        },
+        {
+            "timestamp": 1611835185,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 17."
+        },
+        {
+            "timestamp": 1611835216,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611836216,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11520/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611867537,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1611900254,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1611900287,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611901295,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11581/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611901668,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 18:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1611902656,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 19: New patch set was added with same tree, parent, and commit message as Patch Set 18."
+        },
+        {
+            "timestamp": 1611902669,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1611902672,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611903682,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11585/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611937059,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611938204,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1612167627,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1612543501,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 19:\n\nHi Reviewers, please add any comments / votes. Thank you"
+        },
+        {
+            "timestamp": 1612554658,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 19:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1612761644,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 20."
+        },
+        {
+            "timestamp": 1612761660,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612761682,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 20:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1612762657,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12060/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612801181,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 20: Code-Review+1"
+        },
+        {
+            "timestamp": 1612831456,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 20:\n\n(3 comments)\n\nLooks good to me."
+        },
+        {
+            "timestamp": 1612846676,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 21."
+        },
+        {
+            "timestamp": 1612846709,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612846838,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 21:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1612847746,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12133/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612886166,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 21: Code-Review+1\n\n(1 comment)\n\nLooks good to me."
+        },
+        {
+            "timestamp": 1612890777,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 21:\n\n(3 comments)\n\nGetting closer, but the new patchset still contains common errors that I've pointed out in the past.  Please read and understand them and why they're important."
+        },
+        {
+            "timestamp": 1612938169,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 22."
+        },
+        {
+            "timestamp": 1612938187,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612938239,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 22:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1612939213,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12225/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612943433,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Uploaded patch set 23: New patch set was added with same tree, parent, and commit message as Patch Set 22."
+        },
+        {
+            "timestamp": 1612943449,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1612943453,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612944528,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/12231/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612978574,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 23: Code-Review+1\n\n(1 comment)\n\nLooks good to me."
+        },
+        {
+            "timestamp": 1613013274,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 23: Code-Review+1"
+        },
+        {
+            "timestamp": 1613169726,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Assignee added: Ed Tanous <ed@tanous.net>"
+        },
+        {
+            "timestamp": 1613171009,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23: Code-Review+2"
+        },
+        {
+            "timestamp": 1613171013,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 7c0bbe7d5c7f1cd1bfb32c455d9dec578d90579c by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "2f56bbbfec69757bd8919aecae2b0ba703379ff3",
+            "parents": [
+                "74eec26b6ba3b14716db87cb8a837c33bdb69f62"
+            ],
+            "ref": "refs/changes/13/35213/1",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1596116324,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 564,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Why can't we use the Node class for these?\nI beleive Node has this already \n\n      Node(app, \"/redfish/v1/Managers/bmc/EthernetInterfaces/\")"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 564,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "All these urls are REST based design. We use the requestRoutes->BMCWEB_ROUTE to register all these urls. So the Node from the Redfish framework will not be helpful here."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 564,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Because these aren't redfish Nodes?\n\nAlso, because I want the Node class to go away in the near future."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 571,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Should this be: Validate the path to reject paths that contain a path element of \"..\"?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 571,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I retract this comment.  Please refer to the comment below for a better way to defend against path traversal attacks."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 574,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Is the idea to match any pathRegex that contains \"..\"?  I think that matches too much: for example, it would reject a filename like \"something..conf\".\nPer https://en.cppreference.com/w/cpp/regex/ecmascript, does \".\" match any character?  Do we need to remove its special meaning like \"\\.\\.\" or \"[.][.]\"?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 574,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "The intention is to match \"..\" only. The example path is mentioned in the commented block here. This /../.. will traverse the directories backwards - leading to unintended files modifications. \nThe filename with double dots are also not entertained."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 574,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Just a thought.\nCan we not have something like:\n`std::regex validFileName(\"^[\\\\w\\\\- ]+(\\\\.?[\\\\w\\\\- ]*)$\")`\nSo that we could eliminate all the above invalid path use cases?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 574,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't use regex for this.  It's inglorious overkill for a simple check that can be done by comparing std::filesystem::path to the std::filesystem::cannonical version of the path.  It would be greatly appreciated if you could turn this into a utils function for others to use.\n\nAlso, the author needs to understand what a \".\" character in a regex is.  I know that it claims to have been tested, but looking at it, I have no idea how it could've ever worked.\n\nAlso, the author needs to understand how filesystem injection attacks work, and block against ALL attacks, not just the one that was reported to you.  This is pretty well documented online, please do some reading and try this patch again.\n\nAlong other lines, this API is wrong by design.  It needs to be operating on a whitelist, or a list of fixed routes.  Accepting arbitrary strings from the user, then writing the to the filesystem is one of the larger root causes of injection attacks, as you've found here, and something bmcweb was designed to combat against."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 574,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This comment expands on Ed's idea to use filesystem::canonical instead of regex.  Is the `handleFileUrl` method (line 253) the right place to perform this check?  Something like:\n\nbool handleFileUrl(...)\n   std::string filePath(\"/var/lib/obmc/bmc-console-mgmt/save-area/\" + fileID);\n   if (std::filesystem::weakly_canonical(filePath) != filePath)\n   {\n       return ...error bad_request ... (or false?)\n   }\n\nSee also: https://owasp.org/www-community/attacks/Path_Traversal"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 574,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 576,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Per https://en.cppreference.com/w/cpp/regex/regex_match, regex_match returns true is a match exists.  Is the test condition backward, and should it be: if (std::regex_match(path.c_str(), match, pathRegex))"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 576,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I had tested this with debug prints and it works as expected.\n\nThe result of std::regex_match(path.c_str(), match, pathRegex) is 0 when the path contains \"..\" . The result is 1 for the good paths."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 576,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "> I had tested this with debug prints and it works as expected.\n\n+1"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 576,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Given that \"..\" will match any character, I have no idea how the statement that you tested this with prints could be true.  Can you expand on EXACTLY what testing you did?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 576,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "The commit message shows test cases.  I suggest adding a subset of GET, PUT, DELETE for:\n- path empty (URI=/ibm/v1/Host/ConfigFiles/)\n- path \".\"\n- path \"..\"\n- path \"good.file\"\n- path \"mysubdir/good.file\"\n- path \"illegal/../some.file\"\n- path \"../must-fail\"\n\nAlso consider adding test cases to look at the actual BMC file system to check if files were created that should not have been."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 576,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "While this list is good, it isn't complete.  If we're really going to build a generic \"upload any file\" mechanism, which I still think is a bad idea security wise, the author needs to understand and read all the possible attack vectors and cover them."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 576,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "608e365f2414b9d4d35d4d806e726b340c9e8bc9",
+            "parents": [
+                "f71882ffecef5e64d1f5ad7ef59e811383de7156"
+            ],
+            "ref": "refs/changes/13/35213/2",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1597053163,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "988521c597350be36f504eb7d42f64521c72c2a7",
+            "parents": [
+                "f71882ffecef5e64d1f5ad7ef59e811383de7156"
+            ],
+            "ref": "refs/changes/13/35213/3",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1597053782,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "be036f69f0b707d251d015ff5c56737215dfcbd6",
+            "parents": [
+                "f71882ffecef5e64d1f5ad7ef59e811383de7156"
+            ],
+            "ref": "refs/changes/13/35213/4",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1597053869,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 16,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 5,
+            "revision": "98ddbdda76d540ab84ddc9c3adfad22295f9b9b2",
+            "parents": [
+                "94bda602f00b181befa20a08550439b3c1d3b256"
+            ],
+            "ref": "refs/changes/13/35213/5",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1606127201,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 34,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 6,
+            "revision": "25d92793ba0d9d42818acbcb27c460e4014e5911",
+            "parents": [
+                "f16f62633a64f386fd0382703ff0949ea177f457"
+            ],
+            "ref": "refs/changes/13/35213/6",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1608027508,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 88,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 7,
+            "revision": "a6b8caad4703c714ca5e3aa938342e054035f0a2",
+            "parents": [
+                "f16f62633a64f386fd0382703ff0949ea177f457"
+            ],
+            "ref": "refs/changes/13/35213/7",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1608029548,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Is string::capacity correct?  Per the C++ spec, it does not necessarily reflect the length of the string.  Should this be string::length?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "spelling"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "will fix."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This has been working good. Thus i did not make any changes."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "regardless of how it's working, it's still wrong."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 155,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This computation seems incorrect.  Does newSizeToWrite represent the amount changeAreaDirSize will change after the PUT request completes?  Should this number get smaller when the new file is smaller than the existing file?  How can that happen when newSizeToWrite is unsigned?\n\nWas this code copied from elsewhere (as indicated by previous comments in this review)?  If so, please investigate that usage."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 155,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I am checking the delta change in the total size of the directory when the same file is being uploaded. The size can increase or decrease based on the incoming data.\n\nhttps://gerrit.openbmc-project.xyz/#/c/openbmc/bmcweb/+/31030/ is the commit where there was some part of the code to calculate the directory size while uploading multiple save area files in a single request. This code is not copied from there. The use-case and scenario is different here."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 671,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "The BMCWEB_LOG message is not provided as part of the HTTP response, so the requester has no way to determine why the request was bad.  They need to know so that can correct their problem.\nCan we add a res.jsonValue[\"Description\"] as is done elsewhere in this code?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 671,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I will try this and update accordingly"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 671,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 680,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Same request as above to return more information.\nAnd again for the validation message 10 lines down."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 680,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 90,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 8,
+            "revision": "f5b7ca463c05aa4e15897ec13e7e1e2c1a30c772",
+            "parents": [
+                "f16f62633a64f386fd0382703ff0949ea177f457"
+            ],
+            "ref": "refs/changes/13/35213/8",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1608095477,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I prefer you use string::length() here.  The capacity() function may give the same same result as length() in this situation, but is not strictly correct.  Is there a problem why you cannot use length() to get the length of the string?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 155,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This computation seems incorrect.  When the code gets here, the new file has a smaller size than the existing file, yet the code on line 171 below ((saveAreaDirSize + newSizeToWrite) > maxSaveareaDirSize) ADDS this difference to the saveAreaDirSize.  It should subtract it.\nThis test case illustrates the bug:\n1. Use the API to write several files to the savearea that use the full maxSaveareaDirSize.\n2. Use the API to attempt to overwrite one of the files to a smaller size.\n3. Observe the error \"File size does not fit in the savearea directory maximum allowed size[10MB]\"."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 155,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done\nThe saveAreaDirSize is not static data. Every time this API is invoked, the current size is calculated fresh. So it will not keep incrementing.\nI have modified the code to address the bug which you were mentioning. Thanks for pointing it out.\nWhen the file size reduces, i am just accepting the file, since there will be obviously space for the same. The code to subtract the delta size is not needed."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 96,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 96,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 9,
+            "revision": "cfb8fc7a22ac2009c23828613e882522649bb644",
+            "parents": [
+                "f16f62633a64f386fd0382703ff0949ea177f457"
+            ],
+            "ref": "refs/changes/13/35213/9",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1609738391,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 160,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This can easily be condensed down to a single case if you use int to do your math."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 160,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Don't use res.end in new code."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Without this , client does not get the response back."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "There's lots of code (a vast majority in fact) that manage to return responses without using res.end().   I'd recommend starting by looking at those."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "For redfish responses we dont need the res.end(). This is a REST based response. This needs res.end()"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not sure where you got that idea, but it's incorrect.  All new code should use AsyncResp of some kind.  There are classes in both redfish and bmcweb namespaces."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Fine Ed. I will work on this next. There is no reference to AsyncResp in this complete file."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Which is surprising, as res.end() hasn't been used in new patchsets for a long time, with the exception of this file.  The only things that use it now are the really old code that nobody has ported over to AyncResp yet."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 673,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 687,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't use regex for this.  We're trying to avoid it, and there are patches out to remove the existing uses."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 687,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "What is the reason behind removing the regex ? Can you please suggest what is the substitute for this ?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 687,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Std::regex is slow, takes a lot of memory, and complicates things that should be simple.  In most cases, there are much more performant alternatives that are more clear in code.  I'd recommend looking at and reviewing the existing patchset for ideas on how yours could be done."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 687,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Improving performance is fine. \nI could see many other places in bmcweb which uses regex. I think we need not hold this commit for that. This can be a new issue. I have opened https://github.com/openbmc/bmcweb/issues/176 for the same."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 687,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Considering this is a relatively easy case to replace, lets just fix this here and now;\n\nI appreciate you creating the tracking bug."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 687,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 695,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "don't use res.end in new code."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 97,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 97,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 10,
+            "revision": "fc4243ef90cf39b02cfa146700daa4568c88d404",
+            "parents": [
+                "f16f62633a64f386fd0382703ff0949ea177f457"
+            ],
+            "ref": "refs/changes/13/35213/10",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1609923002,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 95,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 95,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 11,
+            "revision": "61e3418f7e4d5a94f4179139c326132b1918dc6f",
+            "parents": [
+                "f16f62633a64f386fd0382703ff0949ea177f457"
+            ],
+            "ref": "refs/changes/13/35213/11",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611241773,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 617,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Can we add a comment here or below about what we consider a valid config filename ?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 617,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Sure. I will add when i upload the next patch set - with possible code to remove the res.end()"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 617,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 621,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Doesn't this already catch - ?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 621,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I guess we are trying to allow \"-\". \nNevermind!"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 621,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 106,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 106,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 12,
+            "revision": "6ac51613bd9e8120d49e5c221de86a4dbefd1a52",
+            "parents": [
+                "f16f62633a64f386fd0382703ff0949ea177f457"
+            ],
+            "ref": "refs/changes/13/35213/12",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611248376,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Could you write some unit tests for these cases?  There's lots of things that we need to ensure stay correct in the long term."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 82,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done\nI have not added the file size related test cases. There is a commit being worked to change the base directory path. Test cases added now will need to be reworked when that commit comes in. So I will add the UT for those scenarios in that commit."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 623,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Considering isalnum is locale dependent, I'd much prefer we use something like str.find_first_of to check against the character set.  That seems much simpler"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 623,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This check should find out if there are no other characters in the filename than the upper case alphabets, lowercase alphabets, hyphen and numbers. I found this is the simple way to validate the same. \n\nAre you indicating that, listing characters which are not allowed is simpler than mentioning what is allowed?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 623,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "isalnum can change dependent on the locale of the system.  While it seems less likely that we'd use a non-standard locale on the BMC, find_first_off is much more concrete, and don't require the added logic you have above where you exclude hyphens."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 623,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 668,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Considering the new rules that this requires, this should be <str> not <path>"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 668,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 112,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 112,
+            "sizeDeletions": 8
+        },
+        {
+            "number": 13,
+            "revision": "6d8619d7f5163692d76d2df79765bf7ac1068304",
+            "parents": [
+                "a90daf182891521fcc7c3e99ba266e6a55d4b4dd"
+            ],
+            "ref": "refs/changes/13/35213/13",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611551504,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 98,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 113,
+                    "deletions": -9
+                }
+            ],
+            "sizeInsertions": 113,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 14,
+            "revision": "50eea13b004d5a3ab17a30fd515794115c16975a",
+            "parents": [
+                "349a2ac3921e17ff0e2bce47ba6698112d586e67"
+            ],
+            "ref": "refs/changes/13/35213/14",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611829210,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 117,
+                    "deletions": -6
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 189,
+            "sizeDeletions": 6
+        },
+        {
+            "number": 15,
+            "revision": "1b762d3f72f82bf5ad35beacac56e15ef1d09e58",
+            "parents": [
+                "349a2ac3921e17ff0e2bce47ba6698112d586e67"
+            ],
+            "ref": "refs/changes/13/35213/15",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611832829,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 117,
+                    "deletions": -6
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 190,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 16,
+            "revision": "3fe0c13937686c8787d55498f1d20a5c718ad2ab",
+            "parents": [
+                "349a2ac3921e17ff0e2bce47ba6698112d586e67"
+            ],
+            "ref": "refs/changes/13/35213/16",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611834508,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 124,
+                    "deletions": -6
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 197,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 17,
+            "revision": "9beb1f881cb2c992264106ef3029ffee0b7ad524",
+            "parents": [
+                "349a2ac3921e17ff0e2bce47ba6698112d586e67"
+            ],
+            "ref": "refs/changes/13/35213/17",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611835185,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 88,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Not really in this commit, but please use the boost beast enum overload for this instead of the string one.  It's more efficient."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 88,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Shouldn't we be checking that the content-type is equal to what we expect, instead of special casing one of the \"wrong\" things?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Yes. That also can be done. We wanted the proper error message returned to the client."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "> We wanted the proper error message returned to the client.\n\nI don't understand this. Shouldn't the same error message be returned to the client no matter what wrong  content-type was passed? \n\nI.e. I would expect to see for any wrong content-type\n\n        res.result(boost::beast::http::status::not_acceptable);\n        res.jsonValue[\"Description\"] = contentNotAcceptableMsg;\n\nSunitha, do you mind putting up another commit to do this and the comment above?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Sure Gunnar"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/40170 is pushed"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 115,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "use the correct overload of this that doesn't throw.  Also, there are options that need to be set to limit depth and symlinks.  Depth should have an absolute limit, and symlinks should be disallowed."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 115,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Could this simply delete the existing file if it exists, then do the max size calculation?  Doing that would save a significant amount of special cases here, and simplify the code alot."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 149,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "We want to retain the file until its successfully updated with the new incoming data. \nIf the update fails; the old file can still be used."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 157,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't use a terinary for this.  it confuses the logic."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 157,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "As per your last comment i made this change. This works as expected. I have added the comment in the code to explain what is done in this line"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 157,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I didn't say the logic was wrong, I said it's hard to read.  The line length limit splits this onto multiple lines anyway, so you're not really saving any code by not writing this out as conditionals."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 621,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This should not be constructing its own asyncResp.  Construct one at the top level (where you register the handler).\n\nWithin this scope, it doesn't need to know about asyncResp at all, as it already returns an error code, and doesn't spin off any async jobs."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 621,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 658,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm really sorry, I lead you down the wrong path with one typo.  Imean that we should be using std::string::find_first_not_of(\"<set of legal characters>\") as that's very obvious what characters we allow through.  This list is hard to verify that it's correct to the intent."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 658,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I actually saw find_first_not_of API is better. But since you told to use find_first_of I used this way \ud83d\ude0a\nChanged to find_first_not_of now"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 661,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please have this branch return early, rather than having an else statement."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 661,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Excellent.  Thank you."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 123,
+                    "deletions": -6
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 196,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 18,
+            "revision": "c1897438dd6a7d49d498a3de81fa7fe265cd3866",
+            "parents": [
+                "349a2ac3921e17ff0e2bce47ba6698112d586e67"
+            ],
+            "ref": "refs/changes/13/35213/18",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611900254,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 135,
+                    "deletions": -9
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 208,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 19,
+            "revision": "aa389dc6af186aeed1dd5c8b8b796e8135932f6f",
+            "parents": [
+                "349a2ac3921e17ff0e2bce47ba6698112d586e67"
+            ],
+            "ref": "refs/changes/13/35213/19",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1611902656,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "NO_CHANGE",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 160,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Wrong overload of exists used here."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 160,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 170,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "wrong overload of file_size used here."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 170,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 172,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: Can we get rid of this terenary?  It makes this code hard to read."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 172,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 664,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Isn't this check now redundant to line 645?  How is it possible to hit this?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 664,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 135,
+                    "deletions": -9
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 208,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 20,
+            "revision": "2b8e9d875c51dfe59d79d90853d3837e08bc94fe",
+            "parents": [
+                "a88e75fc5972bec57c5255b54fa332dc543eb81a"
+            ],
+            "ref": "refs/changes/13/35213/20",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1612761644,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "interesting requirement.."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 171,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "spelling. Maybe just \n\nfileSize ?\ncurrentFileSize ?"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 171,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "spelling"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -13
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 216,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 21,
+            "revision": "66e67f2e16c49bd5484338b21a8bb4d333ac1c37",
+            "parents": [
+                "a88e75fc5972bec57c5255b54fa332dc543eb81a"
+            ],
+            "ref": "refs/changes/13/35213/21",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1612846676,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "spelling: directory"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "common error #5"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Good catch!"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 128,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "common error #5"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 128,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, if you set this to data.length() here, you'd save several lines of code on line 192, and you can change the check on 186 to\n\nif (newSizeToWrite > currentFileSize){\n    newSizeToWrite -= currentFileSize;\n}\n\nMight be a little more clear, but the change isn't that important."
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack.\nI will leave it as it is - since this code already tested multiple times"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -13
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 216,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 22,
+            "revision": "8a33a863651f6c353cf0286e579560517b8a2cea",
+            "parents": [
+                "2b3da45876aac57a36d3093379a992d699e7e396"
+            ],
+            "ref": "refs/changes/13/35213/22",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1612938169,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 162,
+                    "deletions": -13
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 235,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 23,
+            "revision": "25c9fad3a0c4e9d5ebef98a991d94986c961879c",
+            "parents": [
+                "2b3da45876aac57a36d3093379a992d699e7e396"
+            ],
+            "ref": "refs/changes/13/35213/23",
+            "uploader": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "createdOn": 1612943433,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "NO_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 162,
+                    "deletions": -13
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 235,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 24,
+            "revision": "7c0bbe7d5c7f1cd1bfb32c455d9dec578d90579c",
+            "parents": [
+                "ae6595ef5349a290bd36d5da967190aa4a461355"
+            ],
+            "ref": "refs/changes/13/35213/24",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1613171013,
+            "author": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 99,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/ibm/management_console_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 162,
+                    "deletions": -13
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/configfile_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 71,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 235,
+            "sizeDeletions": 14
+        }
+    ]
+}

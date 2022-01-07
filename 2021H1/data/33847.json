@@ -1,0 +1,432 @@
+{
+    "project": "openbmc/docs",
+    "branch": "master",
+    "id": "I049eab7ddcbf6b05b4be63c55881b34350634aab",
+    "number": 33847,
+    "subject": "design: Provide an admin account",
+    "owner": {
+        "name": "Joseph Reynolds",
+        "email": "joseph-reynolds@charter.net",
+        "username": "joseph-reynolds"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/docs/+/33847",
+    "commitMessage": "design: Provide an admin account\n\nNew design moves the project to an \"admin\" account and discontinues\nusing the root account for logins.  Sudo access is provided.\n\nSigned-off-by: Joseph Reynolds <joseph-reynolds@charter.net>\nChange-Id: I049eab7ddcbf6b05b4be63c55881b34350634aab\n",
+    "createdOn": 1592510996,
+    "lastUpdated": 1619799169,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1592510996,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1592837884,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1592850658,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(6 comments)\n\nThanks for your feedback!"
+        },
+        {
+            "timestamp": 1594753615,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1597944931,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1601994698,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)\n\nAdded questions about deleting pre-created acccounts."
+        },
+        {
+            "timestamp": 1603816178,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)\n\nRelated ideas for role to privilege-role mapping and for non-deletable user accounts do not need to be in this design."
+        },
+        {
+            "timestamp": 1603827286,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1607960486,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1608329255,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 3:\n\nWhat if we follow-up in other direction with switching root -> admin / operator roles?\n\nLet's answer the question: do we need full ssh access on the daily basis for either admin or operator roles? The purpose of such users are:\n\n1. admin should have rights to make changes into the configuration of BMC.\n2. operator should be able to use KVM, have read-only (most of the time) access to various BMC properties. For instance, power control is questionable (or might be configurable).\n\nThus, we don't really need the regular user (even \"admin\") to log into the BMC shell (e.g. AMI provides a limited shell called \"smash\"). This will allow to avoid any intervention in normal BMC operation. Anything that might be configured/controlled should be exposed as an API (redfish / ipmi / whatever).\n\nTherefore, in conjuction with ongoing priviledge separation work, we might switch from system-wide authentication (that requires higher priviledges for processes to access PAM or NBD) to least priviledged separate passwd-files (like htaccess) that wouldn't affect the system: the processes will be run within specific non-priviledged user even for \"admin\" role."
+        },
+        {
+            "timestamp": 1616099016,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> What if we follow-up in other direction with switching root -> admin / operator roles?\n> \n> Let's answer the question: do we need full ssh access on the daily basis for either admin or operator roles? The purpose of such users are:\n> \n> 1. admin should have rights to make changes into the configuration of BMC.\n> 2. operator should be able to use KVM, have read-only (most of the time) access to various BMC properties. For instance, power control is questionable (or might be configurable).\n> \n> Thus, we don't really need the regular user (even \"admin\") to log into the BMC shell (e.g. AMI provides a limited shell called \"smash\"). This will allow to avoid any intervention in normal BMC operation. Anything that might be configured/controlled should be exposed as an API (redfish / ipmi / whatever).\n> \n> Therefore, in conjuction with ongoing priviledge separation work, we might switch from system-wide authentication (that requires higher priviledges for processes to access PAM or NBD) to least priviledged separate passwd-files (like htaccess) that wouldn't affect the system: the processes will be run within specific non-priviledged user even for \"admin\" role.\n\nI think I understand your points but they go beyond what this design is proposing.  My response:\n- I agree that routine use of the BMC should not need SSH access.  In some ideal world, SSH access might not be needed at all.  Meanwhile, we have (at least) two uses cases for SSH root access: development work and extreme field debug scenarios.  Accordingly, this design allows SSH root access via sudo.\n- I want to completely disable SSH root access for IBM Enterprise systems admin users.  And I would like a standard way to do that for the OpenBMC project.\n- I don't see this design affecting the ongoing Linux-process and privilege isolation work."
+        },
+        {
+            "timestamp": 1619799169,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3:\n\nDo we have sufficient consensus on this?  Joseph, who would be good domain experts here?"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "b5362c50796de94f5804730944a4bc0555c0b0e6",
+            "parents": [
+                "2eb829bde8074cbaf572157fff62758f7206dc4c"
+            ],
+            "ref": "refs/changes/47/33847/1",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1592510996,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Isn't this the 'wheel' group?  AFAIK, only Debian distributions have a group called 'sudo'."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Yes, wheel.  The Yocto project uses wheel, so let's use that for OpenBMC.\nhttps://git.yoctoproject.org/cgit.cgi/poky/plain/meta/recipes-extended/sudo/sudo_1.9.0.bb\nMy error, Q&A in stackoverflow mentioned the \"sudo\" group."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I don't see anything here to require logging of sudo operations.  If all we're doing is requiring someone to insert 'sudo' in front of 'sudo /bin/bash', this is a whole lot of work for nothing in my opinion.  We should have a requirement in the design that all 'sudo' operations are logged to journal/syslog.\n\nI would also suggest that we consider prohibiting 'sudo <shell>' operations rather than allowing all commands, so that we get better logging on what is being ran and the logging isn't subverted by someone running 'sudo /bin/bash'."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I'll add a requirement to log uses of the sudo command to journal/syslog.  I would also like to have a separate log for security-relevant events (including use of sudo), but not as part of this design.\n\nI disagree with the remainder of the comment.  The design allows the current sudoers to determine which users are allowed to use sudo (even if there is no user interface (beyond command line access)).  In my opinion, being able to control the wheel group is a step forward from the \"everyone shares root access\" model.\n\nIn my opinion, \"filtering which commands a sudo user is allowed to access\" is not desirable for the open source project:\n1. It will be \"too difficult\" for the project to agree which commands should be allowed.\n2. As developers and service personnel, we don't know which command we'll need.\n3. There are well-known shell escape privilege escalations.  For example someone running the `vi` command as root can use vi commands to run an arbitrary command.  This bypasses restrictions in the sudoers file and its associated logging."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Understand.  On Facebook's openbmc we have a security feature (using something built into bash) that logs every bash command into the syslog.  That might be useful here as well.  Especially if we log every sudo and every bash command ran as root."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Why?  I don't know what \"and enabled later\" means here.  Why not just enable it immediately?"
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I meant in stage 4 described below."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 94,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Do we need another option for it?  Shouldn't this be included in the option which switches to an 'admin' account?"
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 94,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "No.  My intention was to provide separate mechanisms to disable root and to create additional users.  I would be agreeable to collapse them into a single option.  Anyone else have an opinion?"
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 105,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Another alternative would be to prohibit direct escalation to root entirely.  Tools like `systemctl` already have facilities to prompt for group membership and/or passwords to confirm doing operations which would require root access.  In what other cases do we need to allow root?"
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 105,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I can agree to a new option to allow authorized users to become root.  I'll update the design with something like:\n - When OFF: We won't have a root user, and nobody can become root via sudo or su.\n - When ON: Access to sudo would\u00a0be controlled via membership in the wheel group (as described in this design).\nNote this value would be ON for most development activity and for Enterprise use cases that require a service rep (person) to use the BMC's root access to debug a production system.\nI think the project's default value should be ON, to facilitate hobbyist use cases, and address concerns as suggested here: https://github.com/ibm-openbmc/dev/issues/1531 > build considerations.\nIf the default must be OFF, we can turn it ON on the meta-openpower layer."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 124,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I think you should list the impacts to development here.  Today developers can scp test / development programs on and run them.  There is some impact to those workflows."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 124,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Item 1 was intended to address that.  I'll add some examples, including yours."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "type": "ADDED",
+                    "insertions": 160,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 160,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "a3fa89b53d01c54985cabace4dab9018879dc4ff",
+            "parents": [
+                "72f290d3f3b2fa4d977cc8f58c58a480780106b8"
+            ],
+            "ref": "refs/changes/47/33847/2",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1594753615,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Idea to add to this design: Have a way at compile-time to configure the mapping from privilege-role to group-roles used for dynamically  created users.  For example, the Bitbake recipe would specify that users created with the \"admin\" privilege-role also get the following group roles: ssh, ipmi, redfish, web.\nHowever, note that OpenBMC does not have a supported way to modify a user's group roles and  this design does not propose to add that function.  (You can modify a user's groups via BMC shell access as the root user.)"
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Correction: The interface to manage which users are in the ipmi group is the D-Bus implementation for group roles \"groups\" property:\nhttps://github.com/openbmc/phosphor-dbus-interfaces/blob/master/xyz/openbmc_project/User/Manager.interface.yaml\n\nThe D-Bus interface is \"equivalent\" to the Redfish AccountManager AccountTypes property which needs to be enhanced per https://redfishforum.com/thread/219/account-groups-property"
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This role to privilege-role mapping seems important, but should NOT be part of this design.  I plan to put it in another design.\nResolving this comment with no changes to the design."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 93,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Do we need a way to ensure the \"admin\" account cannot be deleted?  In other words, is this account built-in or is it pre-created?\nIMHO, it is cleaner to treat pre-created accounts as regular accounts.\n\nOn the other hand, I have a use case for a built-in account that cannot be deleted, namely the built-in \"service\" account that gives the manufacturer special privileged access to the system.  See https://github.com/ibm-openbmc/dev/issues/1737\n\nIs there a better way to do this?"
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 93,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "There is a better way to do this, and it is current being discussed privately by the Redfish forum.\nHowever, this question does not need to be part of this design.\nResolving this comment with no changes to the design."
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "line": 164,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "4. Try to delete the pre-created users and then re-create them."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "type": "ADDED",
+                    "insertions": 163,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 163,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "514c25b93b88b65670d856914d76db2d1a92ac6d",
+            "parents": [
+                "72f290d3f3b2fa4d977cc8f58c58a480780106b8"
+            ],
+            "ref": "refs/changes/47/33847/3",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1603827286,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "designs/admin-account.md",
+                    "type": "ADDED",
+                    "insertions": 185,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 185,
+            "sizeDeletions": 0
+        }
+    ]
+}

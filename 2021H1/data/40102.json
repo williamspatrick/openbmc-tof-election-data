@@ -1,0 +1,710 @@
+{
+    "project": "openbmc/openbmc",
+    "branch": "master",
+    "id": "I11cc5c862a4aa7c5497f860edc00414337fec3e3",
+    "number": 40102,
+    "subject": "Replace deprecated Linux-PAM modules",
+    "owner": {
+        "name": "Joseph Reynolds",
+        "email": "joseph-reynolds@charter.net",
+        "username": "joseph-reynolds"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/40102",
+    "commitMessage": "Replace deprecated Linux-PAM modules\n\nThis reverts 87ddd3eab4df68e624b5350ccaab28b3b97547c0 which reverted\nb0384720a46fb25c4ad180e3f256ffdeb53dc8a6.  In other words, this moves\nback up to libpam_1.5.1.\n\nThis replaces deprecated Linux-PAM modules with supported modules:\n - pam_pwquality replaces pam_cracklib.\n - pam_faillock replaces pam_tally2.\n\nThis has a modified copy of the libpwquality recipe which avoids importing\nthe Python distutils3-base.  This is needed to keep image size small.\n\nThis updates /etc/pam.d config files as needed to maintain previous defaults.\nSome config values are moved out of /etc/pam.d and into /etc/security.\nTODO: A new service converts deprecated module parameters to the new ones.\n\nThis creates the priv-noaccess group needed by phosphor-user-manager.\n\npam_pwquality was selected over pam_passwdqc because of better security\nand compatibility with pam_cracklib.\nNote pwquality is built without its Python bindings.\n\nNote pam_faillock is necessarily configured into the pam module stack\ndifferently than pam_tally2.\n\nThis patchset causes BMC operational changes:\n- If a user authenticates correctly but cannot gain access because their\n  account is locked, this tells the user their account is locked.  The\n  previous behavior was silent, and the user did not know if their\n  password was entered correctly.\n  NOTE: This new behavior is not a undue security risk because it only\n  discloses information to authenticated users.\n- The \"change password\" prompts are different (because they are now\n  being supplied by the pwquality module instead of cracklib).\n  This behavior is seen on SSH sessions (if the password change dialog\n  is needed) and on the `paswd` command invoked from the BMC's command\n  shell.  This behavior is not seen on the Redfish, REST, or IPMI\n  interfaces.\n- The pam_tally2 command (invoked from the BMC's command line) is no\n  longer present.  If you used the \"pam_tally2 -u USER -r\" command\n  to unlock a user after repeated authentication failures, change to\n  use: faillock --user USER --reset\n\nNote the OpenBMC default configuration defaults to an\nAccountLockoutThreshold value of 0 which does not lock account\npasswords no matter how many consecurive failed authentication attempts.\nFor example, to test, use:\ncurl -X PATCH https://${bmc}/redfish/v1/AccountService\n  -d '{\"AccountLockoutThreshold\": 3, \"AccountLockoutDuration\": 60}'\n\nCompatibility note / migration issue.  If your BMC cannot authenticate\nusers after installing this change, the cause might be an overlayfs file\nhiding the new /etc/pam.d/common-auth file.  To find out, use\n`grep deny= /etc/pam.d/common-auth` on your BMC.  If it shows \"tally2\"\nthen your BMC is affected.  The recovery is to delete the overlay file\nor to factory reset the BMC.\n\nNote that account lockout information is lost and reset when the BMC\nreboots.  Note that if the BMC has its default configuration or is\ninternally misconfigured (directory /run/faillock missing) then no\naccount locking is performed, meaning unlimited login attempts.\n\nNote that accounts that were recently unlocked due to expiration of\nthe AccountLockoutDuration will show as locked until the next\nauthentication attempt.  The scenario is:\n- Lock the account due to excessive authentication failures.\n- Wait for the AccountLockoutDuration to elapse.\n- At this point, the account *is* unlocked and the user can\n  authenticate with a correct password, but the APIs (both D-Bus and\n  Redfish) show the account is locked.  This condition persists\n  until the next authentication attempt using that username.\nThis behavior is due to a limitation in how the faillock command\noutput is interpreted with combination with the faillock module\nconfiguration in the pam configuration files.\nSee https://github.com/linux-pam/linux-pam/issues/327\n\nThis is work in progress.\n\nThis requires recipe changes to compile:\n - faillock is available in libpam_1.5.1.bb.\n - pwquality is in the latest yocto.\n\nTested: mostly, for local users\nNeeds LDAP testing.\n\nTests for password changing:\nChange the password via:\n- the passwd command\n- the PATCH Refish AccountService {Password: NEW}\n- SSH (accessible only when the password is expired)\n- IPMI user set password (accessible only when the password is not expired)\nPerform the above for both unexpired and expired passwords.\nHint: passwd --expire\n\nPerform the above with an unacceptable password.\n\nTest various unacceptable passwords:\n- too short\n- too simple\n- too similar to the username\n\nTests for lockout:\nLDAP\nNo LDAP\nNon-existent user\nMultiple consecutive fails\nMultiple non-consecutive fail: fail fail success fail fail success ...\nSSH, POST Redfish AccountService, POST /login, IPMI\nCreate new user\n\nWhen the account is locked, try with both correct and incorrect password.\nEnsure account is unlocked after X seconds.\nEnsure the faillock command works.\n\nAlso, because its implementation changed, ensure reading and writing the\nD-Bus User AccountPolicy RememberOldPasswordTimes property continues to\nwork.  There is no Redfish API for this.\n\nSigned-off-by: Joseph Reynolds <joseph-reynolds@charter.net>\nChange-Id: I11cc5c862a4aa7c5497f860edc00414337fec3e3\n",
+    "createdOn": 1611869675,
+    "lastUpdated": 1615936551,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1611869675,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1611869699,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611869707,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/1606/"
+        },
+        {
+            "timestamp": 1611872520,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1611876803,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\nThis is a continuation of https://gerrit.openbmc-project.xyz/c/openbmc/meta-phosphor/+/40032\nThe old review was abandoned due to the git subtree removal, but the old review still has applicable comments.  Review -1 pending more testing and a new pam-config-upgrade service."
+        },
+        {
+            "timestamp": 1611878756,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nAdded notes for a new pam-config-upgrade service, needed to provide forward compatibility."
+        },
+        {
+            "timestamp": 1611882843,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/1606/ : FAILURE"
+        },
+        {
+            "timestamp": 1611939465,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\nThe CI Failures were for the Romulus and Palmetto machines:\nci-openbmc \u00bb ubuntu,docker-builder,palmetto completed with result FAILURE"
+        },
+        {
+            "timestamp": 1612014914,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2: Patch Set 1 was rebased"
+        },
+        {
+            "timestamp": 1612014940,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612017714,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/1642/"
+        },
+        {
+            "timestamp": 1612021149,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/1642/ : FAILURE"
+        },
+        {
+            "timestamp": 1612216801,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 2:\n\nThis time the failures were in ci-openbmc for witherspoon and romulus."
+        },
+        {
+            "timestamp": 1612296731,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> This time the failures were in ci-openbmc for witherspoon and romulus.\n\nYeah, we've got a general issue where the new yocto is not building on ppc64le machines. I'm looking into it."
+        },
+        {
+            "timestamp": 1612395454,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1612395485,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612395493,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/1725/"
+        },
+        {
+            "timestamp": 1612406210,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/1725/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612406707,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 3:\n\nBuild Failed \n\nIBM Hardware CI : witherspoon hardware test failed"
+        },
+        {
+            "timestamp": 1612462044,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1612462070,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612462077,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/1734/"
+        },
+        {
+            "timestamp": 1612474874,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/1734/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612475202,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 4:\n\nBuild Failed \n\nIBM Hardware CI : witherspoon hardware test failed"
+        },
+        {
+            "timestamp": 1612903215,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1612903245,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612903493,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 5:\n\nThe poky/meta/* file chnages are from the libpam recipe version bump.\n\nThe meta-openembedded/meta-oe/recipes-extended/libpwquality/ change is a proof of concept.  See the recipe for details."
+        },
+        {
+            "timestamp": 1612903621,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1612905354,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/1795/"
+        },
+        {
+            "timestamp": 1612914810,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/1795/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612915559,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 5:\n\nBuild Failed \n\nIBM Hardware CI : witherspoon hardware test failed"
+        },
+        {
+            "timestamp": 1612969757,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 5:\n\nThis commit is co-req with the phosphor-user-manager change https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-user-manager/+/39853."
+        },
+        {
+            "timestamp": 1615936551,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Abandoned\n\nReplaced by https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/41357"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "46075127c8c4e94a380807a06c0b8d255c12eff0",
+            "parents": [
+                "abffcbff32d81ae8c933b6eff96448446db4aa70"
+            ],
+            "ref": "refs/changes/02/40102/1",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611869675,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 50,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This commit necessarily changes pam config files.\nWe agreed on Discord > OpenBMC > #yocto to provide a new service to convert pam config files to the new format.\nAffected PAM config files include: /etc/pam.d/common-password, and /etc/pam.d/common-password.\nThese files are affected because the Redfish API PATCH https://${bmc}/redfish/v1/AccountService -d '{\"AccountLockoutThreshold\": 3, \"AccountLockoutDuration\": 60, \"MinPasswordLength\": 8}' modify these files (via phosphor-user-manager).  The modifications are written to an overlayfs, so changes to the underlying readonly file during an image update will be hidden, and the BMC will not operate properly afterward because the confdig files and the will name PAM modules that are not present on the system.\n\nThe solution is a new pam-config-update service:\n- The service ideally runs one time on the first boot after installing a new image and before the first authentication (login) is allowed.\n- Modify the Linux-PAM config files (/etc/pam.d/*) on the BMC's file system.\n- Do not update config files unnecessarily.  That is, only write to the file when at least one parm has a non-default value.\n- Change uses of pam_tally2 to pam_faillock, and adapt the parameters.  Consider migrating parameter values to /etc/security/faillock.conf. \n- Change uses of pam_cracklib2 to pam_pwquality and adapt the parameters.  Consider migrating parameter values /etc/security/pwquality.conf.\n\nI believe we can avoid the need to write into PAM config files if we use the config files identified above.  Specifically, I believe these two modules encompass *all* of the PAM parameters that we can modify via phosphor-user-manager.  Note that migrating to the faillock.conf and pwquality.conf files would require an concurrent update to phosphor-user-manager.\n\nImplementation detail: Use one shot post_install_on_target_${PN} routines in recipe. And use the relax flag to use this routines with read-only-rootfs feature."
+                },
+                {
+                    "file": "meta-openembedded/meta-oe/recipes-extended/libpwquality/libpwquality_%.bbappend",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Background: The other Linux-PAM modules go into /lib/security by default, but pam_pwquality.so goes into /usr/lib/security by default.  PAM running on OpenBMC does not search into /usr/lib/security, so authentication fails.\n\nIs there a reason why pwquality uses /usr/lib/security?  Why is there a difference from other PAM modules?\nIs this patch the right way to address this?  Should this patch be upstream?  Or should our PAM also search /usr/lib/security?"
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-auth",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Should we remove these parms and provide a faillock.conf file (defaults to /etc/security/faillock.conf).  Note this would require a corresponding change in phosphor-user-manager."
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam_%.bbappend",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Would this be better as: `755 - - - -`?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-openembedded/meta-oe/recipes-extended/libpwquality/libpwquality_%.bbappend",
+                    "type": "ADDED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-account",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-auth",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -5
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-password",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 2,
+            "revision": "0226628a77ae0e3e12f5870279cab4c5b2208f68",
+            "parents": [
+                "aa6eed0af230b8492aafb94ea6b06f3d62c77c03"
+            ],
+            "ref": "refs/changes/02/40102/2",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1612014914,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-openembedded/meta-oe/recipes-extended/libpwquality/libpwquality_%.bbappend",
+                    "type": "ADDED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-account",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-auth",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -5
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-password",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 3,
+            "revision": "bed53fd61ce82c0299b2396d90d0b3eb061a57a1",
+            "parents": [
+                "abffcbff32d81ae8c933b6eff96448446db4aa70"
+            ],
+            "ref": "refs/changes/02/40102/3",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1612395454,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 119,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/libpwquality/libpwquality_%.bbappend",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-account",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-auth",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-password",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 61,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 4,
+            "revision": "9dd7dcd700243c88269fb9ab3ec07c569d478fb5",
+            "parents": [
+                "abffcbff32d81ae8c933b6eff96448446db4aa70"
+            ],
+            "ref": "refs/changes/02/40102/4",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1612462044,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 120,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/libpwquality/libpwquality_%.bbappend",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-account",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-auth",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-password",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 14
+        },
+        {
+            "number": 5,
+            "revision": "0a98c5c87a6c26ef2a5686dbd246a3c8ee96ffb1",
+            "parents": [
+                "51d608d241c1af6b58ed9a710ea808d7e01d603b"
+            ],
+            "ref": "refs/changes/02/40102/5",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1612903215,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "meta-openembedded/meta-oe/recipes-extended/libpwquality/libpwquality_1.4.4.bb",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "# This recipe is modified from openembedded-core.  To reduce image size it\n# builds libpwquality with --enable-python-bindings=no and does not import\n# distutils3-base.  The proposal is to add PACKAGECONFIG \"python-bindings\" to\n# control this.  Can a PACKAGECONFIG affect the \"inherit\" directive?\n# Upstream-Status: Help needed to get this into openembedded-core."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 127,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-openembedded/meta-oe/recipes-extended/libpwquality/libpwquality_1.4.4.bb",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/libpwquality/libpwquality_%.bbappend",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-account",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-auth",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -10
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam/pam.d/common-password",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "meta-phosphor/recipes-extended/pam/libpam_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -2
+                },
+                {
+                    "file": "poky/meta/recipes-extended/pam/libpam/0001-modules-pam_namespace-Makefile.am-correctly-install-.patch",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "poky/meta/recipes-extended/pam/libpam/crypt_configure.patch",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -40
+                },
+                {
+                    "file": "poky/meta/recipes-extended/pam/libpam/pam-security-abstract-securetty-handling.patch",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -203
+                },
+                {
+                    "file": "poky/meta/recipes-extended/pam/libpam/pam-unix-nullok-secure.patch",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -195
+                },
+                {
+                    "file": "poky/meta/recipes-extended/pam/libpam_1.5.1.bb",
+                    "fileOld": "poky/meta/recipes-extended/pam/libpam_1.3.1.bb",
+                    "type": "RENAMED",
+                    "insertions": 8,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 106,
+            "sizeDeletions": 463
+        }
+    ]
+}

@@ -1,0 +1,296 @@
+{
+    "project": "openbmc/phosphor-hostlogger",
+    "branch": "master",
+    "id": "I4d1061d8ec1ef9f6911ed17b3ebf0581e7eb4825",
+    "number": 42950,
+    "subject": "Send Host Console Log To Journal",
+    "owner": {
+        "name": "Spencer Ku",
+        "email": "Spencer.Ku@quantatw.com",
+        "username": "SpencerKu"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-hostlogger/+/42950",
+    "commitMessage": "Send Host Console Log To Journal\n\nThe aim of this commit is sned host console log to journal which include message ID.\nThen user can setting rsyslog config to filter host log message from journal. (Redfish MessageID = OpenBMC.0.1.SerialLogAdded)\n\nSigned-off-by: SpencerKu <Spencer.Ku@quantatw.com>\nChange-Id: I4d1061d8ec1ef9f6911ed17b3ebf0581e7eb4825\n",
+    "createdOn": 1620285470,
+    "lastUpdated": 1621343013,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1620285470,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1620285483,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620285499,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/16774/ : FAILURE"
+        },
+        {
+            "timestamp": 1620285671,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1620285688,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620285728,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16775/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620712920,
+            "reviewer": {
+                "name": "Artem Senichev",
+                "email": "artemsen@gmail.com",
+                "username": "artemsen"
+            },
+            "message": "Patch Set 2:\n\nThe main goal of this project was to collect the latest messages from the host, because it takes a lot of memory to store all the output.\nI think you don't need to modify the hostlogger to send data to journal, you can use systemd-cat for that, just connect it with the obmc-console.log file."
+        },
+        {
+            "timestamp": 1620751399,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> The main goal of this project was to collect the latest messages from the host, because it takes a lot of memory to store all the output.\n> I think you don't need to modify the hostlogger to send data to journal, you can use systemd-cat for that, just connect it with the obmc-console.log file.\n\nHi Artem, thanks for your comment. Let me provide some context. We are implementing a \"stream\" like service to share host serial console. We discussed it in the mailing list and chose to use the the Redfish Event Log architecture proposed in https://github.com/openbmc/docs/blob/master/architecture/redfish-logging-in-bmcweb.md.\n\nThe main reason is that we can use Redfish ServerSentEvent to stream host serial logs. This saves a lot of traffic than pulling logs periodically. The thread is recorded in https://lists.ozlabs.org/pipermail/openbmc/2021-March/025310.html).\n\nSo the implementation is to let hostlogger send a new journal entry when it collects a new serial log. The journal entry will be caught by rsyslog and persisted in rwfs. We can configure the rsyslog so it has log rotation and the maximum size. Finally BMCweb will stream out new entries via the established SSE connection. We have done similar things to stream POST codes in https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-post-code-manager/+/42269. \n\nI saw there is configuration file that controls the maximum RAM journal will use in https://github.com/openbmc/openbmc/blob/2a35c66601ea646d03f53f8ee1e0bea3acf179c1/poky/meta/recipes-core/systemd/systemd-conf/journald.conf#L3. Are you worrying about that serial log will take too much memory so logs from other services will be quickly rotated? \n\nIs it acceptable that we add a meson option here to enable this feature on demand and by default hostlogger won't send logs to journal?"
+        },
+        {
+            "timestamp": 1620751978,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1620800767,
+            "reviewer": {
+                "name": "Artem Senichev",
+                "email": "artemsen@gmail.com",
+                "username": "artemsen"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)\n\nExcuse me guys, but I still don't understand why you want to implement this feature in the phosphor-hostlogger project. This service is not intended to be a \"stream forwarder\", it is a buffer for logs, it collect host output and flush it according to the configured policy. This policy is the largest part of the module (configs, dbus watchers, etc), but you don't need all of these things for your purposes. You don't even need a line ending handler (it prevents printing the message until '\\n' which is not acceptable in your case).\nI believe the real time streaming should be implemented either in a standalone module or in lower layer (in obmc-console-server)."
+        },
+        {
+            "timestamp": 1620813935,
+            "reviewer": {
+                "name": "Alexander Amelkin",
+                "email": "a.amelkin@yadro.com",
+                "username": "AlexanderAmelkin"
+            },
+            "message": "Patch Set 2: Code-Review-1\n\nI'm on Artem's side and don't think this change belongs to this project.\nPlease take a look at obmc-console-server."
+        },
+        {
+            "timestamp": 1621342765,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> (3 comments)\n> \n> Excuse me guys, but I still don't understand why you want to implement this feature in the phosphor-hostlogger project. This service is not intended to be a \"stream forwarder\", it is a buffer for logs, it collect host output and flush it according to the configured policy. This policy is the largest part of the module (configs, dbus watchers, etc), but you don't need all of these things for your purposes. You don't even need a line ending handler (it prevents printing the message until '\\n' which is not acceptable in your case).\n> I believe the real time streaming should be implemented either in a standalone module or in lower layer (in obmc-console-server).\n\nThank you for the feedback, we will think more about the implement question, and look into obmc-console if we can implement the feature to the obmc-console."
+        },
+        {
+            "timestamp": 1621342919,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2: Code-Review-1\n> \n> I'm on Artem's side and don't think this change belongs to this project.\n> Please take a look at obmc-console-server.\n\nThank you for the feedback, we will look into obmc-console-server for the feature."
+        },
+        {
+            "timestamp": 1621343013,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Abandoned\n\nThis change should be implemented to other package or other method."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "39dd8093702225d43de45395a40016174a8ffc7d",
+            "parents": [
+                "dfee0da0a855933a3d61df5d190d19d82a72bed7"
+            ],
+            "ref": "refs/changes/50/42950/1",
+            "uploader": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "createdOn": 1620285470,
+            "author": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/log_buffer.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/log_buffer.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/service.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "0574130c8bffd13aaed25e790bb7e651a118f35c",
+            "parents": [
+                "dfee0da0a855933a3d61df5d190d19d82a72bed7"
+            ],
+            "ref": "refs/changes/50/42950/2",
+            "uploader": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "createdOn": 1620285671,
+            "author": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/log_buffer.cpp",
+                    "line": 46,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "I think we can just send out the journal log here. When a new message is appended to the list, it means the last message has been complete.\n\nThe following is my change for your reference. I was having trouble sending/receiving non printable contents so I did a regex to sanitize the content. No printable contents doesn't help  much, I wonder if we could do similar things.\n\n```\n// Added at line 46\n+            // The last message is complete\n+            std::cerr << \"The last message is complete: \" << messages.back().te\nxt << std::endl;\n+            std::string message_str = messages.back().text.c_str();\n+            boost::regex expr(\"(\\\\n)|([^\\x20-\\x7E])\");\n+            std::string fmt(\"(?1\\n)\"); // Omitted the (?2) as a no-op\n+            std::string s2 = boost::regex_replace(message_str, expr, fmt, boost\n::match_default | boost::format_all);\n+            if (message_str.size() > 0) {\n+              phosphor::logging::log<phosphor::logging::level::INFO>(\n+                  message_str.c_str(),\n+                  phosphor::logging::entry(\"REDFISH_MESSAGE_ID=%s\",\n+                                           \"OpenBMC.0.1.SerialLogAdded\"),\n+                  phosphor::logging::entry(\"REDFISH_MESSAGE_ARGS=%s\",\n+                                           message_str.c_str()));\n+            }\n\n```"
+                },
+                {
+                    "file": "src/log_buffer.cpp",
+                    "line": 46,
+                    "reviewer": {
+                        "name": "Artem Senichev",
+                        "email": "artemsen@gmail.com",
+                        "username": "artemsen"
+                    },
+                    "message": "First of all, this breaks the application architecture. This class is a log buffer, it should collect and store messages from the stream, nothing else. But now it has logic with sending messages to the third module, this is not a task for this entity.\nThe second thing is the boost dependency, we already have regex support in c++. Why should we use the boost instead?"
+                },
+                {
+                    "file": "src/log_buffer.hpp",
+                    "line": 64,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "I don't think we need another list. Can we use the existing list?"
+                },
+                {
+                    "file": "src/log_buffer.hpp",
+                    "line": 64,
+                    "reviewer": {
+                        "name": "Artem Senichev",
+                        "email": "artemsen@gmail.com",
+                        "username": "artemsen"
+                    },
+                    "message": "I agree, it looks really strange: log buffer with two identical containers inside."
+                },
+                {
+                    "file": "src/service.cpp",
+                    "line": 124,
+                    "reviewer": {
+                        "name": "Artem Senichev",
+                        "email": "artemsen@gmail.com",
+                        "username": "artemsen"
+                    },
+                    "message": "It agree that it is easier to add several lines here for forwarding messages, but this function is intended to *read* console output (it is called \"readConsole\"). If you need to do anything else it would be better to create another function."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/log_buffer.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/log_buffer.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/service.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 16,
+            "sizeDeletions": 0
+        }
+    ]
+}

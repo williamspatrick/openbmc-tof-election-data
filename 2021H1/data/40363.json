@@ -1,0 +1,301 @@
+{
+    "project": "openbmc/openbmc-build-scripts",
+    "branch": "master",
+    "id": "Iec92ebada513975d0806099083384dfca623f144",
+    "number": 40363,
+    "subject": "build-unit-test-docker: invalidate base image weekly",
+    "owner": {
+        "name": "Patrick Williams",
+        "email": "patrick@stwcx.xyz",
+        "username": "williamspatrick"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openbmc-build-scripts/+/40363",
+    "commitMessage": "build-unit-test-docker: invalidate base image weekly\n\nDocker will cache an image built with the exact same commands,\nso we only get latest Ubuntu packages rarely.  Add a date-based\necho command into the early stages of the base image build so\nthat we regularly get updates to all the packages in the base\nimage.\n\nThis invalidation, via echo, is only performed when running under\na Jenkins-like context.  The purpose of this distinction is so that\nwe are more likely to cache failures induced by an underlying OS\nupdate in CI, but when developers run this script locally they rarely\nsee an invalidation that is not due to a code package update.\n\nAdd an environment variable option \"FORCE_DOCKER_BUILD\" which can be\nset by developers to bypass the Docker cache and force all images\nto be rebuilt, just in case they really want to do that sort of thing.\n\nSigned-off-by: Patrick Williams <patrick@stwcx.xyz>\nChange-Id: Iec92ebada513975d0806099083384dfca623f144\n",
+    "createdOn": 1612638210,
+    "lastUpdated": 1613484572,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1612638210,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1612638223,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612639777,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/113/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612660061,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1612660074,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612660082,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/115/"
+        },
+        {
+            "timestamp": 1612661005,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/115/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612888751,
+            "reviewer": {
+                "name": "Matthew Barth",
+                "email": "msbarth@linux.ibm.com",
+                "username": "msbarth"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1612897156,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2:\n\nThis is the one I struggle with the most. I extracted all of this code and it took me 11 minutes to build the unit test docker. Maybe from a CI machine perspective that makes sense but as a general user, I'd find this kind of annoying. I only run this script sporadically but I like that usually it just has to update a few cached openbmc repos and it's good to go. Do we really think we've had issues with older packages? Should we add an option to do this that only our jenkins CI infrastructure uses?"
+        },
+        {
+            "timestamp": 1612904295,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> This is the one I struggle with the most. I extracted all of this code and it took me 11 minutes to build the unit test docker. Maybe from a CI machine perspective that makes sense but as a general user, I'd find this kind of annoying. I only run this script sporadically but I like that usually it just has to update a few cached openbmc repos and it's good to go. Do we really think we've had issues with older packages? Should we add an option to do this that only our jenkins CI infrastructure uses?\n\nThanks for the feedback.  I'm also finding that maybe this was a little too aggressive and I'm too often having to rebuild the linux-headers package which requires downloading all the source again.\n\nI think I'll add something to this change to detect that we're running on Jenkins and inject this date code only in that case (unless another environment variable is added).\n\nHow often do you think it is reasonable for us to do an apt-get?  Right now we end up with the image cached and we never re-pull.  Is once a day fine on CI?  Once a week?  Once a month?"
+        },
+        {
+            "timestamp": 1612921945,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> \n> How often do you think it is reasonable for us to do an apt-get?  Right now we end up with the image cached and we never re-pull.  Is once a day fine on CI?  Once a week?  Once a month?\n\nI'd rather start bigger and bring it in if we find issue so more like every month. Let me know if you'd like https://jenkins.openbmc.org/job/ci-repository/ to set a ENV variable to specify it's a jenkins config (or that it just wants this feature if you want to keep it a non-jenkins specific flag)."
+        },
+        {
+            "timestamp": 1613051620,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 2:\n> > > \n> > \n> > How often do you think it is reasonable for us to do an apt-get?  Right now we end up with the image cached and we never re-pull.  Is once a day fine on CI?  Once a week?  Once a month?\n> \n> I'd rather start bigger and bring it in if we find issue so more like every month. Let me know if you'd like https://jenkins.openbmc.org/job/ci-repository/ to set a ENV variable to specify it's a jenkins config (or that it just wants this feature if you want to keep it a non-jenkins specific flag).\n\nChange in next PS."
+        },
+        {
+            "timestamp": 1613051698,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1613051773,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1613051785,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/129/"
+        },
+        {
+            "timestamp": 1613053354,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/129/ : SUCCESS"
+        },
+        {
+            "timestamp": 1613142372,
+            "reviewer": {
+                "name": "Matthew Barth",
+                "email": "msbarth@linux.ibm.com",
+                "username": "msbarth"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1613484427,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3: Code-Review+2"
+        },
+        {
+            "timestamp": 1613484572,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Change has been successfully merged by Andrew Geissler"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "cfaf32cce74066a32e9651ebffb8f74b49ce9a6f",
+            "parents": [
+                "50392535e8801562c083c6559a0012cdfff925a8"
+            ],
+            "ref": "refs/changes/63/40363/1",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1612638210,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 10,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "11a8f314bc33a1494a00d4eb8ee58d6eb3df8201",
+            "parents": [
+                "4827bf62d8313ed19efd2d8db9e1f6a4be73a13f"
+            ],
+            "ref": "refs/changes/63/40363/2",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1612660061,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 10,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 3,
+            "revision": "50837436c50b9e85744da515fdf836d7b0ff70b4",
+            "parents": [
+                "b16f3e202f7cfd3fc7ed21248f21323b69399288"
+            ],
+            "ref": "refs/changes/63/40363/3",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1613051698,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 26,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 37,
+            "sizeDeletions": 5
+        }
+    ]
+}

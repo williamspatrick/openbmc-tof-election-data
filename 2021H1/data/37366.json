@@ -1,0 +1,936 @@
+{
+    "project": "openbmc/meta-phosphor",
+    "branch": "master",
+    "id": "I9cc1f3fb89b2caf4d9adf054ceaf549804708277",
+    "number": 37366,
+    "subject": "Conditionally enable Systemd NSS module to support DynamicUsers",
+    "owner": {
+        "name": "Anton D. Kachalov",
+        "email": "rnouse@google.com",
+        "username": "ya-mouse"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/meta-phosphor/+/37366",
+    "commitMessage": "Conditionally enable Systemd NSS module to support DynamicUsers\n\nDynamicUsers flag in systemd service configuration file required to create,\nhandle and recycle temporary users.\n\nThis is essential module for upcoming daemons' privilege separation work\nand should be enabled by appending 'obmc-privilege-separation' to IMAGE_FEATURES\n\nReference: https://github.com/openbmc/openbmc/issues/3383\n\nSigned-off-by: Anton D. Kachalov <gmouse@google.com>\nChange-Id: I9cc1f3fb89b2caf4d9adf054ceaf549804708277\n",
+    "createdOn": 1602619414,
+    "lastUpdated": 1619169151,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1602619414,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1602619426,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1602691122,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1"
+        },
+        {
+            "timestamp": 1602691131,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-meta/1408/"
+        },
+        {
+            "timestamp": 1602696091,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-meta/1408/ : SUCCESS"
+        },
+        {
+            "timestamp": 1602697441,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 1:\n\nBuild Successful \n\nIBM Hardware CI : witherspoon hardware tests passed"
+        },
+        {
+            "timestamp": 1602770629,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 1:\n\nThe code looks okay, but I don't yet understand enough about nsswitch to have an opinion."
+        },
+        {
+            "timestamp": 1602771119,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> The code looks okay, but I don't yet understand enough about nsswitch to have an opinion.\n\nThe nsswitch is in charge of several glibc routines such as accessing group / password entries or DNS resolution. Corresponding modules are defined in /etc/nsswitch.conf. The search order matter. When we're going to use DynamicUsers feature from systemd, the users will be allocated temporary in the memory. The username / group equals to service name + instance number. To make system function properly, we need to have a way to provide information (through getpwnam(3) / getgrnam(3) and similar). This is the purpose of added nss-systemd module that queries systemd about dynamically allocated users. It is recommended to put the \"systemd\" module after \"files\"."
+        },
+        {
+            "timestamp": 1602778246,
+            "reviewer": {
+                "name": "Bruce Mitchell",
+                "email": "bruce.mitchell@linux.vnet.ibm.com",
+                "username": "BMC-Bruce"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1603215898,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1603216193,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\nI did some estimation, on arm32 it's about +180kb. That was previous dicussion, but for wrong repo:\n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/36965#message-45c2b15e_6ef94ff3\n\nThis feature is required for non-root environment. It shouldn't influence ldap usage. It only handles dynamic users allocated by systemd."
+        },
+        {
+            "timestamp": 1603383641,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> I did some estimation, on arm32 it's about +180kb. That was previous dicussion, but for wrong repo:\n\nAh, didn't see that, thanks for the pointer.\n\n> \n> https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/36965#message-45c2b15e_6ef94ff3\n> \n> This feature is required for non-root environment. It shouldn't influence ldap usage. It only handles dynamic users allocated by systemd.\n\nSo, to be clear, as-is, the only impact a user would expect to see would be a 180kb size increase?"
+        },
+        {
+            "timestamp": 1603383794,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n> So, to be clear, as-is, the only impact a user would expect to see would be a 180kb size increase?\n\nCorrect."
+        },
+        {
+            "timestamp": 1603383994,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > I did some estimation, on arm32 it's about +180kb. That was previous dicussion, but for wrong repo:\n> \n> Ah, didn't see that, thanks for the pointer.\n> \n> > \n> > https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/36965#message-45c2b15e_6ef94ff3\n> > \n> > This feature is required for non-root environment. It shouldn't influence ldap usage. It only handles dynamic users allocated by systemd.\n> \n> So, to be clear, as-is, the only impact a user would expect to see would be a 180kb size increase?\n\nAlso, in looking at it further (I was unaware of what nss was prior) it's yet another SSL/TLS implementation?  Is there a reason the existing OpenSSL implementation didn't work for what you needed?"
+        },
+        {
+            "timestamp": 1603384152,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n> Also, in looking at it further (I was unaware of what nss was prior) it's yet another SSL/TLS implementation?  Is there a reason the existing OpenSSL implementation didn't work for what you needed?\n\nNSS is Name Service Switch in glibc. It configures source of truth for different kind of glibc routines. NSS libs are actual implementation like file-based or ldap-based."
+        },
+        {
+            "timestamp": 1603384230,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Also, in looking at it further (I was unaware of what nss was prior) it's yet another SSL/TLS implementation?  Is there a reason the existing OpenSSL implementation didn't work for what you needed?\n> \n> NSS is Name Service Switch in glibc. It configures source of truth for different kind of glibc routines. NSS libs are actual implementation like file-based or ldap-based.\n\nIn particular case, I need systemd NSS lib to support [dynamic users](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#Credentials) feature"
+        },
+        {
+            "timestamp": 1603384349,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > > Also, in looking at it further (I was unaware of what nss was prior) it's yet another SSL/TLS implementation?  Is there a reason the existing OpenSSL implementation didn't work for what you needed?\n> > \n> > NSS is Name Service Switch in glibc. It configures source of truth for different kind of glibc routines. NSS libs are actual implementation like file-based or ldap-based.\n> \n> In particular case, I need systemd NSS lib to support [dynamic users](https://www.freedesktop.org/software/systemd/man/systemd.exec.html#Credentials) feature\n\nThe nss recipe you've pulled in has a description of:\n\n\"Mozilla's SSL and TLS implementation...Network Security Services (NSS) is a set of libraries designed to support cross-platform development of security-enabled client and server applications. Applications built with NSS can support SSL v2 and v3, TLS, PKCS 5, PKCS 7, PKCS 11, PKCS 12, S/MIME, X.509 v3 certificates, and other security standards.\"\n\nhttps://github.com/openbmc/openbmc/blob/master/meta-openembedded/meta-oe/recipes-support/nss/nss_3.56.bb\n\nIs that what you intended?  It should be noted, it also pulls in sqlite3 as a new sub dependency."
+        },
+        {
+            "timestamp": 1603384482,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603384554,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603385358,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603385420,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603387610,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603388561,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603396359,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603404784,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1603749226,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1604145412,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1604145430,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1604145436,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/ci-meta/1619/"
+        },
+        {
+            "timestamp": 1604150547,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-meta/1619/ : SUCCESS"
+        },
+        {
+            "timestamp": 1604151928,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 2:\n\nBuild Successful \n\nIBM Hardware CI : witherspoon hardware tests passed"
+        },
+        {
+            "timestamp": 1604185944,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1604185956,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1604185962,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/ci-meta/1625/"
+        },
+        {
+            "timestamp": 1604190386,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-meta/1625/ : FAILURE"
+        },
+        {
+            "timestamp": 1604700350,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Uploaded patch set 4: Patch Set 3 was rebased."
+        },
+        {
+            "timestamp": 1604700360,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1604700367,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/ci-meta/1751/"
+        },
+        {
+            "timestamp": 1604705692,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-meta/1751/ : SUCCESS"
+        },
+        {
+            "timestamp": 1604707084,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 4:\n\nBuild Successful \n\nIBM Hardware CI : witherspoon hardware tests passed"
+        },
+        {
+            "timestamp": 1605725063,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 4: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1605725161,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Removed Code-Review+2 by Brad Bishop <bradleyb@fuzziesquirrel.com>\n"
+        },
+        {
+            "timestamp": 1605729067,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1607003254,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 4:\n\ngently ping"
+        },
+        {
+            "timestamp": 1607116310,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\nSeems okay to me.  I review the change and found no issues.  Although I don't fully understand NSS, I get that we need it.  It seems to me that it should be enabled by default, and smaller images can disable it."
+        },
+        {
+            "timestamp": 1607362102,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4: Code-Review+1\n> \n> Seems okay to me.  I review the change and found no issues.  Although I don't fully understand NSS, I get that we need it.  It seems to me that it should be enabled by default, and smaller images can disable it.\n\nYep. During the development we will do it in reverse: enable on platforms that are tested."
+        },
+        {
+            "timestamp": 1607964904,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 4:\n\nGently ping for the second \"+1\"."
+        },
+        {
+            "timestamp": 1608224787,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1608250682,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1608313836,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1608313852,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1608324236,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 4:\n\n> If the question makes sense after substituting the feature in question then FEATURE is a MACHINE_FEATURE.  In this case:\n\n> > Does the hardware on witherspoon support privilege separation?\n\nThe witherspoon (or other flash-contrained) platforms do not support privilege separation because of the flash-size. Is this machine feature (small flash) or distro?"
+        },
+        {
+            "timestamp": 1608328044,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)\n\n> FYI OpenBMC doesn't support the qemuXXX targets that come with Yocto anymore.  Many targets with OpenBMC support do have models in upstream QEMU though, and those all work.\n\nI use meta-phosphor/conf template that has qemuarm machine by default."
+        },
+        {
+            "timestamp": 1619169151,
+            "reviewer": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "message": "Abandoned\n\nSystemd NSS has been enabled in separate change"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "7ff617a0f45289cca083df0c27eabbdf314b8fc2",
+            "parents": [
+                "5864ac0774233810bfe48d2a1471aa0d1140d2a7"
+            ],
+            "ref": "refs/changes/66/37366/1",
+            "uploader": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "createdOn": 1602619414,
+            "author": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Does this have any impacts to the users or developers?  I know there's a binary size increase;  Does having this library present change anything significantly from a user perspective?  Will this change the LDAP flows at all in such a way that they need to be retested?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can you measure the impact to the binary size this imposes?  Many systems are very close to their binary size limit."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "That is not a package dependency (nss from Mozilla). It's a local package config that enables or disables specific binary packages for a selected recipe."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "My mistake.  Fine as is."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I should be noted, witherspoon is apparently right up against the binary limit, so this will likely push it over.  We either need to find space somewhere (there's been a couple ideas floated in the past) or we need to make this an optional image feature.  I'd be in favor of the former."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "Do the witherspoon use squashfs image with compression?"
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Yes, I believe they do."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "The difference in root squashfs image is 92k for witherspoon."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "classes/obmc-phosphor-image.bbclass",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "conf/distro/include/phosphor-base.inc",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "recipes-core/base-files/base-files_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 7,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 2,
+            "revision": "42cbc04e036a58c41f43986f5cfacd2d1d280a8c",
+            "parents": [
+                "f62c04402c5bacac5ec76c168246fbdbbd76ed32"
+            ],
+            "ref": "refs/changes/66/37366/2",
+            "uploader": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "createdOn": 1604145412,
+            "author": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "classes/obmc-phosphor-image.bbclass",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -4
+                },
+                {
+                    "file": "conf/distro/include/phosphor-base.inc",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "conf/layer.conf",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-core/base-files/base-files_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 19,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 3,
+            "revision": "69235b7a1fd4e16ea88cfc0037dca57a07ef00ac",
+            "parents": [
+                "f62c04402c5bacac5ec76c168246fbdbbd76ed32"
+            ],
+            "ref": "refs/changes/66/37366/3",
+            "uploader": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "createdOn": 1604185944,
+            "author": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "classes/obmc-phosphor-image.bbclass",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -4
+                },
+                {
+                    "file": "conf/distro/include/phosphor-base.inc",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "conf/layer.conf",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-core/base-files/base-files_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 19,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 4,
+            "revision": "f337dd8711af0226df2e4c767bbb6120b8b4ef09",
+            "parents": [
+                "5d68847dce91b926b1d7cd4accec37e4bc4fc0ef"
+            ],
+            "ref": "refs/changes/66/37366/4",
+            "uploader": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "createdOn": 1604700350,
+            "author": {
+                "name": "Anton D. Kachalov",
+                "email": "rnouse@google.com",
+                "username": "ya-mouse"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "recipes-core/base-files/base-files_%.bbappend",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Brad Bishop",
+                        "email": "bradleyb@fuzziesquirrel.com",
+                        "username": "bradbishop"
+                    },
+                    "message": "There is an assumption here that IMAGE_FEATURES is being set from the global configuration, which is a violation of best practices[1].  Bitbake users expect something like this to work:\n\n some_image.bbappend:\n\n IMAGE_FEATURES_append = \" obmc-privilege-separation\"\n\nbut the base_files recipe would never see obmc-privilege-separation if set this way because IMAGE_FEATURES is not in the global configuration.  This same assumption is made in the next patch in this series in the dbus-perms recipe.\n\nIf this must be configurable (more on this below), and you need to be adding logic around this flag in random recipes throughout the tree, then it can't be an image feature - rather, it has to be a distro feature.\n \n[1] https://www.yoctoproject.org/docs/latest/mega-manual/mega-manual.html#usingpoky-extend-customimage-imagefeatures"
+                },
+                {
+                    "file": "recipes-core/base-files/base-files_%.bbappend",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "I set image features from local.conf. And the per-target local.conf.sample should have it at the early stage of development (explained in other comment above). Thus, it catched by base_files recipes. Otherwise, it wouldn't work for me when I've tested it.\n\nFrom my understanding (https://www.yoctoproject.org/pipermail/yocto/2017-January/034171.html), DISTRO_FEATURES is globally applied to the targets. Thus, that seems like COMBINED_FEATURES is more relevant candidate."
+                },
+                {
+                    "file": "recipes-core/base-files/base-files_%.bbappend",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Brad Bishop",
+                        "email": "bradleyb@fuzziesquirrel.com",
+                        "username": "bradbishop"
+                    },
+                    "message": "> DISTRO_FEATURES is globally applied to the targets.\n\nCorrect.  You'd have one set of distro policy that enables priv-separation and another set that does not.  For a given target, you can build with either policy set (or both).\n\n>  that seems like COMBINED_FEATURES is more relevant candidate\n\nUse this metric to determine if something is a MACHINE_FEATURE or a DISTRO_FEATURE:\n\n Does the hardware on <MACHINE> support <FEATURE>?\n\nIf the question makes sense after substituting the feature in question then FEATURE is a MACHINE_FEATURE.  In this case:\n\n Does the hardware on witherspoon support privilege separation?\n\nThis is non-sensical - privilege separation has nothing to do with hardware, it a software feature only, thus it is not a MACHINE_FEATURE and COMBINED_FEATURES is not appropriate."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Brad Bishop",
+                        "email": "bradleyb@fuzziesquirrel.com",
+                        "username": "bradbishop"
+                    },
+                    "message": "I have yet to understand why this needs to be configurable."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "As per earlier discussion, this increases the image size and might be a problem for witherspoon targets. Additionally, the privilege separation should be enabled platform-by-platform, thus, covered by image feature flag."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Brad Bishop",
+                        "email": "bradleyb@fuzziesquirrel.com",
+                        "username": "bradbishop"
+                    },
+                    "message": "> As per earlier discussion, this increases the image size\n\nI expect there are exactly zero people that would be upset by the modest size increase here, considering what you get in return.  So I still don't understand the rationale for making this configurable.  If you can find someone that doesn't want privilege separation on their OpenBMC based BMC I'll quit asking about it but I don't think there are any...\n\n> and might be a problem for witherspoon targets.\n\nThis patch was automatically tested on a witherspoon:\n\n> Build Successful                                                                                               \n> IBM Hardware CI : witherspoon hardware tests passed         \n\nThese lines mean there weren't any problems with it.\n\n> the privilege separation should be enabled platform-by-platform\n\nIn light of what I've said above, do you still feel this way?  If so, can you explain why?"
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "This patch is only a little percent of the upcoming change that introduces the image feature flag.\nThe reason why we need this flag (that is OFF by default) to not break everything. The next changes (some of them seen in \"WIP: ...\" PR) makes things incompatible and require to change more and more stuff across different repos at once. To make the process smooth, we need the flag. In first steps the flag will be enabled only through the local.conf file during development. Next it will be enabled for qemu target and then one by one for other platforms.\n\nFor instance, some daemons are dependant to each other. Some third-party vendors' stuff might be also relies on the original behaviour, filepremissions and running under the root user.\n\n> If you can find someone that doesn't want privilege separation on their OpenBMC based BMC I'll quit asking about it but I don't think there are any...\nThere was some who are more size-constrained rather than security-agnostic. At the end, the priv separation wouldn't be just a +200k change to the image.\n\nNSS module is pretty small, but even then it might break Witherspoon targets. CI has passed at least because the flag is not enabled. There were several discussions. Sometimes, the image might build well, but it fails with flashing or system bootup on the real hardware.\n\n> In light of what I've said above, do you still feel this way?  If so, can you explain why?\n\nAvoiding use of the feature flags will just break everyone with the follow-up changes. That's the normal practice when introducing incompatible changes."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Brad Bishop",
+                        "email": "bradleyb@fuzziesquirrel.com",
+                        "username": "bradbishop"
+                    },
+                    "message": "> CI has passed at least because the flag is not enabled.\n\nOops :-).  Yes I remember now.  Let me see if I can get it to fit.  \n\n> be enabled for qemu target \n\nFYI OpenBMC doesn't support the qemuXXX targets that come with Yocto anymore.  Many targets with OpenBMC support do have models in upstream QEMU though, and those all work.\n\n> Some third-party vendors' stuff might be also relies on the original behaviour,\n\nThis is not a problem - we absolutely do not work around code that we can't see in OpenBMC.\n\n> Avoiding use of the feature flags will just break everyone with the follow-up changes. That's the normal practice when introducing incompatible changes.\n\nOf course.  And this what I'm challenging, not the feature flag itself.  I don't understand why this can't be done in a way that is compatible.  For example, why can't the DBus ACLs include both root and the dynamic user until all the (upstream) code has been fixed up?  I'm happy to be wrong, please just help me understand why it isn't possible."
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Anton D. Kachalov",
+                        "email": "rnouse@google.com",
+                        "username": "ya-mouse"
+                    },
+                    "message": "> FYI OpenBMC doesn't support the qemuXXX targets that come with Yocto anymore.  Many targets with OpenBMC support do have models in upstream QEMU though, and those all work.\n\nI use meta-phosphor/conf template that has qemuarm machine by default.\n\n> This is not a problem - we absolutely do not work around code that we can't see in OpenBMC.\n\nThere are a number of vendor-specific meta-* in the base openbmc repo. Thus, this priv-separation feature couldn't be available everywhere at once.\n\n> Of course.  And this what I'm challenging, not the feature flag itself.  I don't understand why this can't be done in a way that is compatible.  For example, why can't the DBus ACLs include both root and the dynamic user until all the (upstream) code has been fixed up? \n\nDynamic users is just a small part of the changes. Even then, we can not simply mix regular users and root user because some daemons have shared access to the same file system resources, thus, have the same permissions (at least, common group). You can check next WIP gerrit that will be splitted in several smaller changes:\n\n   https://gerrit.openbmc-project.xyz/c/openbmc/meta-phosphor/+/37844/2\n\nMoreover, the changed ACLs or filepermissions might be incomplete or wrong that might cause outages. That the major reason to keep priv-separation work covered by the flag."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "classes/obmc-phosphor-image.bbclass",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -4
+                },
+                {
+                    "file": "conf/distro/include/phosphor-base.inc",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "conf/layer.conf",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-core/base-files/base-files_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-core/systemd/systemd_%.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 19,
+            "sizeDeletions": 4
+        }
+    ]
+}
