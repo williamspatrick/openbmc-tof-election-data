@@ -1,0 +1,211 @@
+{
+    "project": "openbmc/openbmc",
+    "branch": "master",
+    "id": "I0bd93d3d88bf62dfe03549419fe98ab85f10a68c",
+    "number": 44623,
+    "subject": "meta-phosphor: os-release: fix task caching with DISTRO_VERSION",
+    "owner": {
+        "name": "Patrick Williams",
+        "email": "patrick@stwcx.xyz",
+        "username": "williamspatrick"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/44623",
+    "commitMessage": "meta-phosphor: os-release: fix task caching with DISTRO_VERSION\n\nIt was reported that the following sequence would not cause\n`os-release` to rebuild:\n\n```\n    bitbake os-release\n    git commit --amend\n    bitbake os-release\n```\n\nThis is due to how bitbake task hashing is implemented with respect\nto weak variables.  In 439c59b, DISTRO_VERSION was changed to a\nweak variable, but it is included in the 'vardeps' chain for\n'do_compile'.  When bitbake computes the hash for a task, typically\nthe contents of the variables are used for the hashing, but for weak\nvariables only the definition is used.  (Confirmed by adding bb.note\ndebugs to `poky/bitbake/lib/bb/data.py`)\n\nThe new, weak DISTRO_VERSION is intended to be populated with contents\nfrom a `git describe` operation.  Those contents must be used in the\nhashing of the 'do_compile' task and not the definition.  This can be\naccomplished by creating an indirection using a strong variable.\n\nThe dependency chain and hash evaluation will be as follows:\n```\n    do_compile -> DISTRO_VERSION -> PHOSPHOR_OS_RELEASE_DISTRO_VERSION\n    hash(do_compile) = ... +\n        DISTRO_VERSION:${PHOSPHOR_OS_RELEASE_DISTRO_VERSION} +\n        PHOSPHOR_...DISTRO_VERSION=2.11.0-dev-...\n```\n\nPrior to this fix the hash evaluation was:\n```\n    hash(do_compile) = ... +\n        DISTRO_VERSION:${@run_git...}\n```\n\nFixes 439c59b425cf403355571875b3fa714782dcf15b.\n\nTested: Ensure the above reported sequence causes a rebuild of\n        os-release with expected data.\n\nSigned-off-by: Patrick Williams <patrick@stwcx.xyz>\nChange-Id: I0bd93d3d88bf62dfe03549419fe98ab85f10a68c\n",
+    "createdOn": 1625088209,
+    "lastUpdated": 1625092670,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1625088209,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1625088265,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625088272,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/5066/"
+        },
+        {
+            "timestamp": 1625088333,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1: Code-Review+2"
+        },
+        {
+            "timestamp": 1625088510,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1625088705,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 1: Code-Review+1\n\nConfirmed that this fixes the problem I'd been seeing."
+        },
+        {
+            "timestamp": 1625088971,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1: Code-Review+2"
+        },
+        {
+            "timestamp": 1625089023,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/5066/ : SUCCESS"
+        },
+        {
+            "timestamp": 1625089408,
+            "reviewer": {
+                "name": "Brandon Kim",
+                "email": "brandonkim@google.com",
+                "username": "brandonkimbk"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1625090223,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 1:\n\nBuild Successful \n\nIBM Hardware CI : witherspoon hardware tests passed"
+        },
+        {
+            "timestamp": 1625090578,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1625091304,
+            "reviewer": {
+                "name": "Benjamin Fair",
+                "email": "benjaminfair@google.com",
+                "username": "BenjaminFair"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1625092670,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully rebased and submitted as 24d05d0bba777238227121f79f3e8b02bb2bb535 by Patrick Williams"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "b07520abb667352b5687590eb8acc5cbd9b78ff1",
+            "parents": [
+                "ab155da45cce2b1316de3d1269294376dc9c52a0"
+            ],
+            "ref": "refs/changes/23/44623/1",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1625088209,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-core/os-release/os-release.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 9,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "24d05d0bba777238227121f79f3e8b02bb2bb535",
+            "parents": [
+                "a430033d3bffc7d3f9f9d84611f68049d8b17f75"
+            ],
+            "ref": "refs/changes/23/44623/2",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1625092670,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-core/os-release/os-release.bbappend",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 9,
+            "sizeDeletions": 1
+        }
+    ]
+}

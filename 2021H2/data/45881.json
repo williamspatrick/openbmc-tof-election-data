@@ -1,0 +1,431 @@
+{
+    "project": "openbmc/pldm",
+    "branch": "master",
+    "id": "I2ad28d985fe190b3bbfbca3e2ed5347b05851ffb",
+    "number": 45881,
+    "subject": "PDR: Add effecter support for fault LEDS.",
+    "owner": {
+        "name": "Sridevi Ramesh",
+        "email": "sridevra@in.ibm.com",
+        "username": "SrideviRamesh"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/pldm/+/45881",
+    "commitMessage": "PDR: Add effecter support for fault LEDS.\n\nAlso, contains update for card, dimm and CPU entity info for\nidentify effecter LED.\n\nTested Result:\n\n1. Example for fault LED:\n=========================\n\npldmtool platform getpdr -d 193\n{\n    \"nextRecordHandle\": 194,\n    \"responseCount\": 29,\n    \"recordHandle\": 193,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 103,\n    \"entityType\": \"[Physical] Chassis front panel board(control panel)\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 3,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\nbusctl get-property xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/base_op_panel_blyth xyz.openbmc_project.State.Decorator.OperationalStatus Functional\nb true\n\npldmtool platform SetStateEffecterStates -i 103 -c 1 -d 1 2                                                   {\n    \"Response\": \"SUCCESS\"\n}\n\nbusctl get-property xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/base_op_panel_blyth xyz.openbmc_project.State.Decorator.OperationalStatus Functional\nb false\n\nl platform getpdr -d 415\n{\n    \"nextRecordHandle\": 416,\n    \"responseCount\": 29,\n    \"recordHandle\": 415,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 120,\n    \"entityType\": \"[Physical] Memory Chip\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 3,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\n busctl get-property xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/dimm0 xyz.openbmc_project.State.Decorator.OperationalStatus Functional\nb false\n\npldmtool platform SetStateEffecterStates -i 120 -c 1 -d 1 1                                                                {\n    \"Response\": \"SUCCESS\"\n}\n\nbusctl get-property xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/dimm0 xyz.openbmc_project.State.Decorator.OperationalStatus Functional\nb true\n\n2. Example for dimm update for identify effecter\n====================================================\n\nSet Memory Chip -1 (Identify State - effecter) and verify with corresponding Memory chip -1 (Identify State - sensor)\n\npldmtool platform GetStateSensorReadings -i 24 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\npldmtool platform SetStateEffecterStates -i 21 -c 1 -d 1 1\n{\n    \"Response\": \"SUCCESS\"\n}\npldmtool platform GetStateSensorReadings -i 24 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Normal\"\n\n3. Example for cable card update for identify effecter\n======================================================\n\npldmtool platform getpdr -d 305\n{\n    \"nextRecordHandle\": 306,\n    \"responseCount\": 29,\n    \"recordHandle\": 305,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 10,\n    \"entityType\": \"[Physical] Connector\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 10,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"Identify State(17)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Identify State Unasserted(1)\",\n        \"Identify State Asserted(2)\"\n    ]\n}\n\npldmtool platform GetStateSensorReadings -i 13 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Normal\"\n}\n\npldmtool platform SetStateEffecterStates -i 10 -c 1 -d 1 2\n{\n    \"Response\": \"SUCCESS\"\n}\n\n pldmtool platform GetStateSensorReadings -i 13 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\n\n4. Example for CPU update for identify LED\n======================================\n\nSet CPU -1 (Identify State - effecter) and verify with corresponding\nCPU -1 (Identify State - sensor)\n\npldmtool platform GetStateSensorReadings -i 15 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Normal\"\n}\n\npldmtool platform SetStateEffecterStates -i 12 -c 1 -d 1 2\n{\n    \"Response\": \"SUCCESS\"\n}\n\npldmtool platform GetStateSensorReadings -i 15 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\n\n5. Example for CPU fault LED\n============================\n\npldmtool platform getpdr -d 205\n{\n    \"nextRecordHandle\": 206,\n    \"responseCount\": 29,\n    \"recordHandle\": 205,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 115,\n    \"entityType\": \"[Physical] Processor\",\n    \"entityInstanceNumber\": 3,\n    \"containerID\": 4,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\n busctl get-property xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/dcm1/cpu0 xyz.openbmc_project.State.Decorator.OperationalStatus Functional\nb true\n\n pldmtool platform SetStateEffecterStates -i 115 -c 1 -d 1 2                                                                {\n    \"Response\": \"SUCCESS\"\n}\n\nbusctl get-property xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/dcm1/cpu0 xyz.openbmc_project.State.Decorator.OperationalStatus Functional\nb false\n\nChange-Id: I2ad28d985fe190b3bbfbca3e2ed5347b05851ffb\nSigned-off-by: Sridevi Ramesh <sridevra@in.ibm.com>\n",
+    "createdOn": 1628855596,
+    "lastUpdated": 1632301001,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1628855596,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1628855611,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628855620,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2763/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1629099284,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Removed reviewer Tom Joseph."
+        },
+        {
+            "timestamp": 1629099289,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Removed reviewer Deepak Kodihalli."
+        },
+        {
+            "timestamp": 1629099356,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Patch Set 1:\n\nI tested the Json file with help of manoj's Json validation.. CI passed"
+        },
+        {
+            "timestamp": 1629112581,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1629112608,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629112617,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2771/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1629114052,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/2771/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/24400/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631723661,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1631723676,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631730079,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3090/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1631730958,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3090/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/26395/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632134324,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1632134340,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632134348,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3109/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1632135182,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3109/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/26586/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632145111,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1632198372,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1632219625,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1632226667,
+            "reviewer": {
+                "name": "Sampa Misra",
+                "email": "sampmisr@in.ibm.com",
+                "username": "sampmisr"
+            },
+            "message": "Patch Set 4: Code-Review+2"
+        },
+        {
+            "timestamp": 1632301001,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Change has been successfully rebased and submitted as a114c1075310e5fa24211a4796fe1ed25b828d69 by Jayashankar Padath"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "f23bb47a8472772393978686b16309182f717f7b",
+            "parents": [
+                "33ac59dd77e641111d9a10ca941edfe630e2705d"
+            ],
+            "ref": "refs/changes/81/45881/1",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1628855596,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 1513,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1513,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "4a8d5ce1a21205e6845dd91a377ea118fdd65a11",
+            "parents": [
+                "33ac59dd77e641111d9a10ca941edfe630e2705d"
+            ],
+            "ref": "refs/changes/81/45881/2",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1629112581,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 1513,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1513,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "527d1bf724ba109e00476e7ffc0d8194d96de8a1",
+            "parents": [
+                "33ac59dd77e641111d9a10ca941edfe630e2705d"
+            ],
+            "ref": "refs/changes/81/45881/3",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1631723661,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 167,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 1700,
+                    "deletions": -42
+                }
+            ],
+            "sizeInsertions": 1700,
+            "sizeDeletions": 42
+        },
+        {
+            "number": 4,
+            "revision": "31374038510d719ec24c3121b8198f882327f99a",
+            "parents": [
+                "33ac59dd77e641111d9a10ca941edfe630e2705d"
+            ],
+            "ref": "refs/changes/81/45881/4",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1632134324,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "instance numbers can be anything as per the PLDM spec, and it would have been better if the instance number would have started with 0, rather than 1. As the dbus object(/xyz/openbmc_project/inventory/system/chassis/motherboard/cpu0) and fault led group path(/xyz/openbmc_project/led/groups/cpu0_identify) both starts with 0."
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Well , now i see the problem.\n\nFRU instance numbers are starting with 1, and we should have 1:1 mapping with the entity instance numbers across the PDR's."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 235,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 1718,
+                    "deletions": -44
+                }
+            ],
+            "sizeInsertions": 1718,
+            "sizeDeletions": 44
+        },
+        {
+            "number": 5,
+            "revision": "a114c1075310e5fa24211a4796fe1ed25b828d69",
+            "parents": [
+                "7f760b3612724da522ead354527785aa3df47a07"
+            ],
+            "ref": "refs/changes/81/45881/5",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1632301001,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 235,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 1718,
+                    "deletions": -44
+                }
+            ],
+            "sizeInsertions": 1718,
+            "sizeDeletions": 44
+        }
+    ]
+}

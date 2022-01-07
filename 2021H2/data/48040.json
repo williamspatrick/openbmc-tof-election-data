@@ -1,0 +1,306 @@
+{
+    "project": "openbmc/phosphor-networkd",
+    "branch": "master",
+    "id": "Icd72ad931d82a1a94e821242b784ead1ebd630df",
+    "number": 48040,
+    "subject": "Enhance management of DHCPv6 state",
+    "owner": {
+        "name": "Johnathan Mantey",
+        "email": "johnathanx.mantey@intel.com",
+        "username": "Howitzer105mm"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-networkd/+/48040",
+    "commitMessage": "Enhance management of DHCPv6 state\n\nKeeping track of the current state of DHCPv6 is not as straight\nforward as monitoring the systemd-networkd configuration file DCHP\nconfiguration line.\n\nThe following line in the systemd-networkd(5) man page describes\nDHCPv6 handling:\n\n'Note that DHCPv6 will by default be triggered by Router\nAdvertisement, if that is enabled, regardless of this parameter.'\n\nThus any time IPv6AcceptRA is enabled, so is DHCPv6. The\nsystemd-netword 'DHCP=' line may be set to 'ipv4' or to 'false', and\nDHCPv6 may still be active because IPv6AcceptRA is 'true'.\n\nThe changes in this commit work to keep the DHCP configuration\nexplicitly in sync with the state implied by IPv6AcceptRA.\n\nKeeping the state explicitly in sync aids with the IPMI Set LAN\nConfiguration, and Get LAN Configuration commands related to IPv6\naddresses. Specifically parameter 56, IP Static Addresses, and 59,\nIPv6 Dynamic Address. The IPMI commands use the D-Bus DHCP state to\nmake decisions on how to present address data. Presenting the DHCP\nstate accurately helps IPMI commands to present the network state\naccurately.\n\nTested:\nBooted System Under Test (SUT) with DHCPv4 and DHCPv6 enabled,\nincluding IPv6AcceptRA true. SUT has two NICs.\nConfirmed second NIC had valid IPv4 and IPv6 addresses.\nSet LAN Conf 64 to turn off IPv6AcceptRA\nConfirmed D-Bus DHCP entry reports both IPv4/IPv6 are active because\nthe configuration file has 'DHCP=true' still.\nConfirmed NIC only had IPv4 address\nAssigned a static IPv6 address.\nConfirmed NIC has static IPv6 address assigned.\nConfirmed D-Bus DHCP state is IPv4.\nPerformed Get LAN 59, and the IPv6 address reported is ::/128\nPerformed Get LAN 56, and the static IPv6 address is displayed.\nSet LAN Conf 64 to turn on IPv6AcceptRA.\nConfirmed D-Bus DHCP entry reports both IPv4/IPv6.\nConfirmed DHCP assigned an IPv6 address, and removed the static\nassignment.\nPerformed Get LAN 59, and the DHCP IPv6 address is displayed.\nPerformed Get LAN 56, and the IPv6 address reported is ::/128\n\nChange-Id: Icd72ad931d82a1a94e821242b784ead1ebd630df\nSigned-off-by: Johnathan Mantey <johnathanx.mantey@intel.com>\n",
+    "createdOn": 1634827817,
+    "lastUpdated": 1638486667,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1634827817,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1634852259,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634914881,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nI disagree. My reading of systemd-networkd DHCP= entry is that enabling RA enables DHCPv6.\nI have just assigned DHCP=none for my NIC, and left RA=true.\nRestarting systemd-networkd still results in my NIC being assigned a DHCPv6 address.\nIPv6AcceptRA overrides the DHCP= state for IPv6."
+        },
+        {
+            "timestamp": 1634953749,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)\n\nI think we need to clarify the meaning of this D-Bus interface. I'm not a phosphor-networkd guru, but it seems to me like DHCPEnabled *should* simply mirror the configuration option. And the xyz.openbmc_project.Network.IP interface on each IP object needs to be fixed to show that the \"Origin\" may be DHCP even if DHCPEnabled=none."
+        },
+        {
+            "timestamp": 1635032250,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636387951,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1636389382,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nI apologize for the lengthy reply."
+        },
+        {
+            "timestamp": 1636540208,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637231979,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637232235,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638300046,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nI finally have bandwidth to get back to this. I need to better understand the comments returned so far in order to consider applying different solutions to the problem."
+        },
+        {
+            "timestamp": 1638309998,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\nRatan,\nI have updated my dhcpdv6.conf file to the following:\n\nhost otherclient {               \n        # This host entry is hopefully matched if the client supplies a DUID-LL\n        # or DUID-LLT containing this MAC address.\n        host-identifier option               \n                dhcp6.client-id 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37;\n                fixed-address6 fd99:86:1040:1928::130;               \n}\n\nsubnet6 fd99:86:1040:1928::/64 {\n        range6 fd99:86:1040:1928::1 fd99:86:1040:1928::3;\n}\n\n\nWhen DHCP=true, and IPAcceptRA=true and DHCPv6Client=true I get the following from my bmcnuc:\nNov 30 14:00:31 bmcnuc dhcpd[925953]: Solicit message from fe80::9875:9fff:fe76:ffb0 port 546, transaction ID 0xC6404A00\nNov 30 14:00:31 bmcnuc dhcpd[925953]: Advertise NA: address fd99:86:1040:1928::130 to client with duid 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37 iaid = 539170353 static\nNov 30 14:00:31 bmcnuc dhcpd[925953]: Sending Advertise to fe80::9875:9fff:fe76:ffb0 port 546\nNov 30 14:00:32 bmcnuc dhcpd[925953]: Request message from fe80::9875:9fff:fe76:ffb0 port 546, transaction ID 0x4BB4700\nNov 30 14:00:32 bmcnuc dhcpd[925953]: Reply NA: address fd99:86:1040:1928::130 to client with duid 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37 iaid = 539170353 static\nNov 30 14:00:32 bmcnuc dhcpd[925953]: Sending Reply to fe80::9875:9fff:fe76:ffb0 port 546"
+        },
+        {
+            "timestamp": 1638314935,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\nI have updated my radvd.conf file and now I seem to have the ability to get both SLAAC and Stateful address assignment:\ninterface enp3s0 {\n        AdvSendAdvert on;\n        AdvManagedFlag on;\n        MinRtrAdvInterval 3;\n        MaxRtrAdvInterval 10;\n        prefix fd99:86:1040:1928::/64 {\n                AdvOnLink on;\n                AdvAutonomous on;\n                AdvRouterAddr on;\n        };\n};\n\nIf I use this setting the the .network file I get an eui64 based addr:\n[IPv6AcceptRA]\nDHCPv6Client=false\n\ninet6 fd99:86:1040:1928:9875:9fff:fe76:ffb0/64 scope global dynamic noprefixroute flags 100\n\nSetting DHCPv6Client=true causes both the SLAAC and a Stateful assignment."
+        },
+        {
+            "timestamp": 1638486667,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\nI have spent some time investigating radvd, dhcpv6, and systemd-networkd behavior. My observation concerning DCHP address assignment via the systemd.neworkd config file is:\n1. The [Network] DHCP entry only controls IPv4.\n2. IPv6 Stateless/Stateful DHCP is controlled with a combination of [Network] IPv6AcceptRA and [IPv6AcceptRA] DHCPv6Client\nFor example, I can set DHCP=false, leave IPv6AcceptRA=true/DHCPv6Client=true, and still acquire a Stateful IPv6 address.\nThe gatekeeper for IPv6 address assignment is IPv6AcceptRA, not the DHCP entry.\n\nBased on this I want to propose the following changes:\n\n1. Modify the phosphor-dbus-interfaces to be more abstract. I recommend the following settings:\ntrue: ipv4 DHCP and ipv6 stateful\ntruestateless: ipv4 DHCP and ipv6 stateless\nipv6stateful: ipv6 stateful mode only\nipv6stateless: ipv6 stateless mode only\nipv4: ipv4 dhcp only\nfalse: static address assignment\n\n2. Deprecate the D-Bus IPv6AcceptRA property\n\nUsing these D-Bus definitions allows all of the details of how to write the systemd-networkd configuration file to phosphor-network. It allows clients to ask for the mode they want the NIC to use without having to know implementation details (i.e. IPv6AcceptRA).\n\nUsing this model will allow us to deprecate the IPv6AccetpRA D-Bus interface. In hindsight this interface should not exist because it is an implementation detail of systemd-networkd that clients should not need to know about."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3ed1eb660722cd505769f32db6447b4655609a9c",
+            "parents": [
+                "bd649af91ed1fe74efd745e398d5640f4ab6e5af"
+            ],
+            "ref": "refs/changes/40/48040/1",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1634827817,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "Is it really \"systemd-networkd(5)\" for you? It's systemd.network(5) on my system for the configuration options."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "No, but the repo is called that, and my mind/fingers are trained to using that syntax. I will fix that."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "I think \"may\" is the key word. We might get an RA which does not indicate DHCPv6. Or I suppose isn't it possible we may not get an RA at all even if we accept them? So setting IPv6AcceptRA does not mean that we'll use DHCPv6."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I used the word \"may\". The systemd.networkd(5) states that it \"is still active\". Real world testing also shows that DHCPv6 is, in fact, active."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Jonathan, Ipv6acceptRA is for accepting any RA messages(SLAAC configuration.)\n\nIn RA message, if M(managed) flag is set: Then BMC should discard the prefix given by the autoconf router(radvd) and send the solicit message to DHCP server and get the IP from the DHCP server.\n\nRA is needed in both the cases(Stateful/Stateless) either you get the IP from DHCP server or not as it depends on the RA payload.\n\nAre your proposal is to treat both stateless and stateful dhcp should be treated as DHCP."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Can you share your radvd.conf and dhcpv6d.conf? I was trying to test the stateful but BMC is not sending the DHCPv6 solicit messages even if the RA message contains the M flag as true."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Ratan,\nI don't, as yet, understand how Stateless/Stateful are supposed to operate. Right now the OBMC really only performs stateful DHCPv6. \n\nMy radvd.conf:\ninterface enp3s0 {\n        AdvSendAdvert on;\n        AdvManagedFlag on;\n        MinRtrAdvInterval 3;\n        MaxRtrAdvInterval 10;\n        prefix 2112:1020:1::/64 {\n                AdvOnLink on;\n                AdvAutonomous off;\n                AdvRouterAddr on;\n        };\n\n\nMost of my dhcpdv6.conf file is an unmodified isc-dhcpv6-server as created on my Ubuntu 20.04 system. I left the lease times alone. I do not define any name server/domain search lists. The business end of address assignment is done by the lines below:\nhost otherclient {                 \n        # This host entry is hopefully matched if the client supplies a DUID-LL              \n        # or DUID-LLT containing this MAC address.                                           \n        host-identifier option                \n                dhcp6.client-id 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37;                   \n                fixed-address6 2112:1020:1::3;                                               \n}\nsubnet6 2112:1020:1::/64 {                                                                                                                                                                \n        range6 2112:1020:1::2 2112:1020:1::3;                                                \n}\n\nI think this config is technically in error, as the \"host otherhost\" should not have a fixed address inside the dynamically assigned subnet6 range. I also need to change this to a fdxx local address assignment space."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "No, it implies the other way around. You can't do DHCPv6 without parsing RAs, but you can parse RAs and use the information without DHCPv6."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "William,\nHow do you reconcile that statement against this directly from systemd-network:\n'DHCP=\n.....\nNote that DHCPv6 will by default be triggered by Router\nAdvertisement, if that is enabled, regardless of this parameter.'\n\nIf I set DHCP=v4 or DHCP=none, systemd-networkd still performs RA, and assigns a DHCPv6 address. So when RA is enabled, 'none/ipv4' is ignored by systemd-networkd."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "It looks like it would make more sense to just set the value of `IPv6AcceptRA.DHCPv6Client` based on the value of DHCPv6 enablement. This would be less surprising than enabling DHCP when the user enables RA."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I began to look at this William. Fundamentally the issue is still the same. The IPMI API does not have an independent way of controlling the RA vs the DHCP entry. That issue has been discussed internally. The expectation is that an ad-hoc solution to work around the IPMI API limitation may not be accepted upstream. I'd like to get guidance from the maintainers concerning this implementation.\n\nIPMI can directly control enabling RA.\nIPMI can directly control enabling DHCP. It does not have independent control of IPv4 vs IPv6.\n\nThis lack of control leaves odd corner cases to handle implicitly. If I follow your suggestion and use IPMI to enable RA, yet leave DHCPv6Client == false, then IPv6 addrs don't get assigned. What mechanism should be used to assign DHCPv6Client == true? If such a mechanism existed in IPMI now, we could always assign DHCPv6Client == false, and then control the primary DHCP= entry per the rules that the existing code follows now.\n\nI see the following options:\n1. Leave the phosphor-network handling as-is prior to this commit, and don't support IPMI correctly announcing DHCPv6 state.\n2. Implement what I have submitted, and have an ad-hoc solution to the problem.\n3. Create an OEM extension to SetLan, GetLan that controls DHCPv6 explicitly. Which is basically an ad-hoc solution, just in a different repo (i.e. phoshpor-ipmi-host, or intel-ipmi-oem)."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "My opinion would be to keep these independent options at the dbus level, so that other client can configure them independently but have IPMI set them both to the same value when \"IPv6 Router Address Configuration Control\" is set. It's pretty clear in the IPMI spec that they expect DHCPv6 to be a possible option when dynamic router control is enabled. Having it disabled should then disable DHCPv6 too.\n\nIt would be really nice to decouple DHCPv6 from the DHCPv4 settings in the lan config."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 55,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 33,
+            "sizeDeletions": 10
+        }
+    ]
+}

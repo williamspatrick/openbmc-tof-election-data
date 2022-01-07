@@ -1,0 +1,721 @@
+{
+    "project": "openbmc/pldm",
+    "branch": "master",
+    "id": "Ief8d57d199315423d755557739155df0928c3641",
+    "number": 48906,
+    "subject": "OEM-IBM: PDR: Add Real SAI sensor and effecter",
+    "owner": {
+        "name": "Sridevi Ramesh",
+        "email": "sridevra@in.ibm.com",
+        "username": "SrideviRamesh"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/pldm/+/48906",
+    "commitMessage": "OEM-IBM: PDR: Add Real SAI sensor and effecter\n\n- Real SAI effecter can only be turned off.\n- Real SAI sensor is turned on if any of the partition SAI\n  and platform SAI turned on else Real SAI is turned off if\n  both partition and platform SAI is turned off.\n\nTesting Results:\n===============\n\nReal SAI sensor\n=============\n\npldmtool platform getpdr -d 523\n{\n    \"nextRecordHandle\": 0,\n    \"responseCount\": 28,\n    \"recordHandle\": 523,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Sensor PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 14,\n    \"PLDMTerminusHandle\": 1,\n    \"sensorID\": 210,\n    \"entityType\": \"[Physical] OEM IBM Real SAI(OEM)\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 1,\n    \"sensorInit\": \"noInit\",\n    \"sensorAuxiliaryNamesPDR\": false,\n    \"compositeSensorCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 2,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\nWhen partition SAI is on\n====================\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/partition_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb true\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/platform_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb false\n\npldmtool platform GetStateSensorReadings -i 210 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\n\nwhen platform SAI is on\n====================\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/platform_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb true\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/partition_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb false\n\npldmtool platform GetStateSensorReadings -i 210 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\n\nwhen platform and platform SAI both on\n================================\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/platform_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb true\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/partition_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb true\n\n platform GetStateSensorReadings -i 210 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\n\nwhen platform and platform SAI both off\n=====================================\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/platform_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb false\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/partition_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb false\n\npldmtool platform GetStateSensorReadings -i 210 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Normal\"\n}\n\nReal SAI effecter\n================\n\n{\n    \"nextRecordHandle\": 519,\n    \"responseCount\": 30,\n    \"recordHandle\": 518,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 16,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 223,\n    \"entityType\": \"[Physical] OEM IBM Real SAI(OEM)\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 1,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\"\n    ]\n}\n\nTurn off Real SAI effecter\n===========================\n\npldmtool platform SetStateEffecterStates -i 223 -c 1 -d 1 1\n{\n    \"Response\": \"SUCCESS\"\n}\n\nbusctl introspect xyz.openbmc_project.Inventory.Manager  /xyz/openbmc_project/inventory/system\nNAME                                                  TYPE      SIGNATURE RESULT/VALUE                             FLAGS\n...\n...\n...\n.Functional                                           property  b         false                                    emits-change writable\n\nChange-Id: Ief8d57d199315423d755557739155df0928c3641\nSigned-off-by: Sridevi Ramesh <sridevra@in.ibm.com>\n",
+    "createdOn": 1637133593,
+    "lastUpdated": 1638973418,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1637133593,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1637133608,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637133617,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3625/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1637134315,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1637134333,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637134336,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3625/ : ABORTED\n\nhttps://jenkins.openbmc.org/job/ci-repository/30395/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637134342,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3626/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1637135455,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3626/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/30397/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637243376,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1637243400,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637243408,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3633/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1637245391,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3633/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/30470/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637335917,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1637335930,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637335939,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3652/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1637339280,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3652/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/30572/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637752255,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 5: Commit message was updated."
+        },
+        {
+            "timestamp": 1638846481,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 5: Code-Review-1\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1638948852,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Patch Set 5:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1638948894,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1638948908,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638948917,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3742/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1638951016,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3742/ : ppc64le CI Build Failed\n\nhttps://jenkins.openbmc.org/job/ci-repository/31532/ : FAILURE"
+        },
+        {
+            "timestamp": 1638967387,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1638967400,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638967408,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3746/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1638970589,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3746/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/31552/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638971004,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        },
+        {
+            "timestamp": 1638973418,
+            "reviewer": {
+                "name": "Lakshminarayana R Kammath",
+                "email": "lkammath@in.ibm.com",
+                "username": "lkammath"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "4f974dd0eb6c7d66c715395ff7780d14c1da05a6",
+            "parents": [
+                "bdf56f0475f8f8f9cae7888a6aec6b3cd550a906"
+            ],
+            "ref": "refs/changes/06/48906/1",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1637133593,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 136,
+                    "deletions": 0
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 159,
+                    "deletions": -2
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "pldmtool/oem/ibm/oem_ibm_state_set.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 2,
+            "revision": "d65e1a44ed5a900406d6b82d89cadc3ae3c583df",
+            "parents": [
+                "bdf56f0475f8f8f9cae7888a6aec6b3cd550a906"
+            ],
+            "ref": "refs/changes/06/48906/2",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1637134315,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 143,
+                    "deletions": 0
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 156,
+                    "deletions": -2
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "pldmtool/oem/ibm/oem_ibm_state_set.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 3,
+            "revision": "ef37dee79f67064e8e6e30b5829bcb288a1d9ccf",
+            "parents": [
+                "77aef218a514d34c03bc024d83f83e334035792e"
+            ],
+            "ref": "refs/changes/06/48906/3",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1637243376,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 151,
+                    "deletions": 0
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 156,
+                    "deletions": -2
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "pldmtool/oem/ibm/oem_ibm_state_set.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 4,
+            "revision": "a495740da2a7343193005b85abf72899f885067f",
+            "parents": [
+                "bdf56f0475f8f8f9cae7888a6aec6b3cd550a906"
+            ],
+            "ref": "refs/changes/06/48906/4",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1637335917,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 151,
+                    "deletions": 0
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 159,
+                    "deletions": -3
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "pldmtool/oem/ibm/oem_ibm_state_set.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 5,
+            "revision": "9c1fafe62b942af8dd0bc766330d6fafb4dcce95",
+            "parents": [
+                "bdf56f0475f8f8f9cae7888a6aec6b3cd550a906"
+            ],
+            "ref": "refs/changes/06/48906/5",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1637752255,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Change to uint8_t realSAIState{};"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 726,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "remove \"return\" as return type is void"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 726,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 737,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "change false to 0"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 737,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 738,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "change false to 0"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "line": 738,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "line": 188,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Please put the @return  comment"
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "line": 188,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 156,
+                    "deletions": 0
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 159,
+                    "deletions": -3
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "pldmtool/oem/ibm/oem_ibm_state_set.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 6,
+            "revision": "febfe597a3bdfb6b8e3f85d5d2f50f53af450b9b",
+            "parents": [
+                "872f0f6938eddddf86ae35be944b1766e1a36228"
+            ],
+            "ref": "refs/changes/06/48906/6",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1638948894,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 156,
+                    "deletions": 0
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 157,
+                    "deletions": -2
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "pldmtool/oem/ibm/oem_ibm_state_set.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 7,
+            "revision": "5e241ae5196d577d081df87d426fa67d17946b11",
+            "parents": [
+                "872f0f6938eddddf86ae35be944b1766e1a36228"
+            ],
+            "ref": "refs/changes/06/48906/7",
+            "uploader": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "createdOn": 1638967387,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 156,
+                    "deletions": 0
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 157,
+                    "deletions": -2
+                },
+                {
+                    "file": "oem/ibm/libpldmresponder/oem_ibm_handler.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "pldmtool/oem/ibm/oem_ibm_state_set.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 2
+        }
+    ]
+}

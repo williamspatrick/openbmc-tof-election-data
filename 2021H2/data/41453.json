@@ -1,0 +1,2718 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I981fe4d03356a38f95fd18bc8aed55d5a490f199",
+    "number": 41453,
+    "subject": "sensorPaths: Use library function to escape D-Bus names",
+    "owner": {
+        "name": "Josh Lehan",
+        "email": "krellan@google.com",
+        "username": "Krellan"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/41453",
+    "commitMessage": "sensorPaths: Use library function to escape D-Bus names\n\nInstead of rolling our own incomplete function to escape arbitrary\nnames to make them compatible with D-Bus naming restrictions, there\nis an already-existing library function to perform this escape, and\nas a nice bonus, it is in a library that we already include.\n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/sdbusplus/+/41761\n\nThe Sensor constructor has been changed, to meet the API requirements\nof the sd_bus_path_encode() function, as it requires both prefix and\nname to be passed in, as it does its own concatenation of them, to\nproduce the final object path.\n\nThis object path is saved in \"objectPath\", a new variable in Sensor,\nwhich simplifies the subclasses of Sensor, as they no longer have to\nbuild and maintain these strings in their own constructors.\n\nTested: I added test cases to the start of a sensor daemon, just to\nget it to quickly run, and it worked for me, here they are.\n\nName \"Hello World!\" -> Escaped \"Hello_20World_21\"\nName \"o_o\" -> Escaped \"o_5fo\"\nName \"1 Hot Part\" -> Escaped \"_31_20Hot_20Part\"\nName \"Temperature 1\" -> Escaped \"Temperature_201\"\nName \"Temperature-Aux\" -> Escaped \"Temperature_2dAux\"\nName \"Interior/Slash\" -> Escaped \"Interior_2fSlash\"\nName \"/LeadingSlash\" -> Escaped \"_2fLeadingSlash\"\nName \"TrailingSlash/\" -> Escaped \"TrailingSlash_2f\"\nName \"__5f\" -> Escaped \"_5f_5f5f\"\nName \"_5f\" -> Escaped \"_5f5f\"\nName \"5f\" -> Escaped \"_35f\"\nName \"Slot 5f\" -> Escaped \"Slot_205f\"\nName \"S5f\" -> Escaped \"S5f\"\nName \"^_ _^\" -> Escaped \"_5e_5f_20_5f_5e\"\nName \"\" -> Escaped \"_\"\nName \"_\" -> Escaped \"_5f\"\n\nChange-Id: I981fe4d03356a38f95fd18bc8aed55d5a490f199\nSigned-off-by: Josh Lehan <krellan@google.com>\n",
+    "createdOn": 1616213720,
+    "lastUpdated": 1628817517,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1616213720,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1616213734,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616213969,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14080/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616214086,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\nNow using an already-existing library function, for escaping arbitrary names to make them D-Bus friendly. This is preferable to rolling our own incompatible solution, although it adds more code."
+        },
+        {
+            "timestamp": 1616262880,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nAs a whole, I was kinda hoping to add this function into a new variadic constructor for sdbusplus::object_path, so that it would be useful outside the scope of dbus-sensors, and we would just pull that in.\n\nsomething like\n\ntemplate <typename Args...>\nsdbusplus::object_path from_pieces(std::string_view arg1, Args ...){\n    // Variadic unpack call to sd_bus_path_encode() here.\n}\n\nWith that said, I understand that's a much larger scope than you were intending, and while it's my preference we solve this generally, if you only want to fix it here for the moment, that's ok with me, but the comment below would need to be addressed.\n\nI was also somewhat hoping once that's done, we could just do this automatically within the register_interface methods, but that's a significant increase in scope that's probably not worth tackling at the moment.\n\n\nFWIW, we have a very similar encode function in bmcweb that I'd like to get rid of as well, so getting this into sdbusplus, and removing this code entirely will need to happen at some point in the future anyway."
+        },
+        {
+            "timestamp": 1616434824,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616459184,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> With that said, I understand that's a much larger scope than you were intending, and while it's my preference we solve this generally, if you only want to fix it here for the moment, that's ok with me, but the comment below would need to be addressed.\n> \n> I was also somewhat hoping once that's done, we could just do this automatically within the register_interface methods, but that's a significant increase in scope that's probably not worth tackling at the moment.\n> \n> FWIW, we have a very similar encode function in bmcweb that I'd like to get rid of as well, so getting this into sdbusplus, and removing this code entirely will need to happen at some point in the future anyway.\n\nMakes sense. I'll clean it up for dbus-sensors locally. It would be good to have it a more general case, cleaned up everywhere, though."
+        },
+        {
+            "timestamp": 1616461107,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\nUnfortunately, one of the two usages of sensor_paths::escapePathForDbus() is the Sensor::Sensor() constructor in include/sensor.hpp file:\n\nname(sensor_paths::escapePathForDbus(name)),\n\nThis really expects to just encode the name and then get it back as an encoded name, without any prefix being passed in whatsoever. The callers of the Sensor constructor pass in the prefix, as a separate parameter \"configurationPath\", though, so I could use that, but the usage isn't consistent across different dbus-sensors daemons.\n\nAlso, almost all the Sensor subclasses in the various dbus-sensors daemons add another layer of escaping, in their calls to the Sensor constructor:\n\nSensor(boost::replace_all_copy(sensorName, \" \", \"_\"),\n\nSo, those calls will also have to be cleaned up, otherwise we risk double-escaping. In short, this change seems to have a larger blast radius than anticipated...."
+        },
+        {
+            "timestamp": 1616467797,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> This really expects to just encode the name and then get it back as an encoded name, without any prefix being passed in whatsoever. The callers of the Sensor constructor pass in the prefix, as a separate parameter \"configurationPath\", though, so I could use that, but the usage isn't consistent across different dbus-sensors daemons.\n\nThis was wrong. \"configurationPath\" is the source, where the entity-manager provided configuration comes from, example: /xyz/openbmc_project/inventory/system/board/myboard/mysensor\n\nI'll have to change the dbus-sensors daemons to construct their paths in advance and pass that into the Sensor constructor. It seems overkill, just to meet the contrived API of sd_bus_path_encode()."
+        },
+        {
+            "timestamp": 1616473893,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1616473906,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616474022,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14204/ : FAILURE"
+        },
+        {
+            "timestamp": 1616474766,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1616474781,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616474977,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14206/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616475058,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 4: Patch Set 3 was rebased."
+        },
+        {
+            "timestamp": 1616475071,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616475136,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 4:\n\nOK, sorry for the large blast radius, but this was the only way to smoothly get the D-Bus object path prefix passed in, along with the sensor name. I like how it simplifies a lot of repeated string concatenation code that was done in many of the Sensor subclass constructors."
+        },
+        {
+            "timestamp": 1616475269,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14207/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616516203,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)\n\nI haven't reviewed the whole thing yet, but I get the feeling there's a less invasive and less code duplicating pattern we can use here."
+        },
+        {
+            "timestamp": 1616540390,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)\n\n> Patch Set 4:\n> \n> (2 comments)\n> \n> I haven't reviewed the whole thing yet, but I get the feeling there's a less invasive and less code duplicating pattern we can use here.\n\nThere was a less invasive and less code duplicating pattern. It was my original approach of creating a dummy path, to satisfy the API of the function, and then stripping away that dummy path to return the name, which is what the dbus-sensors callers wanted. You were not happy with that approach, however, even though it caused the least blast radius of all approaches that I could think of."
+        },
+        {
+            "timestamp": 1616542007,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1616545284,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616599016,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616641946,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1616641959,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616642176,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14367/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616642211,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616642754,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616642829,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616702651,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617061429,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1617138922,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1617138934,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1617138956,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617139240,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14597/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617139595,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1617608927,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1617609262,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 7:\n\nRebased to latest master and adjusted for recent ExternalSensor changes."
+        },
+        {
+            "timestamp": 1617644369,
+            "reviewer": {
+                "name": "Deepak Kodihalli",
+                "email": "deepak.kodihalli.83@gmail.com",
+                "username": "dkodihal"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1"
+        },
+        {
+            "timestamp": 1617644630,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14852/ : FAILURE"
+        },
+        {
+            "timestamp": 1617658481,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 7:\n\nThe Jenkins output appears to have errored out early, before the compilation had a chance to begin: https://jenkins.openbmc.org/job/ci-repository/14852/console"
+        },
+        {
+            "timestamp": 1617691869,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 8: Patch Set 7 was rebased."
+        },
+        {
+            "timestamp": 1617691891,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 8:\n\nRebased to latest master"
+        },
+        {
+            "timestamp": 1617691922,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617692069,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14888/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617726637,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\nFWIW, I'm stalling a little bit here, as I'm hoping to get this merged:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/sdbusplus/+/41761\n\nSo we can just all move to one standard implementation.  bmcweb needs this escaping feature too.  If Patrick takes longer to review, I'll just merge this one, and we'll clean it up later."
+        },
+        {
+            "timestamp": 1617839884,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n> Patch Set 8:\n> \n> FWIW, I'm stalling a little bit here, as I'm hoping to get this merged:\n> https://gerrit.openbmc-project.xyz/c/openbmc/sdbusplus/+/41761\n> \n> So we can just all move to one standard implementation.  bmcweb needs this escaping feature too.  If Patrick takes longer to review, I'll just merge this one, and we'll clean it up later.\n\nFYI, 41761 got merged today;"
+        },
+        {
+            "timestamp": 1617846595,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 8:\n\nSince 41761 got merged, is this patch still necessary? Or does it need to explicitly call operator/() in order to perform the escaping? Changing it to call operator/() should be fairly trivial.\n\nAlso, how do we make sure the required sdbusplus library version is bumped up, so that people building dbus-sensors make sure to get the newest sdbusplus library version which includes the newly added escaping functions? Otherwise, they will get build errors."
+        },
+        {
+            "timestamp": 1617846883,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n> Patch Set 8:\n> \n> Since 41761 got merged, is this patch still necessary? Or does it need to explicitly call operator/() in order to perform the escaping? Changing it to call operator/() should be fairly trivial.\n\nYes to all questions.  I wasn't able to figure out how to make the object_path(std::string&) constructor escape without breaking the hell out of a lot of things, so at this point only operator/ and filename() call the escape and decode functions.  At some point I'd like to to a object_path::from_pieces constructor that we can slowly move toward, but that's a problem for another day.\n\n> \n> Also, how do we make sure the required sdbusplus library version is bumped up, so that people building dbus-sensors make sure to get the newest sdbusplus library version which includes the newly added escaping functions? Otherwise, they will get build errors.\n\nThe autobump already fired:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/42022\n\nOnce that is merged (which hopefully should be quick), we should be good to go on that front."
+        },
+        {
+            "timestamp": 1618029341,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 9: Patch Set 8 was rebased."
+        },
+        {
+            "timestamp": 1618029354,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618029654,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15216/ : SUCCESS"
+        },
+        {
+            "timestamp": 1618036827,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1618036839,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618036993,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/15217/ : FAILURE"
+        },
+        {
+            "timestamp": 1618037980,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1618037994,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1618038295,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/15218/ : SUCCESS"
+        },
+        {
+            "timestamp": 1618038539,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 11:\n\nOK, here's a try of it using the new API."
+        },
+        {
+            "timestamp": 1618438377,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 11: Code-Review+1"
+        },
+        {
+            "timestamp": 1618504843,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11:\n\n(3 comments)\n\nFYI, this commit is waiting on us to figure out the escaping mess in sdbusplus.  It turns out, lots of stuff doesn't escape properly, and suddenly imposing that on them breaks stuff."
+        },
+        {
+            "timestamp": 1620962993,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1620963004,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620963094,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 12:\n\nRefactored to keep up to date with recent sensor units API changes. The only non-trivial changes were in CPUSensor and PSUSensor constructors."
+        },
+        {
+            "timestamp": 1620963128,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/17237/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620963550,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1620963564,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620963600,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/17242/ : FAILURE"
+        },
+        {
+            "timestamp": 1620963723,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1620963734,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620963861,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/17243/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620964076,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1620964089,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620964214,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/17244/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620964339,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 15:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1628817517,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Work In Progress"
+        }
+    ],
+    "wip": true,
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "5836739a91630adec22a7fd32c0748dbf9fc7878",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/53/41453/1",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1616213720,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 54,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not really loving the \"create a fake prefix, then remove it later\" approach to this problem.  That complicates the code quite a bit to do, all to very little advantage, and makes the API itself less obvious as to its behavior.\n\nWe only call this in two places, I suspect we need to create a version of this that accepts the prefix and the name as parameters, call the encode method on all the arguments, and just update the two call sites with the new prototype, which will do the joining of the paths itself.  That seems like a lot less code, and makes for a better interface."
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 54,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Agreed. I don't like that API, either. It feels overengineered, and just gets in the way.\n\nThe alternative is to update all callers, as you mentioned. It's only called in two places, so that's doable."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 39,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 39,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 2,
+            "revision": "e8eacdb9449f3ac5071fc4f68073ce2f0d8603b0",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/53/41453/2",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1616473893,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 24,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 174,
+            "sizeDeletions": 133
+        },
+        {
+            "number": 3,
+            "revision": "b2823496b3792f02a9e3c790bcc816c0fe4790c0",
+            "parents": [
+                "d05867c0d32065d36b13bd452f7aff9dcb20ac2f"
+            ],
+            "ref": "refs/changes/53/41453/3",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1616474766,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 24,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 177,
+            "sizeDeletions": 136
+        },
+        {
+            "number": 4,
+            "revision": "185b167631e3a8af38ed4a3dd9fad9865ee5ee70",
+            "parents": [
+                "373225765ec76e358d11b2ee58488a72fc6c446e"
+            ],
+            "ref": "refs/changes/53/41453/4",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1616475058,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm confused why these needed to move so radically and duplicate the code between them.  Can't we just do \n\ninterfacePath = escapePathForDbus(\"/xyz/openbmc_project/sensors/power/\", name);\n\nI get the feeling that the other constructors also don't need helper methods to determine this stuff, but lets focus on this one and see if a better pattern falls out."
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "The reason for CPUSensor is a special case. Very few others are like this. The reason is that it must determine the object path prefix based on some further analysis of the name, which is done later in the constructor. It can't just be \"power\", some of them are \"temperature\" also, based on parsing of the \"path\" variable. At Sensor superclass initialization time, this information isn't available yet. Hence, I added a helper function. Very few of the other dbus-sensors daemons are like this, please don't judge all of them simply by this one special case example."
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "See my comments on patch4 line41-55"
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Maybe this function can be moved into create CPUSensor function and return struct/tuple that include objectPathPrefix and min/max and pass to CPUSensor constructor separately."
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Nobody was happy with CPUSensor, so I took your suggestion and refactored it. I was wanting to avoid having to change the *SensorMain files, but for CPUSensorMain, I made an exception. It's a good cleanup. The decision was already made in the CPUSensorMain sensor building loop, so it doesn't need to be done redundantly in the CPUSensor constructor.\n\nIt's only a binary decision, so a bool is fine, to pass in the decision that was made."
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I like it, thanks"
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This needs to go above the free.  If we get a return code, we shouldn't be freeing the string."
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "If the string is allocated, shouldn't we be freeing it, in all cases, since we now own it, according to the manpage? Otherwise, we would have a memory leak. It's unlikely there would be a successful allocation *and* an error code return, but I put this in, just in case. It's the safest approach against a memory leak if there's an error return.\n\nhttps://www.freedesktop.org/software/systemd/man/sd_bus_path_encode.html"
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "The typical C style pattern is to only return a value to the argument input if the function returns succeess. https://github.com/systemd/systemd/blob/63dc82d378e1cfda8f560e8da9aa2df549c2b026/src/libsystemd/sd-bus/sd-bus.c#L3982\n\nSo you don't free it if there is an error."
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "OK, I'll move it up, so the string is not freed upon error. This seems more unsafe to me, though, but I'm outnumbered here, and this is a minor issue anyway. However, I'm curious why this is done? Wouldn't it be better to free it in all cases where it's allocated then handed back to you?"
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "You could if you initialize to nullptr, but why do that when the calling convention is well defined / understood? This isn't something systemd is going to silently change on anyone and is very typical for c code. You would just be always running an extra check for no reason, not that the check is particularly expensive (thought free would technically have to hop through the PLT)."
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "It also makes it clear to anyone who is unfamiliar that you don't need to free the result on error conditions."
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "OK, subtle, but makes sense. I always initialize output parameters to nullptr first, to catch cases where the function returns but fails to put anything into the output parameters."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 24,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 177,
+            "sizeDeletions": 136
+        },
+        {
+            "number": 5,
+            "revision": "3f345c9dc9e0f4d5fe82655ecf3b123c75467d08",
+            "parents": [
+                "373225765ec76e358d11b2ee58488a72fc6c446e"
+            ],
+            "ref": "refs/changes/53/41453/5",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1616641946,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "nit: if (ret < 0 || !outbuf) { return {}; }"
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Good optimization. Done."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -39
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 193,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 6,
+            "revision": "5060581b59b16f362c89343e7ff689d8ec062b3f",
+            "parents": [
+                "129de0ab1ea8eee567fe3fc17ae515f3297cc7f3"
+            ],
+            "ref": "refs/changes/53/41453/6",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617138922,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -39
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 7,
+            "revision": "b0127d011a157c8343134b937153c210bd8c16e5",
+            "parents": [
+                "0947d7c1cb9dc5ae4bc740d18aff059cb896c309"
+            ],
+            "ref": "refs/changes/53/41453/7",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617608927,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -39
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 8,
+            "revision": "d85209e0b7b93941b817c4949c3565e8fb281332",
+            "parents": [
+                "7ea918f22b7df400dd11f909342ac4d256536000"
+            ],
+            "ref": "refs/changes/53/41453/8",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617691869,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -39
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 9,
+            "revision": "768eab1ae9bac5dec7e7ce873444b1d5637f0e08",
+            "parents": [
+                "abf91de1876278b8b8f98787577a539804833ad4"
+            ],
+            "ref": "refs/changes/53/41453/9",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1618029341,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -39
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 10,
+            "revision": "5cd5f496841379d0bdec1d98f9b872bfd6f33481",
+            "parents": [
+                "abf91de1876278b8b8f98787577a539804833ad4"
+            ],
+            "ref": "refs/changes/53/41453/10",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1618036827,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -4
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -39
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 179
+        },
+        {
+            "number": 11,
+            "revision": "c619bce688a186c07ea0f868d476a09d89c2db7c",
+            "parents": [
+                "abf91de1876278b8b8f98787577a539804833ad4"
+            ],
+            "ref": "refs/changes/53/41453/11",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1618037980,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 330,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: extra parens\n\nNon nit, just use == please"
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 330,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "OK, removed the parens, although I think it makes the statement much easier to read."
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please declare in the scope where it's used (ie line 28)"
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "This was intentional, for symmetry with the same declaration used in other dbus-sensors daemons.\n\nHowever, it's a singleton here, so I removed this variable entirely here, just using the constant string in the one place it was needed.\n\nLong-term, many of these repeated string declarations, for repetitive strings used frequently and starting with \"/xyz/openbmc_project/\", should be moved to a common file, to avoid having to repeat them everywhere else, but that is beyond the scope of this patch."
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Super nit: technically should be using sdbusplus::message::object_path, but getPathForUnits will never return values that require escaping, so it doesn't matter much.\n\nFix if you feel like it."
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "This is intentional.\n\nI don't want to do any escaping here.\n\nReasons is, the return from this function will be passed into the Sensor() constructor, and then the escaping will be done by the Sensor object.\n\nSo, no additional escaping is necessary, and in fact, adding it here would introduce the risk of double-escaping."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -39
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 177
+        },
+        {
+            "number": 12,
+            "revision": "0ed0c73362fdc5e911e37a130c1f4f268a5d81c8",
+            "parents": [
+                "13b63f8f597d396db8b5bd182ac2e5814d599e2f"
+            ],
+            "ref": "refs/changes/53/41453/12",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620962993,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -42
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 180
+        },
+        {
+            "number": 13,
+            "revision": "3c13c31045c1a83be0324f09cd26da70b94beea3",
+            "parents": [
+                "13b63f8f597d396db8b5bd182ac2e5814d599e2f"
+            ],
+            "ref": "refs/changes/53/41453/13",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620963550,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -42
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 14,
+            "revision": "c557b32bce979434329b7ab5b21e8d04641bfc52",
+            "parents": [
+                "13b63f8f597d396db8b5bd182ac2e5814d599e2f"
+            ],
+            "ref": "refs/changes/53/41453/14",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620963723,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -42
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 186
+        },
+        {
+            "number": 15,
+            "revision": "b1e8eed124d3c273e59381da3f1cf70f0176f288",
+            "parents": [
+                "13b63f8f597d396db8b5bd182ac2e5814d599e2f"
+            ],
+            "ref": "refs/changes/53/41453/15",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620964076,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/SensorPaths.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -11
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 37,
+                    "deletions": -42
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -26
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -12
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -13
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -14
+                },
+                {
+                    "file": "src/SensorPaths.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -7
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 186
+        }
+    ]
+}

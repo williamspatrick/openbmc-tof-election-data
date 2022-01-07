@@ -1,0 +1,214 @@
+{
+    "project": "openbmc/phosphor-certificate-manager",
+    "branch": "master",
+    "id": "Ie350c47a2c01c5a47ed538d01e1f71274ece1fc8",
+    "number": 49357,
+    "subject": "certificate: fix memory leak",
+    "owner": {
+        "name": "Patrick Williams",
+        "email": "patrick@stwcx.xyz",
+        "username": "williamspatrick"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-certificate-manager/+/49357",
+    "commitMessage": "certificate: fix memory leak\n\nWhen the certificate test cases were ran under ASAN, there was reported\nto be a large memory leak in the certificate code.\n\nThe understanding documented previously in the code with respect to the\nrelationship between `X509_STORE` and `X509_LOOKUP` did not match the\nreality of the OpenSSL source.  `LOOKUP` is part-of the `STORE`, not an\nowner-of it.  It is not appropriate to `X509_LOOKUP_free` the `LOOKUP`\nthat has become part of the `STORE`, because it is the responsibility of\nthe `STORE` to do that.\n\nInvert the relationship (and holding std::unique_ptrs) so that the\n`X509_STORE` becomes the RAII object and everything contained in it can\nbe freed when it goes out of scope.\n\nFurther explanation of the OpenSSL source is as follows:\n\n* The `X509_LOOKUP_free` only releases the memory held by itself and\n  calls `method->free`[1].  The `X509_LOOKUP_file` type has no\n  `method->free`[2] (and confirmed with GDB).  This means that the\n  `X509_LOOKUP_free` does not end up freeing much of any memory and\n  causes a leak of everything it put into the `X509_STORE`, so\n  `X509_LOOKUP_free` does not belong as the RAII cleanup function.\n\n* The `X509_STORE_add_lookup` allocates the `X509_LOOKUP`, assigns\n  itself to the `LOOKUP` as the store context, and adds the `LOOKUP`\n  onto a stack of held `LOOKUP` objects[3].  When `X509_STORE_free` is\n  called, all of the held `LOOKUP` objects are freed[4] by calling\n  `X509_LOOKUP_free`.\n\nTherefore, assigning `X509_STORE_free` as the RAII cleanup function\nallows both the `X509_STORE` (and all certificate data inserted into it)\nas well as the created `X509_LOOKUP` to be freed.\n\nTested: ASAN now passes, along with testcases, when ran.\n\n1. https://github.com/openssl/openssl/blob/master/crypto/x509/x509_lu.c#L39\n2. https://github.com/openssl/openssl/blob/master/crypto/x509/by_file.c#L30\n3. https://github.com/openssl/openssl/blob/master/crypto/x509/x509_lu.c#L285\n4. https://github.com/openssl/openssl/blob/master/crypto/x509/x509_lu.c#L238\n\nSigned-off-by: Patrick Williams <patrick@stwcx.xyz>\nChange-Id: Ie350c47a2c01c5a47ed538d01e1f71274ece1fc8\n",
+    "createdOn": 1638708431,
+    "lastUpdated": 1638966917,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1638708431,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1638708446,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638708626,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31265/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638708776,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638709030,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1638709041,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638709217,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31267/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638828999,
+            "reviewer": {
+                "name": "Bruce Mitchell",
+                "email": "bruce.mitchell@linux.vnet.ibm.com",
+                "username": "BMC-Bruce"
+            },
+            "message": "Patch Set 2: Code-Review+1\n\nLooks good to me; as I know OpenSSL has kind of twisted nomenclature."
+        },
+        {
+            "timestamp": 1638945004,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 2: Code-Review+2"
+        },
+        {
+            "timestamp": 1638945049,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1638963353,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 2: Code-Review+2"
+        },
+        {
+            "timestamp": 1638966917,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully merged by Patrick Williams"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "4d11848d23f6a5ff008677bc6448c795dc2a4027",
+            "parents": [
+                "13eba41aaba1e704afe63db23e287518c1ae6dff"
+            ],
+            "ref": "refs/changes/57/49357/1",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1638708431,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "certificate.cpp",
+                    "line": 273,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I need to delete this residual comment."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 9,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 2,
+            "revision": "83e6eab0f088f742528e0860e8105340eb9dfb46",
+            "parents": [
+                "13eba41aaba1e704afe63db23e287518c1ae6dff"
+            ],
+            "ref": "refs/changes/57/49357/2",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1638709030,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -12
+                }
+            ],
+            "sizeInsertions": 9,
+            "sizeDeletions": 12
+        }
+    ]
+}

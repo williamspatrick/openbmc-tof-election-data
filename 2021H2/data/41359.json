@@ -1,0 +1,638 @@
+{
+    "project": "openbmc/phosphor-dbus-interfaces",
+    "branch": "master",
+    "id": "Iac99adc1e12ab42076f0d33aa87a179f63b9c1ce",
+    "number": 41359,
+    "subject": "Add LastRebootCause property for BMC Reboot Cause feature",
+    "owner": {
+        "name": "Tim Lee",
+        "email": "timlee660101@gmail.com",
+        "username": "timlee66"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/41359",
+    "commitMessage": "Add LastRebootCause property for BMC Reboot Cause feature\n\nScenario:\nCustomer want to know the last reboot cause of BMC through OpenBMC WebUI.\nThus, we need to add LastRebootCause property in BMC.interface.yaml.\nMeanwhile, we also modify phosphor-state-manager and phosphor-webui\nto support show BMC Reboot Cause information in Reboot BMC page.\n\nTested:\nbusctl get-property xyz.openbmc_project.State.BMC /xyz/openbmc_project/state/bmc0 xyz.openbmc_project.State.BMC LastRebootCause\n\nWhen unplug/plug in BMC power cable then return as below: (POR i.e. Power-On-Reset)\ns \"xyz.openbmc_project.State.BMC.BMCResetCause.POR\"\n\nWhen executing reboot command then return as below:\ns \"xyz.openbmc_project.State.BMC.BMCResetCause.Watchdog\"\n\nSigned-off-by: Tim Lee <timlee660101@gmail.com>\nChange-Id: Iac99adc1e12ab42076f0d33aa87a179f63b9c1ce\n",
+    "createdOn": 1615945076,
+    "lastUpdated": 1628593577,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1615945076,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1615945089,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615945742,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13894/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616012615,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 1:\n\nHey Tim, thanks for proposing and coding this new feature. This seems like something that would only really be useful if you can get it via an external interface. I noticed in https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-webui/+/41366 you added this via the old REST API. OpenBMC is moving away from that and instead utilizing Redfish. Also, OpenBMC is moving towards https://github.com/openbmc/webui-vue for it's web ui (and where a lot of the Redfish support is going). To get this in Redfish, we'd need to propose a change to https://redfish.dmtf.org/schemas/v1/Manager.v1_11_0.json I assume. There's a \"LastResetTime\". Maybe we could add a \"LastResetReason\"? I added Gunnar as he's our web ui and Redfish expert.\n\nWith that said, if there's a strong argument for your platform to stay with the old REST api and webui, I don't see a reason we couldn't add this to D-Bus."
+        },
+        {
+            "timestamp": 1616049438,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> Hey Tim, thanks for proposing and coding this new feature. This seems like something that would only really be useful if you can get it via an external interface. I noticed in https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-webui/+/41366 you added this via the old REST API. OpenBMC is moving away from that and instead utilizing Redfish. Also, OpenBMC is moving towards https://github.com/openbmc/webui-vue for it's web ui (and where a lot of the Redfish support is going). To get this in Redfish, we'd need to propose a change to https://redfish.dmtf.org/schemas/v1/Manager.v1_11_0.json I assume. There's a \"LastResetTime\". Maybe we could add a \"LastResetReason\"? I added Gunnar as he's our web ui and Redfish expert.\n> \n> With that said, if there's a strong argument for your platform to stay with the old REST api and webui, I don't see a reason we couldn't add this to D-Bus.\n\nHi Andrew,\n\nThanks your help to review and give me lots of feedback.\n\nMaybe we could add a \"LastResetReason\"?\nYes, I think that is suitable to understand this feature. Please use it for sure.\n\nAs you said that OpenBMC is moving towards webui-vue, we know that and plan to use it in the future.\nHowever, lots of our customers want to know the last bmc reboot reason and they are using old REST API to development their upper layer application according our implementation, and they hope we can upstream this feature as soon as possible.\n\nInitially, we find the page \"Reboot BMC\" in webui seems suitable to add prefix \"last bmc reboot reason\" to \"reboot date/time\". Then we find that \"reboot date/time\" is using \"LastRebootTime\" this property from BMC.interface.yaml to implement it. Thus, we follow \"LastRebootTime\" naming to add new property \"LastRebootCause\" to implement this new request.\n\nAt this transaction stage, we still need your help to merge it that let customers can keep their upper layer application design. Meanwhile, we can also help to add this new feature through Redfish and tell customer that OpenBMC is moving towards new webui \"webui-vue\".\n\nFrom customer's point of view, OpenBMC with more compatibility to support this feature no matter using old or new API.\nThus, we really need your help to consider to merge it again. Thanks you.\n\nWe have provided README.md about this feature for our customers. Just for you refer it. Thanks you.\nhttps://github.com/Nuvoton-Israel/openbmc/tree/runbmc/meta-quanta/meta-olympus-nuvoton#bmc-reboot-cause\n\nSincerely,\nTim"
+        },
+        {
+            "timestamp": 1617155995,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 1:\n\nHi Andrew and Gunnar,\n\nSorry to interrupt you about this commit, we really need your help to consider this feature.\nDue to customer seems need this functionality for their OpenBMC project.\nAnd they hope this feature can be merged it in OpenBMC github, not patch from us.\nAny update or suggestion are welcome. Thanks in advance.\n\nSincerely,\nTim"
+        },
+        {
+            "timestamp": 1617196031,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> Hi Andrew and Gunnar,\n> \n> Sorry to interrupt you about this commit, we really need your help to consider this feature.\n> Due to customer seems need this functionality for their OpenBMC project.\n> And they hope this feature can be merged it in OpenBMC github, not patch from us.\n> Any update or suggestion are welcome. Thanks in advance.\n> \n> Sincerely,\n> Tim\n\nHey Tim, if we can't get others to weigh in here, it may be best to bringing this up in our #general discord channel and tagging me (geissonator), GunnarM, and stwcx for discussion on this."
+        },
+        {
+            "timestamp": 1617823181,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1617872609,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > Hi Andrew and Gunnar,\n> > \n> > Sorry to interrupt you about this commit, we really need your help to consider this feature.\n> > Due to customer seems need this functionality for their OpenBMC project.\n> > And they hope this feature can be merged it in OpenBMC github, not patch from us.\n> > Any update or suggestion are welcome. Thanks in advance.\n> > \n> > Sincerely,\n> > Tim\n> \n> Hey Tim, if we can't get others to weigh in here, it may be best to bringing this up in our #general discord channel and tagging me (geissonator), GunnarM, and stwcx for discussion on this.\n\nHi All,\nThanks invite me to join this channel. I had post this discussion to #general channel. Thank you so much.\n\nSincerely,\nTim"
+        },
+        {
+            "timestamp": 1618205589,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1626312211,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 1:\n\nHi Patrick and Amithash,\n\nCould you please help us to review this commit?\nI had posted this in #general discord channel.\nBelow are related commit, please kindly help me to review it. Thank you!!!\n\nAdd last bmc reboot cause with date and time to Reboot BMC Page\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-webui/+/41366\n\nAdd LastRebootCause property for BMC Reboot Cause feature\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/41359\n\nSincerely,\nTim"
+        },
+        {
+            "timestamp": 1627496538,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nNeeds a rebase as well."
+        },
+        {
+            "timestamp": 1627528944,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nPatrick, Thanks. I cannot rebase from the REBASE button on gerrit website.\nShould I abandon this and create new commit with the latest phosphor-dbus-interfaces?"
+        },
+        {
+            "timestamp": 1627559218,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n> Patrick, Thanks. I cannot rebase from the REBASE button on gerrit website.\n> Should I abandon this and create new commit with the latest phosphor-dbus-interfaces?\n\nNo, please don't do that. \ud83d\ude0a\n\nIf you have it locally you can do a 'git rebase'.  If you don't have it locally anymore, you can cherry-pick from Gerrit locally and do the rebase.  Under the \"...\" menu in the upper-right there is a cherry-pick option which should give you enough information to formulate the commands locally.  It is likely something like:\n\ngit fetch openbmc.gerrit refs/changes/59/41359/1 && git cherry-pick FETCH_HEAD"
+        },
+        {
+            "timestamp": 1627953793,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Uploaded patch set 2: New patch set was added with same tree, parent, and commit message as Patch Set 1."
+        },
+        {
+            "timestamp": 1627953801,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1627953805,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627953981,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23613/ : FAILURE"
+        },
+        {
+            "timestamp": 1627955449,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 1:\n> \n> > Patrick, Thanks. I cannot rebase from the REBASE button on gerrit website.\n> > Should I abandon this and create new commit with the latest phosphor-dbus-interfaces?\n> \n> No, please don't do that. \ud83d\ude0a\n> \n> If you have it locally you can do a 'git rebase'.  If you don't have it locally anymore, you can cherry-pick from Gerrit locally and do the rebase.  Under the \"...\" menu in the upper-right there is a cherry-pick option which should give you enough information to formulate the commands locally.  It is likely something like:\n> \n> git fetch openbmc.gerrit refs/changes/59/41359/1 && git cherry-pick FETCH_HEAD\n\nHi Patrick, Thanks.\nI have it locally and I do \"git rebase\" then do \"git push \"ssh://timlee66@gerrit.openbmc-project.xyz:29418/openbmc/phosphor-dbus-interfaces\" HEAD:refs/for/master\".\nBut, status is \"Merge Conflict\" also. Could you please help me to merge it? Thanks again."
+        },
+        {
+            "timestamp": 1627992389,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 1:\n> > \n> > > Patrick, Thanks. I cannot rebase from the REBASE button on gerrit website.\n> > > Should I abandon this and create new commit with the latest phosphor-dbus-interfaces?\n> > \n> > No, please don't do that. \ud83d\ude0a\n> > \n> > If you have it locally you can do a 'git rebase'.  If you don't have it locally anymore, you can cherry-pick from Gerrit locally and do the rebase.  Under the \"...\" menu in the upper-right there is a cherry-pick option which should give you enough information to formulate the commands locally.  It is likely something like:\n> > \n> > git fetch openbmc.gerrit refs/changes/59/41359/1 && git cherry-pick FETCH_HEAD\n> \n> Hi Patrick, Thanks.\n> I have it locally and I do \"git rebase\" then do \"git push \"ssh://timlee66@gerrit.openbmc-project.xyz:29418/openbmc/phosphor-dbus-interfaces\" HEAD:refs/for/master\".\n> But, status is \"Merge Conflict\" also. Could you please help me to merge it? Thanks again.\n\nI think you forgot to fetch before the rebase?"
+        },
+        {
+            "timestamp": 1628012524,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Uploaded patch set 3: New patch set was added with same tree, parent, and commit message as Patch Set 2."
+        },
+        {
+            "timestamp": 1628012536,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1628012539,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628012637,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23677/ : FAILURE"
+        },
+        {
+            "timestamp": 1628012855,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Uploaded patch set 4: New patch set was added with same tree, parent, and commit message as Patch Set 3."
+        },
+        {
+            "timestamp": 1628012866,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1628012869,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628012970,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23678/ : FAILURE"
+        },
+        {
+            "timestamp": 1628015036,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 1:\n> > > \n> > > > Patrick, Thanks. I cannot rebase from the REBASE button on gerrit website.\n> > > > Should I abandon this and create new commit with the latest phosphor-dbus-interfaces?\n> > > \n> > > No, please don't do that. \ud83d\ude0a\n> > > \n> > > If you have it locally you can do a 'git rebase'.  If you don't have it locally anymore, you can cherry-pick from Gerrit locally and do the rebase.  Under the \"...\" menu in the upper-right there is a cherry-pick option which should give you enough information to formulate the commands locally.  It is likely something like:\n> > > \n> > > git fetch openbmc.gerrit refs/changes/59/41359/1 && git cherry-pick FETCH_HEAD\n> > \n> > Hi Patrick, Thanks.\n> > I have it locally and I do \"git rebase\" then do \"git push \"ssh://timlee66@gerrit.openbmc-project.xyz:29418/openbmc/phosphor-dbus-interfaces\" HEAD:refs/for/master\".\n> > But, status is \"Merge Conflict\" also. Could you please help me to merge it? Thanks again.\n> \n> I think you forgot to fetch before the rebase?\n\nI try to fetch then rebase and push after that, but still got build failed.\nIs there something I lost it?\n\ngit fetch \"ssh://timlee66@gerrit.openbmc-project.xyz:29418/openbmc/phosphor-dbus-interfaces\" refs/changes/59/41359/4 && git cherry-pick FETCH_HEAD\n\ngit rebase\n\ngit push \"ssh://timlee66@gerrit.openbmc-project.xyz:29418/openbmc/phosphor-dbus-interfaces\" HEAD:refs/for/master"
+        },
+        {
+            "timestamp": 1628015493,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628042287,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1628042302,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628042691,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23731/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628050397,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628091863,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628130314,
+            "reviewer": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628593570,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5: Code-Review+2"
+        },
+        {
+            "timestamp": 1628593577,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully merged by Patrick Williams"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "8e903efc0fc487bbbeace65383ae76a285a1e5aa",
+            "parents": [
+                "ae956ad9efd2be24c5439a4ef6498fb5c8383719"
+            ],
+            "ref": "refs/changes/59/41359/1",
+            "uploader": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "createdOn": 1615945076,
+            "author": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Do we even have a mechanism to implement this?\n\n@Amithash, I think you implemented something similar for Facebook BMC not too long ago?  Could you comment on the cases you were able to identify and how?"
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Would tend to prefer we expand this acronym."
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Tim Lee",
+                        "email": "timlee660101@gmail.com",
+                        "username": "timlee66"
+                    },
+                    "message": "Agree"
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Tim can you expand this to \"PowerOnReset\"?  Or just \"PowerOn\"?"
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Tim Lee",
+                        "email": "timlee660101@gmail.com",
+                        "username": "timlee66"
+                    },
+                    "message": "Hi Patrick,\n\nPower On Reset that means Standby Power On Reset Status. This bit is set by Standby Power-Up reset. Thus, you can just say Power On or Power Up also.\n\nIn my test, I plug out and plug in BMC power cable to verity this status. Thanks."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "1686938f360adf09ce380eb5fdf6c69e9dd83458",
+            "parents": [
+                "ae956ad9efd2be24c5439a4ef6498fb5c8383719"
+            ],
+            "ref": "refs/changes/59/41359/2",
+            "uploader": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "createdOn": 1627953793,
+            "author": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "kind": "NO_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "ade013fcefe73e3fdf631b4bf4e5a2d75e7d36f1",
+            "parents": [
+                "ae956ad9efd2be24c5439a4ef6498fb5c8383719"
+            ],
+            "ref": "refs/changes/59/41359/3",
+            "uploader": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "createdOn": 1628012524,
+            "author": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "kind": "NO_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "6610753e1b89a6c3f77df5f7f2f92e026fd0266e",
+            "parents": [
+                "ae956ad9efd2be24c5439a4ef6498fb5c8383719"
+            ],
+            "ref": "refs/changes/59/41359/4",
+            "uploader": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "createdOn": 1628012855,
+            "author": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "kind": "NO_CHANGE",
+            "comments": [
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 74,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Should external reset be added since it can be detectable and is different than \"unknown\"?"
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 74,
+                    "reviewer": {
+                        "name": "Tim Lee",
+                        "email": "timlee660101@gmail.com",
+                        "username": "timlee66"
+                    },
+                    "message": "First version of this feature, I just provide most customer request to implement it for\nWDIOF_EXTERN1 and WDIOF_CARDRESET case from linux/watchdog.h\n\n#define WDIOF_UNKNOWN       -1  /* Unknown flag error */\n\n#define WDIOF_OVERHEAT      0x0001  /* Reset due to CPU overheat */\n#define WDIOF_FANFAULT      0x0002  /* Fan failed */\n#define WDIOF_EXTERN1       0x0004  /* External relay 1 */\n#define WDIOF_EXTERN2       0x0008  /* External relay 2 */\n#define WDIOF_POWERUNDER    0x0010  /* Power bad/power fault */\n#define WDIOF_CARDRESET     0x0020  /* Card previously reset the CPU */\n#define WDIOF_POWEROVER     0x0040  /* Power over voltage */\n#define WDIOF_SETTIMEOUT    0x0080  /* Set timeout (in seconds) */\n#define WDIOF_MAGICCLOSE    0x0100  /* Supports magic close char */\n#define WDIOF_PRETIMEOUT    0x0200  /* Pretimeout (in seconds), get/set */\n#define WDIOF_ALARMONLY     0x0400  /* Watchdog triggers a management or other external alarm not a reboot */\n#define WDIOF_KEEPALIVEPING 0x8000  /* Keep alive ping reply */\n\nAt least, customer accept this design for their requirement.\nIf this feature is valuable for openbmc, like you said that we should add more cases (ex: WDIOF_EXTERN2). We will implement it at next version.\n\nBTW, we also need to change phosphor-state-manager and webui for this feature.\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-state-manager/+/41360\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-webui/+/41366"
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 74,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I am ok to start with watchdog as one reason. But I was asking because some BMC chips provide reset input pin that can be controlled by other components in a system."
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "line": 74,
+                    "reviewer": {
+                        "name": "Tim Lee",
+                        "email": "timlee660101@gmail.com",
+                        "username": "timlee66"
+                    },
+                    "message": "Zhikui, Thanks your explanation. Yes, reset input pin can be controlled by other components in a system, like chassis reset button.\n\nSo, you suggest that I need to add one more case WDIOF_EXTERN2 (External relay 2) for external reset that different than \"unknown\", right?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "xyz/openbmc_project/State/BMC.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "2a4da80e62596987e879660342726b21f3f5bea6",
+            "parents": [
+                "5795dacbc5763a0f1d1e1ac59d73baf4ca2ae616"
+            ],
+            "ref": "refs/changes/59/41359/5",
+            "uploader": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "createdOn": 1628042287,
+            "author": {
+                "name": "Tim Lee",
+                "email": "timlee660101@gmail.com",
+                "username": "timlee66"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/State/BMC.interface.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 20,
+            "sizeDeletions": 0
+        }
+    ]
+}

@@ -1,0 +1,307 @@
+{
+    "project": "openbmc/openbmc",
+    "branch": "master",
+    "topic": "bootOverride",
+    "id": "Ie59ba703a6f39f8e1d4934cce89cbe8cd5a826e4",
+    "number": 44226,
+    "subject": "phosphor-settings-manager: redesign boot setting override feature",
+    "owner": {
+        "name": "Konstantin Aladyshev",
+        "email": "aladyshev22@gmail.com",
+        "username": "Kostr"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/44226",
+    "commitMessage": "phosphor-settings-manager: redesign boot setting override feature\n\nCurrent realization of a boot override feature has several downsides\nwhich are described in detail in the mailing list letter\nhttps://lists.ozlabs.org/pipermail/openbmc/2021-May/026533.html\nRedesign interfaces under '/xyz/openbmc_project/control/host0/boot'\nobject to solve all the problems, in particular:\n- add 'Enable' interface under '/xyz/openbmc_project/control/host0/boot'\npath to store overall boot override enabled state,\n- drop BootSource/BootMode/BootType interfaces from the\n'/xyz/openbmc_project/control/host0/boot/one_time' object. In the new\ndesign there is no need to store such properties twice,\n- by default make override feature disabled and permanent.\n\nSigned-off-by: Konstantin Aladyshev <aladyshev22@gmail.com>\nChange-Id: Ie59ba703a6f39f8e1d4934cce89cbe8cd5a826e4\n",
+    "createdOn": 1624022151,
+    "lastUpdated": 1627920709,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1624022151,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1624022205,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624022211,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/4719/"
+        },
+        {
+            "timestamp": 1624024018,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/4719/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624025373,
+            "reviewer": {
+                "name": "Jenkins OpenBMC IBM",
+                "email": "geissonator+jenkinsibm@gmail.com",
+                "username": "jenkins-openbmc-ibm"
+            },
+            "message": "Patch Set 1:\n\nBuild Successful \n\nIBM Hardware CI : witherspoon hardware tests passed"
+        },
+        {
+            "timestamp": 1624290036,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1624291378,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 2:\n\nHello!\nPlease review this change that is a part of a redesign of a boot source override feature:\nhttps://gerrit.openbmc-project.xyz/q/topic:%22bootOverride%22\n\nAll the problems with the last realization was discussed in a mailing list letter:\nhttps://lists.ozlabs.org/pipermail/openbmc/2021-May/026533.html"
+        },
+        {
+            "timestamp": 1626803226,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "geissonator@yahoo.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2:\n\nHey Konstantin, my understanding from our discussion in discord was that non POWER based systems have default values for these different properties stored within some read-only BIOS section of the system. So this concept of a single one_time enabled override works on those systems.\n\nI'm struggling a bit on how this will work on our POWER systems though where we currently depend on the non one_time settings to store the default BIOS values? Am I missing something or are we just saying that what you have proposed is the standard and POWER systems should just break until they can make it work some other way?"
+        },
+        {
+            "timestamp": 1626807474,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> Hey Konstantin, my understanding from our discussion in discord was that non POWER based systems have default values for these different properties stored within some read-only BIOS section of the system. So this concept of a single one_time enabled override works on those systems.\n> \n> I'm struggling a bit on how this will work on our POWER systems though where we currently depend on the non one_time settings to store the default BIOS values? Am I missing something or are we just saying that what you have proposed is the standard and POWER systems should just break until they can make it work some other way?\n\nI can't say much for POWER as this is not really a system that I work with.\n\nBut in my understanding the standard approach is this:\n- BIOS has boot settings stored in NVRAM. You can change them via BIOS menu.\n- Also BIOS at boot asks via IPMI the BMC controller if it has enabled (=valid in IPMI terminology) boot source override. If it has, BIOS uses settings from BMC. If it hasn't, BIOS uses its own NVRAM settings.\n- If BMC override is enabled, BIOS checks if \"one-time\" setting is enabled. If it is, BIOS clears \"boot override valid\" flag in BMC and boots. If it isn't, BIOS doesn't modify settings in BMC.\n\nIn this approach BMC stores only one set of override settings. After the \"one-time\" override BIOS wouldn't use some other BMC settings, but it would fallback to its own NVRAM settings."
+        },
+        {
+            "timestamp": 1626845933,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1626858855,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627537563,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 2: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627920690,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 2: Code-Review+2"
+        },
+        {
+            "timestamp": 1627920709,
+            "reviewer": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "message": "Change has been successfully rebased and submitted as 8bb79f27b6e61b856bd75fc0316e66326eadef8f by Konstantin Aladyshev"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "47cfad9edd9f16b1a278de939c61345a9c7033e7",
+            "parents": [
+                "4c41149d50b3a2341131e4d677d766c4f21cf97a"
+            ],
+            "ref": "refs/changes/26/44226/1",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1624022151,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/settings/phosphor-settings-defaults/defaults.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/settings/phosphor-settings-manager/boot_type.override.yml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 2,
+            "revision": "9b62d74f799985b9fc1176c49bf6f525cf0b5641",
+            "parents": [
+                "4c41149d50b3a2341131e4d677d766c4f21cf97a"
+            ],
+            "ref": "refs/changes/26/44226/2",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1624290036,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "I am OK with the changes above, but why do you want to change the default boot valid to false, and make it permanent?\n\nI would suggest to keep the previous behavior, that the default value is:\n\n - Boot Flag Valid\n - Options apply to only next boot"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Konstantin Aladyshev",
+                        "email": "aladyshev22@gmail.com",
+                        "username": "Kostr"
+                    },
+                    "message": "You are looking from the `ipmid` point of view.\nBut if we look from the `bmcweb` point of view, it started with the \"BootSourceOverrideEnabled=Disabled\".\nWith this inconsistency it is hard to say what the default was."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "Well, I do not have a strong opinion here, so I'm OK either way."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/settings/phosphor-settings-defaults/defaults.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/settings/phosphor-settings-manager/boot_type.override.yml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 3,
+            "revision": "8bb79f27b6e61b856bd75fc0316e66326eadef8f",
+            "parents": [
+                "d153e1b511d0a175020fdb77824493972222a65b"
+            ],
+            "ref": "refs/changes/26/44226/3",
+            "uploader": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "createdOn": 1627920709,
+            "author": {
+                "name": "Konstantin Aladyshev",
+                "email": "aladyshev22@gmail.com",
+                "username": "Kostr"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/settings/phosphor-settings-defaults/defaults.yaml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -11
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/settings/phosphor-settings-manager/boot_type.override.yml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -15
+                }
+            ],
+            "sizeInsertions": 14,
+            "sizeDeletions": 26
+        }
+    ]
+}

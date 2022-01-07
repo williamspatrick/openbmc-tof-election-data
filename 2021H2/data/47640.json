@@ -1,0 +1,391 @@
+{
+    "project": "openbmc/pldm",
+    "branch": "master",
+    "id": "Iecb9c8e9f336963595cab86c1c9930b9512afb33",
+    "number": 47640,
+    "subject": "pdr: Sensor/Effecter support for fault SAI LEDs",
+    "owner": {
+        "name": "Sridevi Ramesh",
+        "email": "sridevra@in.ibm.com",
+        "username": "SrideviRamesh"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/pldm/+/47640",
+    "commitMessage": "pdr: Sensor/Effecter support for fault SAI LEDs\n\nChange-Id: I6e05a4829c32f242f451b2550ab44b54f5cd0fdf\n\nTesting Results:\nChange-Id: Iabeec45667aeed1d389265f4c4b76e6364ff43c8\n-------------------\nSensors:\n-----\n\n1. partition SAI\n----------------\n\npldmtool platform getpdr -d 489\n{\n    \"nextRecordHandle\": 490,\n    \"responseCount\": 27,\n    \"recordHandle\": 489,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Sensor PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 17,\n    \"PLDMTerminusHandle\": 1,\n    \"sensorID\": 200,\n    \"entityType\": \"[Logical] System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 0,\n    \"sensorInit\": \"noInit\",\n    \"sensorAuxiliaryNamesPDR\": false,\n    \"compositeSensorCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\n pldmtool platform GetStateSensorReadings -i 200 -r 0\n{\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Normal\"\n}\n busctl set-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/partition_system_attention_indicator xyz.openbmc_project.Led.Group Asserted b true\n\n pldmtool platform GetStateSensorReadings -i 200 -r 0                                                                           {\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\n\n2. platform SAI\n----------------\n\npldmtool platform getpdr -d 490\n{\n    \"nextRecordHandle\": 491,\n    \"responseCount\": 27,\n    \"recordHandle\": 490,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Sensor PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 17,\n    \"PLDMTerminusHandle\": 1,\n    \"sensorID\": 201,\n    \"entityType\": \"[Logical] System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 2,\n    \"containerID\": 0,\n    \"sensorInit\": \"noInit\",\n    \"sensorAuxiliaryNamesPDR\": false,\n    \"compositeSensorCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\nbusctl set-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/platform_system_attention_indicator xyz.openbmc_project.Led.Group Asserted b true\n\npldmtool platform GetStateSensorReadings -i 201 -r 0\n {                                                                         {\n    \"compositeSensorCount\": 1,\n    \"sensorOpState[0]\": \"Sensor Enabled\",\n    \"presentState[0]\": \"Sensor Normal\",\n    \"previousState[0]\": \"Sensor Unknown\",\n    \"eventState[0]\": \"Sensor Warning\"\n}\n\nEffecters\n--------\n\n1. partition SAI\n---------------\n\npldmtool platform getpdr -d 276\n{\n    \"nextRecordHandle\": 277,\n    \"responseCount\": 29,\n    \"recordHandle\": 276,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 197,\n    \"entityType\": \"[Logical] System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 1,\n    \"containerID\": 0,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\npldmtool platform SetStateEffecterStates -i 197 -c 1 -d 1 1\n{\n    \"Response\": \"SUCCESS\"\n}\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/partition_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb false\n\n2. platform\n----------\n\npldmtool platform getpdr -d 277\n{\n    \"nextRecordHandle\": 278,\n    \"responseCount\": 29,\n    \"recordHandle\": 277,\n    \"PDRHeaderVersion\": 1,\n    \"PDRType\": \"State Effecter PDR\",\n    \"recordChangeNumber\": 0,\n    \"dataLength\": 19,\n    \"PLDMTerminusHandle\": 1,\n    \"effecterID\": 198,\n    \"entityType\": \"[Logical] System chassis (main enclosure)\",\n    \"entityInstanceNumber\": 2,\n    \"containerID\": 0,\n    \"effecterSemanticID\": 0,\n    \"effecterInit\": \"noInit\",\n    \"effecterDescriptionPDR\": false,\n    \"compositeEffecterCount\": 1,\n    \"stateSetID[0]\": \"Operational Fault Status(10)\",\n    \"possibleStatesSize[0]\": 1,\n    \"possibleStates[0]\": [\n        \"Normal(1)\",\n        \"Stressed(2)\"\n    ]\n}\n\npldmtool platform SetStateEffecterStates -i 198 -c 1 -d 1 2\n{\n    \"Response\": \"SUCCESS\"\n}\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager /xyz/openbmc_project/led/groups/platform_system_attention_indicator xyz.openbmc_project.Led.Group Asserted\nb true\n\nSigned-off-by: Sridevi Ramesh <sridevra@in.ibm.com>\nChange-Id: Iecb9c8e9f336963595cab86c1c9930b9512afb33\n",
+    "createdOn": 1633628565,
+    "lastUpdated": 1638973428,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1633628565,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1633628574,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633628582,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3217/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1633629600,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27761/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3217/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1635912654,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1636023153,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636023197,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1636023220,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1636023236,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636023245,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3575/ (2/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1636026748,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29786/ : SUCCESS\n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3575/ : ppc64le CI Build Successful"
+        },
+        {
+            "timestamp": 1636456556,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1637580533,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1637580554,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637580562,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3660/ (1/2)\n\nppc64le CI Build Started"
+        },
+        {
+            "timestamp": 1637580633,
+            "reviewer": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "message": "Patch Set 3:\n\nHi Jay,\n\nAs per discussion I changed \"interface\": \"xyz.openbmc_project.Led.Group\" for 11.json effecter partition and platform SAI."
+        },
+        {
+            "timestamp": 1637582443,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-repository-ppc64le/3660/ : ppc64le CI Build Successful\n\nhttps://jenkins.openbmc.org/job/ci-repository/30650/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638500298,
+            "reviewer": {
+                "name": "Jayashankar Padath",
+                "email": "jayashankarpadath@gmail.com",
+                "username": "jaypadath"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1638973428,
+            "reviewer": {
+                "name": "Lakshminarayana R Kammath",
+                "email": "lkammath@in.ibm.com",
+                "username": "lkammath"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c27da400eb9d50e97735d10db9da3b3d9f4380d8",
+            "parents": [
+                "cc5f1586972a6d0a3465d90b1a139b63fd2f4f10"
+            ],
+            "ref": "refs/changes/40/47640/1",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1633628565,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 3487,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Instance number should start withe 1 and should increase"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 3496,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "We need to set xyz.openbmc_project.State.Decorator.OperationalStatus --> Functional property on the system level D-Bus : /xyz/openbmc_project/inventory/system"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 3496,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 3515,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "We need to set xyz.openbmc_project.State.Decorator.OperationalStatus --> Functional property on the system level D-Bus : /xyz/openbmc_project/inventory/system"
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "line": 3515,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "line": 3550,
+                    "reviewer": {
+                        "name": "Jayashankar Padath",
+                        "email": "jayashankarpadath@gmail.com",
+                        "username": "jaypadath"
+                    },
+                    "message": "Instance number should start withe 1 and should increase"
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "line": 3550,
+                    "reviewer": {
+                        "name": "Sridevi Ramesh",
+                        "email": "sridevra@in.ibm.com",
+                        "username": "SrideviRamesh"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 178,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "cecccebedddff772a13e4cbba872acda5dbcc0c4",
+            "parents": [
+                "cc5f1586972a6d0a3465d90b1a139b63fd2f4f10"
+            ],
+            "ref": "refs/changes/40/47640/2",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1636023220,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 189,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "fa67cdadbc242bc369a116a5430e61f67270d4c6",
+            "parents": [
+                "cc5f1586972a6d0a3465d90b1a139b63fd2f4f10"
+            ],
+            "ref": "refs/changes/40/47640/3",
+            "uploader": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "createdOn": 1637580533,
+            "author": {
+                "name": "Sridevi Ramesh",
+                "email": "sridevra@in.ibm.com",
+                "username": "SrideviRamesh"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 180,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/11.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "configurations/pdr/4.json",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 0
+        }
+    ]
+}

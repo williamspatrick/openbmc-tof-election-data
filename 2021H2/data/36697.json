@@ -1,0 +1,1389 @@
+{
+    "project": "openbmc/phosphor-pid-control",
+    "branch": "master",
+    "id": "I972a4e4a3b787255f0dcafa10d4498ee58b682f0",
+    "number": 36697,
+    "subject": "pid/zone: Adding unscaled to cache and logging",
+    "owner": {
+        "name": "Josh Lehan",
+        "email": "krellan@google.com",
+        "username": "Krellan"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/36697",
+    "commitMessage": "pid/zone: Adding unscaled to cache and logging\n\nThe \"ReadReturn\" structure, and the cache within DbusPidZone, have\nbeen widened, to hold both the scaled and the original unscaled values\nat the same time. This allows logging to show both at once, and also\nclears up confusion/bugs resulting from storing one or the other and\nlosing track of which was which.\n\nCompatibility setValue() and getCachedValue() functions still\nretained, so this will not break other sensors. These functions still\nonly take a single argument/return, which will be used for both value\nand unscaled, indicating scaling is unknown or irrelevant to this\nsensor.\n\nAlso, the PWM output of the PID loop appears in the log file,\nconveniently right alongside the RPM input of the PID loop.\n\nAn output cache has been added to the zone interface, and, unlike the\ninput cache, use of it is optional. It is only to help populate the\nlogging, so subclasses are free to ignore it if they want.\n\nTested: In the logging files, I can see both PWM and RPM, and they are\nconsistent, showing how the PID loop is trying to update the PWM to\ntarget the desired RPM.\n\nExample: Here's /tmp/zone_0.log on my system\nepoch_ms,setpt,fan0_tach,fan0_tach_raw,fan0_tach_pwm,fan0_tach_pwm_raw,bmcmargin_zone0,bmcmargin_zone0_raw,thermal_zone0,thermal_zone0_raw,failsafe\n3097918,3818.42,0.748267,11224,0,0,0.724753,56.812,0.745098,62,0\n3098022,3818.42,0.748267,11224,0.266666,67,0.724753,56.812,0.745098,62,0\n3098132,3818.42,0.748267,11224,0.266666,67,0.724753,56.812,0.745098,62,0\n\nHere's what we can now learn:\nThe desired setpoint is 3818 RPM.\nThe fan is at 74.8% of scale, which is 11224 RPM.\nThe written PWM, after the first PID loop pass, is a raw value of 67,\nwhich is 26.6% of scale.\nThe first margin temperature is 56.8 degrees of margin, which is 72.4%\nof scale.\nThe second margin temperature is 62 degrees of margin, which is 74.5%\nof scale.\nThis zone is not in failsafe mode.\nAs you can see, this will be rather useful for PID loop tuning.\n\nSigned-off-by: Josh Lehan <krellan@google.com>\nChange-Id: I972a4e4a3b787255f0dcafa10d4498ee58b682f0\n",
+    "createdOn": 1600846155,
+    "lastUpdated": 1628817570,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1600846155,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1600846164,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1600846171,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5040/"
+        },
+        {
+            "timestamp": 1600846482,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/5040/ : FAILURE"
+        },
+        {
+            "timestamp": 1600849082,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1600849094,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1600849101,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5045/"
+        },
+        {
+            "timestamp": 1600849282,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5045/ : SUCCESS"
+        },
+        {
+            "timestamp": 1600849631,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2:\n\nThis patch is more invasive, but provides a rather cool feature that propagates all the way into the logging files, as well as eliminates any ambiguity as to whether or not ReadReturn and the cache represent raw values or scaled values. Now, it's both! Instead of just holding double, it holds pair(double, double) so you get to remember both the original value and the final scaled value. Compatibility functions are provided, to keep the blast radius small."
+        },
+        {
+            "timestamp": 1600937197,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 3: Patch Set 2 was rebased."
+        },
+        {
+            "timestamp": 1600937213,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1600937220,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5110/"
+        },
+        {
+            "timestamp": 1600937385,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5110/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601588798,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1601588812,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601588819,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5630/"
+        },
+        {
+            "timestamp": 1601588969,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/5630/ : FAILURE"
+        },
+        {
+            "timestamp": 1601589621,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 4:\n\nIt compiles OK, but there's a weird internal error in Jenkins that marks it as failure.\n\nFileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmpyhu81a9q/system_bus_socket'"
+        },
+        {
+            "timestamp": 1601594968,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 5: Commit message was updated."
+        },
+        {
+            "timestamp": 1601689752,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1601689766,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601689773,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5682/"
+        },
+        {
+            "timestamp": 1601689942,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5682/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601690955,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1601690969,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601690978,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5688/"
+        },
+        {
+            "timestamp": 1601691149,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5688/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601691503,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 7:\n\nI have stacked these patches in the proper order. Patch 36695 provides the base class implementation that we needed. Now, setOutputCache() in pid/zone.hpp has the keyword \"override\", which allows the whole thing to be neatly tied together."
+        },
+        {
+            "timestamp": 1601910625,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1601952259,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 8: Patch Set 7 was rebased."
+        },
+        {
+            "timestamp": 1601952274,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601952281,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5794/"
+        },
+        {
+            "timestamp": 1601952287,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1601952872,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5794/ : SUCCESS"
+        },
+        {
+            "timestamp": 1603343879,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1605269155,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1605269168,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1605269354,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/7851/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617687000,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1617687032,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617687104,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nAs requested during earlier review, now using a structure instead of std::pair for holding scaled and unscaled values. Also initializing to NaN instead of zero."
+        },
+        {
+            "timestamp": 1617687364,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14874/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617687614,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14873/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617744768,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 11: Commit message was updated."
+        },
+        {
+            "timestamp": 1619686100,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 11:\n\nAny objections to merging this patch? I don't want to pat myself on the back here."
+        },
+        {
+            "timestamp": 1619705700,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11: Code-Review+1\n\nLGTM"
+        },
+        {
+            "timestamp": 1620161526,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 12: Patch Set 11 was rebased."
+        },
+        {
+            "timestamp": 1620161544,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620161803,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16671/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620964754,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 13: Patch Set 12 was rebased."
+        },
+        {
+            "timestamp": 1620964785,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620965051,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/17247/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624377309,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Removed reviewer Patrick Venture."
+        },
+        {
+            "timestamp": 1628817570,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Work In Progress"
+        }
+    ],
+    "wip": true,
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "717cd9b0480155b0394576320c79e48fb03fecf9",
+            "parents": [
+                "48fea7ca8501f8e6d8da9770a1c1c660c8e4bea0"
+            ],
+            "ref": "refs/changes/97/36697/1",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1600846155,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -12
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 38,
+            "sizeDeletions": 17
+        },
+        {
+            "number": 2,
+            "revision": "13da6862bd2109284ee8ad3628630f401be60958",
+            "parents": [
+                "48fea7ca8501f8e6d8da9770a1c1c660c8e4bea0"
+            ],
+            "ref": "refs/changes/97/36697/2",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1600849082,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -12
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 45,
+            "sizeDeletions": 17
+        },
+        {
+            "number": 3,
+            "revision": "afa995709c4a095cd816af8bbe061d8512b5ae34",
+            "parents": [
+                "a20286b7b153e91f875f17fccc912486e75f2dca"
+            ],
+            "ref": "refs/changes/97/36697/3",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1600937197,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -12
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 45,
+            "sizeDeletions": 17
+        },
+        {
+            "number": 4,
+            "revision": "3b4ff1b51166d915e769e6f4d046d60afd74a8e8",
+            "parents": [
+                "b37246906ba92bc40e71ce00a1f61409ce20351d"
+            ],
+            "ref": "refs/changes/97/36697/4",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601588798,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 34,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 65,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 5,
+            "revision": "232158882988c06f7c67f5b9e4ed227d910d60ff",
+            "parents": [
+                "b37246906ba92bc40e71ce00a1f61409ce20351d"
+            ],
+            "ref": "refs/changes/97/36697/5",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601594968,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 65,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 6,
+            "revision": "3047a485599764b301c61ba0e6ac11ffd78cc81a",
+            "parents": [
+                "4de9475f5b966b23635c65581ca03a530b6007d2"
+            ],
+            "ref": "refs/changes/97/36697/6",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601689752,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 65,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 7,
+            "revision": "7f2b80cb1887cd16086b441e62da403313f84eb0",
+            "parents": [
+                "01fbc3294f6e75e3d1ae0a11f460705e437f5294"
+            ],
+            "ref": "refs/changes/97/36697/7",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601690955,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Patrick Venture",
+                        "email": "venture@google.com",
+                        "username": "pstrinkle"
+                    },
+                    "message": "This usage of pair is confusing because they're the same type.  So it's not clear upon usage which is scaled or not.  This is an excellent case for a structure."
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "OK, makes sense, a little structure like ReadReturn should do it."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 8,
+            "revision": "1e2111902fee4ccc82206ec7ae280032c12a2f90",
+            "parents": [
+                "bf5ad5fb0a9b88dbc176831d04ba3390cf5c16f3"
+            ],
+            "ref": "refs/changes/97/36697/8",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601952259,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 9,
+            "revision": "fc27b3affb4ad7e833f12ef934c2ff396302b35a",
+            "parents": [
+                "770e3da15493e7ddde70a1cf7d456ad9aa86a124"
+            ],
+            "ref": "refs/changes/97/36697/9",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1605269155,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 10,
+            "revision": "bc96e7af36621a018030368c4d2d85cefd5a6448",
+            "parents": [
+                "d750c95a611d03becf251f852d6be57fa6faa32f"
+            ],
+            "ref": "refs/changes/97/36697/10",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617687000,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 67,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 11,
+            "revision": "3364162837fd1833d7ba355342d0216648b1008a",
+            "parents": [
+                "64f3dbf199754f531c35ab09a9979eb20b38b4aa"
+            ],
+            "ref": "refs/changes/97/36697/11",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617744768,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 67,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 12,
+            "revision": "45f091a8d71e1603b6ac090d92e22fcf5eb48c31",
+            "parents": [
+                "d73a93311f91a7c18658490592d2b8ebac28d39e"
+            ],
+            "ref": "refs/changes/97/36697/12",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620161526,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 67,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 13,
+            "revision": "71a5ff7991abc93da1ed7863b7ae3c0688959a9f",
+            "parents": [
+                "475b0343c1953da5418ff30877cc5bf1ca98cb84"
+            ],
+            "ref": "refs/changes/97/36697/13",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620964754,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 51,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuspassive.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -3
+                },
+                {
+                    "file": "dbus/dbuspassive.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": -13
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 67,
+            "sizeDeletions": 18
+        }
+    ]
+}

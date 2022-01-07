@@ -1,0 +1,234 @@
+{
+    "project": "openbmc/openpower-occ-control",
+    "branch": "master",
+    "id": "I3e3f7a2a5db4053ea055e7baa16f0b0bf6eddbca",
+    "number": 47923,
+    "subject": "Add proc IO Ring and core/IO ring DVFS sensors",
+    "owner": {
+        "name": "Matt Spinler",
+        "email": "spinler@us.ibm.com",
+        "username": "spinler"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/openpower-occ-control/+/47923",
+    "commitMessage": "Add proc IO Ring and core/IO ring DVFS sensors\n\nAdd support for the processor IO ring temperature sensor which the OCC\nuses fru type 9 for.  There is one per OCC.\n\nAdd support for reading the processor core and IO ring DVFS (Dynamic\nVoltage and Frequency Slewing) temperature values out of the tempN_max\nfiles and putting them on D-Bus.  These values are the temperatures at\nwhich the OCC starts using DVFS to cool the chip and are being put on\nD-Bus so that fan control can read them and increase fan speeds before\nthen so the OCC doesn't have to do the DVFS.\n\nEven though there is a value in the tempN_max file for every core, there\nonly needs to be one value on D-Bus per OCC.  These are put in the\nsensors namespace using the xyz.openbmc_project.Sensor.Value interface.\nThey do not need associations to the chassis, and they don't need to be\nset to NaN when the OCCs aren't active, since the values can never\nchange.\n\nThere are values in the tempN_max files for most, if not all, other\ntemperature types as well, but the IO ring and core DVFS temps are the\nonly ones that aren't known ahead of time because they come from the\nprocessor EEPROM.\n\nSigned-off-by: Matt Spinler <spinler@us.ibm.com>\nChange-Id: I3e3f7a2a5db4053ea055e7baa16f0b0bf6eddbca\n",
+    "createdOn": 1634584464,
+    "lastUpdated": 1635783746,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1634584464,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1634584478,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634584537,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28481/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635253169,
+            "reviewer": {
+                "name": "Chris Cain",
+                "email": "cjcain@us.ibm.com",
+                "username": "cjcain"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635254684,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635260054,
+            "reviewer": {
+                "name": "Chris Cain",
+                "email": "cjcain@us.ibm.com",
+                "username": "cjcain"
+            },
+            "message": "Patch Set 1: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635780805,
+            "reviewer": {
+                "name": "Edward A. James",
+                "email": "eajames@us.ibm.com",
+                "username": "eddiejames"
+            },
+            "message": "Patch Set 1: Code-Review+2"
+        },
+        {
+            "timestamp": 1635783746,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Change has been successfully rebased and submitted as ace67d85e4206e15833c9c916a56aa3324b25cb3 by Matt Spinler"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "20d41a56993c21a7f8a0481d764267fae60f86a2",
+            "parents": [
+                "379234643e8a9b10ca1b98ddfea1a23e4db01d19"
+            ],
+            "ref": "refs/changes/23/47923/1",
+            "uploader": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "createdOn": 1634584464,
+            "author": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "occ_manager.cpp",
+                    "line": 403,
+                    "reviewer": {
+                        "name": "Chris Cain",
+                        "email": "cjcain@us.ibm.com",
+                        "username": "cjcain"
+                    },
+                    "message": "Is this going to get re-read when the OCCs are reset or system re-ipled?  The values could change on code update.\nI know the test team modifies these (via hostboot attributes).  Not sure if attributes can get modified at runtime or requires system reboot."
+                },
+                {
+                    "file": "occ_manager.cpp",
+                    "line": 403,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "On a reset for sure, but not currently on a reboot.\n\nIt only cares about the io ring and core values, which are the only ones that come from VPD as I understand it.  Since they come from VPD, do you think they can change across boots?"
+                },
+                {
+                    "file": "occ_manager.cpp",
+                    "line": 403,
+                    "reviewer": {
+                        "name": "Chris Cain",
+                        "email": "cjcain@us.ibm.com",
+                        "username": "cjcain"
+                    },
+                    "message": "The VPD limits shouldn't change, but there are deltas in the MRW for these thresholds.\nFor the test team, they can force a occ-control reset if limits are chagned for specific tests.\nMatt mentioned that a code update will trigger BMC reset, which will restart occ-control and therefore read new limits (if deltas changed in MRW)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "occ_dbus.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "occ_dbus.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "occ_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": -11
+                },
+                {
+                    "file": "occ_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 2,
+            "revision": "ace67d85e4206e15833c9c916a56aa3324b25cb3",
+            "parents": [
+                "338748baf75342dfac8be840f240879343caa754"
+            ],
+            "ref": "refs/changes/23/47923/2",
+            "uploader": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "createdOn": 1635783746,
+            "author": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "occ_dbus.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "occ_dbus.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "occ_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": -11
+                },
+                {
+                    "file": "occ_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 12
+        }
+    ]
+}

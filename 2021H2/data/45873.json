@@ -1,0 +1,533 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I62342d07b9e628cba4beb4ba0393197336a8c7da",
+    "number": 45873,
+    "subject": "psusensor: Revise sensorsChanged optimization",
+    "owner": {
+        "name": "Josh Lehan",
+        "email": "krellan@google.com",
+        "username": "Krellan"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45873",
+    "commitMessage": "psusensor: Revise sensorsChanged optimization\n\nThis optimization had some issues which were causing sensors to not\nbe added correctly, when many sensors were added at once, such as\nduring system startup.\n\nThe sensorsChanged allowlist was being consumed upon the first\nmatching sensor, which is unsafe, as the allowlist contains\ninventory names, and inventory names can contain more than one\nsensor. This resulted in believing all subsequent sensors\nin the same inventory name were unchanged, which was incorrect.\n\nAlso, there was no check for sensor existence, before the\nallowlist was applied, which was unsafe, as there is no reason to\ndeny sensor creation just because it had not appeared in a change\nmessage yet. This resulted in missing sensors at startup, as due to\nvarious situations at startup, not all sensors generate change\nnotification messages upon creation.\n\nMoved the various \"check\" functions to later in the sensor\ncreation function, because they make lasting changes, to avoid\ngetting out of sync. This ensures this code runs after the final\ncheck to skip over unnecessary sensors, to ensure the \"check\"\nfunctions run only on sensors that are known to be necessary.\n\nPerformance hit is minimal, as it only triggers when sensors are\nadded or changed, which is rare after system startup has completed.\n\nTested: We had missing sensors, and after this patch, the missing\nsensors once again correctly appear on our system. No appreciable\nperformance impact at system startup was noticed.\n\nSigned-off-by: Josh Lehan <krellan@google.com>\nChange-Id: I62342d07b9e628cba4beb4ba0393197336a8c7da\n",
+    "createdOn": 1628816726,
+    "lastUpdated": 1634278890,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1628816726,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1628816741,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628816786,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\nThis patch works, and is for initial discussion. If we agree that this is a good thing to do, I will rewrite the patch to do a more complete excision of the sensorsChanged \"feature\"."
+        },
+        {
+            "timestamp": 1628816876,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24318/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628826457,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 1: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628881833,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1629105371,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1629130247,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1629204241,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2: Patch Set 1 was rebased"
+        },
+        {
+            "timestamp": 1629204252,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629204395,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24458/ : SUCCESS"
+        },
+        {
+            "timestamp": 1630706111,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1631055265,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1631055277,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631055300,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 3:\n\nOK, went through and revised it, and now it works much better, taking the spirit of the sensorsChanged optimization into account, instead of trying to remove it entirely."
+        },
+        {
+            "timestamp": 1631055415,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25862/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631125062,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1631179786,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1631218532,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1631229141,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1631303210,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1634278890,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Work In Progress"
+        }
+    ],
+    "wip": true,
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "4b9cce5b97514f6a52f33f3bc73e8a691dea9549",
+            "parents": [
+                "5cf0f99210890d0cd52d5929e919316d238a5701"
+            ],
+            "ref": "refs/changes/73/45873/1",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1628816726,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 433,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This looks like it's completely inverting the logic?  This stuff scares me, so how sure are we this is the right thing to do."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 433,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Here's the old logic: If the psuName is not found in the whitelist, the continue statement would cause this sensor to be skipped over. If the psuName is found in the whitelist, however, this block is skipped. So, the erasure from the whitelist takes place, and the sensor is allowed to be created.\n\nThis is an example of a bug: some psuName contain more than one sensor, and because the erasure takes place the first time a matching sensor is found, subsequent sensors will no longer find their psuName in the whitelist, thus those sensors will be wrongly skipped over.\n\nI changed it to simply disable this feature, by only printing a message if the psuName is not found in the whitelist, and no longer skipping it over. This would lead to wrongly performing an erasure on an invalid iterator, though. So, I added an else-clause to this statement, preventing the erasure from being done in this case.\n\nAs for determining if it's the right thing to do or not, that is quickly discovered during testing, when one sees if it works or doesn't work."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 433,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Here's the old logic: If the psuName is not found in the whitelist, the continue statement would cause this sensor to be skipped over. If the psuName is found in the whitelist, however, this block is skipped. So, the erasure from the whitelist takes place, and the sensor is allowed to be created.\n> \n> This is an example of a bug: some psuName contain more than one sensor,\n\nI'm not following this statement.  psuName in this context is equal to the \"Name\" parameter of the exposes node.  There should only be one, even if there are multiple sensors with their own names.\n\n> and because the erasure takes place the first time a matching sensor is found, subsequent sensors will no longer find their psuName in the whitelist, thus those sensors will be wrongly skipped over.\n> \n> I changed it to simply disable this feature, by only printing a message if the psuName is not found in the whitelist, and no longer skipping it over. This would lead to wrongly performing an erasure on an invalid iterator, though. So, I added an else-clause to this statement, preventing the erasure from being done in this case.\n> \n> As for determining if it's the right thing to do or not, that is quickly discovered during testing, when one sees if it works or doesn't work.\n\nLooking forward to seeing the rest of your testing then.  Individual sensor config changes need tested, ideally both with the removeNode API and something like IPMI to set the threshold."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 440,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "?  I'm not following that statement.  In what way is it unreliable?"
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 440,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "For a variety of reasons. It's much more reliable to enumerate a list of sensors yourself than it is to await incoming messages that identify each sensor. There won't be 100% guarantee all newly created sensors generate a message. It's the same reason you would want to poll a directory to enumerate all files instead of passively setting up an inotify() on the directory and expecting the filesystem to notify you about every new file."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 440,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> For a variety of reasons. It's much more reliable to enumerate a list of sensors yourself than it is to await incoming messages that identify each sensor.\n\nConsidering that dbus is assumed to be reliable (if it's not, the connections close) this statement wouldn't really seem to be true?\n\n>1 There won't be 100% guarantee all newly created sensors generate a message.\n\nGiven the dbus spec says that it will happen, there is a guarantee.  We should not be designing around hypothetical unreliabilities.  If dbus is dropping messages, lots of things would be broken, not just this.  For example, the mapper relies on these same messages.\n\n> It's the same reason you would want to poll a directory to enumerate all files instead of passively setting up an inotify() on the directory and expecting the filesystem to notify you about every new file.\n\nI'm not sure I understand the point.  Both guarantee that you will see all changes to files, and inotify is far more efficient.  Also, the inotify pattern is used in OpenBMC today in other places to great effect in efficiency.  If we're arguing that these sensors should go back to polling, that's a very different discussion."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 442,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This breaks changing a single sensor threshold value, and requires all sensors to reset on a threshold change, which is unexpected and arguably a bug."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 442,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Hmm. How often are thresholds values changed? I don't use the thresholds feature, so wouldn't know. Do they often vary once the sensor is created?"
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 442,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "More than zero, and as often as a user chooses to via the \"set senor threshold\" IPMI command.  Please test this use case, and ensure that only the sensor that was changed is re-inited."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 446,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is a level of verbosity we don't need on something that's expected and \"normal\"."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 446,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "As I said in the comments, I'm willing to write a more complete excision of this feature, once the idea is settled. For now, though, I want it loud on purpose, to be able to see how many sensors it affects."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 446,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> As I said in the comments, I'm willing to write a more complete excision of this feature, once the idea is settled. For now, though, I want it loud on purpose, to be able to see how many sensors it affects.\n\nSo long as we're on the same page that this won't be merged with the \"loud\" print statements, I think we're on the same page."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 451,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Ah, nice. Good catch Josh!.\n\nTested and seems to work fine."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 451,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Thanks!"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 16,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 2,
+            "revision": "7f7de6076316284ce4e1365b399b6e3335d5d11d",
+            "parents": [
+                "f1ace50bbb781c0febd15387110d1a03b11391f9"
+            ],
+            "ref": "refs/changes/73/45873/2",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1629204241,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 16,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 3,
+            "revision": "e8c9b63b83d65959fa0920a6f6635c26e2de18c5",
+            "parents": [
+                "5770a6fd6af5e393317c305094971a0390f626da"
+            ],
+            "ref": "refs/changes/73/45873/3",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1631055265,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Lets run some more tests by changing thresholds of existing sensors, and ensuring that they get re-initted, and the runtime-modification behavior you're changing the code for isn't effected."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Do you have examples of commands to change the thresholds? I don't use the feature of thresholds, so am unsure how to test. I've tested sensors matching against \"PSU names\" given in the incoming change notification messages, and these correctly work: named sensors are re-created, but sensors not named in the allowlist are unaffected."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "IPMI sensor commands can be used:\nread sensor value and thresholds: ipmitool raw 0x04 0x27 sensor_number \nset sensor threshold thresholds: ipmitool raw 0x04 0x26 sensor_number 0x1b low-non-critical low-critical 0x00 upper-non-critical upper-critical 0x00"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Thanks for these IPMI commands! I will try them soon."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 954,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I am not following the purpose of keeping not consumed changes in sensorsChanged. Is it going to be used in a scan later and be consumed? Any risk of this becomes a memory leak?"
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 954,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "This preserves existing behavior. I wanted to stay true to the existing behavior, by fixing merely a bug in implementation, not changing behavior. If a PSU name comes in that does not match any existing sensor, yes, it will stay in memory. However, that is mitigated by the fact the main loop coalesces duplicate PSU names together. It's a set, not a list. Somebody could still wrongly fill up memory by sending lots of bogus D-Bus messages under a variety of made-up PSU names, though. This vulnerability also exists in the original code. Should this be addressed? If so, should we have a hardcoded limit on the number of outstanding PSU names that can be addressed by notification messages?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 79,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 10
+        }
+    ]
+}

@@ -1,0 +1,178 @@
+{
+    "project": "openbmc/phosphor-certificate-manager",
+    "branch": "master",
+    "id": "I495f5c1c1c4a2ac880dd3233be31b84a78d79a43",
+    "number": 50067,
+    "subject": "Authorities list: implement InstallAll & ReplaceAll",
+    "owner": {
+        "name": "Nan Zhou",
+        "email": "nanzhoumails@gmail.com",
+        "username": "FighterNan"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-certificate-manager/+/50067",
+    "commitMessage": "Authorities list: implement InstallAll & ReplaceAll\n\nThis change implements the design in\nhttps://gerrit.openbmc-project.xyz/c/openbmc/docs/+/49317.\n\nInstallAll: enumerate all certs in the input file and install all of\nthem;\nReplaceAll: replace all certs with the new authorities list\nAtomic: implemented via creating temporary folder and issuing swap.\n\nTested:\n1. Unit tests\n2. Tested loading/deleting authorities list in QEMU.\n\n```\nroot@xxx:~# busctl call xyz.openbmc_project.Certs.Manager.Authority.Ldap \\\n> /xyz/openbmc_project/certs/authority/ldap \\\n> xyz.openbmc_project.Certs.InstallAll \\\n> InstallAll s /tmp/trust_bundle.pem\nas 3 \"/xyz/openbmc_project/certs/authority/ldap/1\"\n\"/xyz/openbmc_project/certs/authority/ldap/2\"\n\"/xyz/openbmc_project/certs/authority/ldap/3\"\nroot@xxx:~# ls /etc/ssl/certs/authority/\n10a5d8b0.0  5b49ceaa.0\tf3ddaa86.0  file0qmgPV\tfileDbjTzW  fileR4TtjO\ntrust_bundle\nroot@xxx:~# busctl call\nxyz.openbmc_project.Certs.Manager.Authority.Ldap\n/xyz/openbmc_project/certs/authority/ldap\nxyz.openbmc_project.Certs.ReplaceAll ReplaceAll s /tmp/trust_bundle.pem\nroot@xxx:~# ls /etc/ssl/certs/authority/\n10a5d8b0.0  5b49ceaa.0\tf3ddaa86.0  file1obsEZ\tfileOqVoaC  filerUBZCj\ntrust_bundle\n\nroot@xxx:~# wget -qO- http://localhost/redfish/v1/Managers/bmc/Truststore/Certificates/\n{\n  \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/\",\n  \"@odata.type\": \"#CertificateCollection.CertificateCollection\",\n  \"Description\": \"A Collection of TrustStore certificate instances\",\n  \"Members\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/1\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/2\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/3\"\n    }\n  ],\n  \"Members@odata.count\": 3,\n  \"Name\": \"TrustStore Certificates Collection\"\n}\nroot@xxx:~# wget -qO- http://localhost/redfish/v1/Managers/bmc/Truststore/Certificates/1\n{\n  \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/1\",\n  \"@odata.type\": \"#Certificate.v1_0_0.Certificate\",\n  \"CertificateString\": \"-----BEGIN CERTIFICATE-----\\nMIICZTCCAgugAwIBAgIUANIf0jvaRNq1MdwxrXPnk25VrmYwCgYIKoZIzj0EAwIw\\nVTETMBEGA1UEChMKY2FtcHVzLWFzaDENMAsGA1UECxMEcm9vdDEvMC0GA1UEAwwm\\ne2QyZWQ1MGJkLTczMTQtNDgxZC04OWE0LTVkMjkxMmYyMGQ5NH0wIBcNNzAwMTAx\\nMDAwMDAwWhgPOTk5OTEyMzEyMzU5NTlaMFUxEzARBgNVBAoTCmNhbXB1cy1hc2gx\\nDTALBgNVBAsTBHJvb3QxLzAtBgNVBAMMJntkMmVkNTBiZC03MzE0LTQ4MWQtODlh\\nNC01ZDI5MTJmMjBkOTR9MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7lp/J3Gj\\nc4TKubuYtzpxu2D3STlwTwEjgFbTaLZnQ0KXt7pBrcYc3yY1t74WBluvzM9iok6Q\\nDcEFX5aIYcoaAKOBtjCBszAOBgNVHQ8BAf8EBAMCAQYwKQYDVR0lBCIwIAYIKwYB\\nBQUHAwEGCCsGAQUFBwMCBgorBgEEAdZ5AgcBMA8GA1UdEwEB/wQFMAMBAf8wHQYD\\nVR0OBBYEFIPrX7lbeJhvHHcQ7iYOry50aYKYMBcGA1UdIAQQMA4wDAYKKwYBBAHW\\neQIFBDAtBgNVHR4BAf8EIzAhoB8wHYYbLmNhbXB1cy1hc2gucHJvZC5nb29nbGUu\\nY29tMAoGCCqGSM49BAMCA0gAMEUCIAS/ZrMPBj992vVVplwzH9DWDCSMu1rCgvqw\\nam3byOT1AiEAyrr3FAP+7js7z+h8d94hTyy1kTn+4NOvUWrVzHUmJI8=\\n-----END CERTIFICATE-----\\n\",\n  \"Description\": \"TrustStore Certificate\",\n  \"Id\": \"1\",\n  \"Issuer\": {\n    \"CommonName\": \"{d2ed50bd-7314-481d-89a4-5d2912f20d94}\",\n    \"Organization\": \"campus-ash\",\n    \"OrganizationalUnit\": \"root\"\n  },\n  \"KeyUsage\": [\n    \"CRLSigning\",\n    \"ServerAuthentication\",\n    \"ClientAuthentication\",\n    \"\"\n  ],\n  \"Name\": \"TrustStore Certificate\",\n  \"Subject\": {\n    \"CommonName\": \"{d2ed50bd-7314-481d-89a4-5d2912f20d94}\",\n    \"Organization\": \"campus-ash\",\n    \"OrganizationalUnit\": \"root\"\n  },\n  \"ValidNotAfter\": \"9999-12-31T23:59:59+00:00\",\n  \"ValidNotBefore\": \"1970-01-01T00:00:00+00:00\"\n}\n```\n\nSigned-off-by: Nan Zhou <nanzhoumails@gmail.com>\nChange-Id: I495f5c1c1c4a2ac880dd3233be31b84a78d79a43\n",
+    "createdOn": 1640906071,
+    "lastUpdated": 1641412531,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1640906071,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1640906106,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1640906106,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1640906183,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1640906575,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/34779/ : SUCCESS"
+        },
+        {
+            "timestamp": 1641412531,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Removed reviewer Ed Tanous."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "69048b3bc882dae38b88bb950ff0c06e8c6c0ca9",
+            "parents": [
+                "6e96fd7df64d782929c05f85a13845708050f3cd"
+            ],
+            "ref": "refs/changes/67/50067/1",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1640906071,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This is commented on purpose. \n\nI will enable the two interfaces once https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/50045 is merged."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": -9
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 117,
+                    "deletions": -2
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -1
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 373,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 95,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 785,
+            "sizeDeletions": 12
+        }
+    ]
+}

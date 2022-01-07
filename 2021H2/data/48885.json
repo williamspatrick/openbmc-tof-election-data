@@ -1,0 +1,755 @@
+{
+    "project": "openbmc/phosphor-dbus-interfaces",
+    "branch": "master",
+    "id": "I37c8c0b9fc713705b3afc81adca22ca313e91701",
+    "number": 48885,
+    "subject": "Add interface for sending raw PECI commands",
+    "owner": {
+        "name": "Jason Bills",
+        "email": "jason.m.bills@linux.intel.com",
+        "username": "jmbills"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/48885",
+    "commitMessage": "Add interface for sending raw PECI commands\n\nThis adds a D-Bus interface to send raw PECI commands to the\nCPU.\n\nChange-Id: I37c8c0b9fc713705b3afc81adca22ca313e91701\nSigned-off-by: Jason M. Bills <jason.m.bills@linux.intel.com>\n",
+    "createdOn": 1637091393,
+    "lastUpdated": 1639159641,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1637091393,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1637091411,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637091638,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 1:\n\nI wasn't sure on the best approach here.  This is really only to support a D-Bus interface into libpeci, so I didn't know if we needed a full D-Bus interface defined or not.  Or if it should be more generic (e.g. ProcessorCommand.Raw) for other usages?\n\nI'm open to recommendations.  Thanks!"
+        },
+        {
+            "timestamp": 1637091839,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30352/ : FAILURE"
+        },
+        {
+            "timestamp": 1637095252,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1637095280,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637095803,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30359/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638384726,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 2:\n\nPing.  Any suggestions on this change?  Does this work or should I make it more generic for other processor command interfaces?  Thanks!"
+        },
+        {
+            "timestamp": 1638391250,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)\n\n> Does this work or should I make it more generic for other processor command interfaces?  Thanks!\n\nI don't really know how you make it more generic unless you want to create real dbus interfaces for what you are trying to accomplish.  A \"generic pass-thru that takes binary blobs\" is not particular helpful to anyone.\n\nWhat are you trying to accomplish with this interface?  Earlier you said something about \"connecting libpeci to dbus\" but I don't understand the motivation for that.  What code is going to be interacting with PECI as a raw interface?  Why would we want to spread that knowledge out to various applications and not just have a single daemon that understands PECI?"
+        },
+        {
+            "timestamp": 1638397270,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> (2 comments)\n> \n> > Does this work or should I make it more generic for other processor command interfaces?  Thanks!\n> \n> I don't really know how you make it more generic unless you want to create real dbus interfaces for what you are trying to accomplish.  A \"generic pass-thru that takes binary blobs\" is not particular helpful to anyone.\n> \n> What are you trying to accomplish with this interface?  Earlier you said something about \"connecting libpeci to dbus\" but I don't understand the motivation for that.  What code is going to be interacting with PECI as a raw interface?  Why would we want to spread that knowledge out to various applications and not just have a single daemon that understands PECI?\n\nThe only use-case today is we have an OEM Redfish Action that allows users to send raw PECI commands through the BMC.  It's mainly for CPU validation.\n\nThe idea is that bmcweb would get the raw PECI commands from the user and pass them to a PECI daemon using this interface.\n\nBut you bring up a very good point that libpeci already exists for this purpose.  Originally, the raw PECI Redfish Action was in upstream bmcweb, so this was designed around a D-Bus interface from bmcweb.  However, we have since moved it to a downstream patch, so instead of having it call a D-Bus method, I could probably just have bmcweb include libpeci and directly call it instead of going through D-Bus.  Maybe that is a good starting point, and we can revisit this if the raw PECI action ever needs to go back into upstream bmcweb?\n\nI'll test and see if it will work, then we wouldn't need this interface or a separate daemon anymore."
+        },
+        {
+            "timestamp": 1639096178,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1639096190,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639096434,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 3:\n\n> But you bring up a very good point that libpeci already exists for this purpose.  Originally, the raw PECI Redfish Action was in upstream bmcweb, so this was designed around a D-Bus interface from bmcweb.  However, we have since moved it to a downstream patch, so instead of having it call a D-Bus method, I could probably just have bmcweb include libpeci and directly call it instead of going through D-Bus.  Maybe that is a good starting point, and we can revisit this if the raw PECI action ever needs to go back into upstream bmcweb?\n> \n> I'll test and see if it will work, then we wouldn't need this interface or a separate daemon anymore.\n\nI tested moving the PECI command caller into bmcweb, and it sort of worked.  It would cause the long-running loop to be inside bmcweb, and breaks the separation of functionality that we get by having the PECI commands run from a separate daemon.  I discussed with my team and we preferred to keep the PECI caller as a separate daemon, so I'm moving forward with this proposed interface for that daemon.  Thanks!"
+        },
+        {
+            "timestamp": 1639096469,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1639096539,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > (2 comments)\n> > \n> > > Does this work or should I make it more generic for other processor command interfaces?  Thanks!\n> > \n> > I don't really know how you make it more generic unless you want to create real dbus interfaces for what you are trying to accomplish.  A \"generic pass-thru that takes binary blobs\" is not particular helpful to anyone.\n> > \n> > What are you trying to accomplish with this interface?  Earlier you said something about \"connecting libpeci to dbus\" but I don't understand the motivation for that.  What code is going to be interacting with PECI as a raw interface?  Why would we want to spread that knowledge out to various applications and not just have a single daemon that understands PECI?\n> \n> The only use-case today is we have an OEM Redfish Action that allows users to send raw PECI commands through the BMC.  It's mainly for CPU validation.\n> \n> The idea is that bmcweb would get the raw PECI commands from the user and pass them to a PECI daemon using this interface.\n> \n> But you bring up a very good point that libpeci already exists for this purpose.  Originally, the raw PECI Redfish Action was in upstream bmcweb, so this was designed around a D-Bus interface from bmcweb.  However, we have since moved it to a downstream patch, so instead of having it call a D-Bus method, I could probably just have bmcweb include libpeci and directly call it instead of going through D-Bus.  Maybe that is a good starting point, and we can revisit this if the raw PECI action ever needs to go back into upstream bmcweb?\n\nOh man, for your sake, don't do that unless you can get the io-uring patches merged into upstream asio (the asio maintainer is working on it).  libpeci is all blocking calls to the filesystem today.\n\n> \n> I'll test and see if it will work, then we wouldn't need this interface or a separate daemon anymore.\n\nOne drive by comment here is that we already have some precedence for this kind of thing in the form of the IPMB interface that IPMB bridge exposes.  Granted, that's going IPMI->IPMB which is less of a stretch than Redfish->PECI, but is basically the same use case.  What's interesting to me is that at some point we're going to need more of these interface specific passthroughs on dbus, as we start to explore things like IPMB, so figuring out how to put guard rails on it so they're not abused is going to be interesting."
+        },
+        {
+            "timestamp": 1639096601,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> > But you bring up a very good point that libpeci already exists for this purpose.  Originally, the raw PECI Redfish Action was in upstream bmcweb, so this was designed around a D-Bus interface from bmcweb.  However, we have since moved it to a downstream patch, so instead of having it call a D-Bus method, I could probably just have bmcweb include libpeci and directly call it instead of going through D-Bus.  Maybe that is a good starting point, and we can revisit this if the raw PECI action ever needs to go back into upstream bmcweb?\n> > \n> > I'll test and see if it will work, then we wouldn't need this interface or a separate daemon anymore.\n> \n> I tested moving the PECI command caller into bmcweb, and it sort of worked.  It would cause the long-running loop to be inside bmcweb, and breaks the separation of functionality that we get by having the PECI commands run from a separate daemon.\n\nThere's ways we could make this work once the io-uring patches land, but I don't really like what they do to the design of bmcweb, and implies that bmcweb is accessing hardware directly, which seems bad.\n\n>  I discussed with my team and we preferred to keep the PECI caller as a separate daemon, so I'm moving forward with this proposed interface for that daemon.  Thanks!\n\nCoolio."
+        },
+        {
+            "timestamp": 1639096610,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31715/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639096646,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 2:\n> > > \n> > > (2 comments)\n> > > \n> > > > Does this work or should I make it more generic for other processor command interfaces?  Thanks!\n> > > \n> > > I don't really know how you make it more generic unless you want to create real dbus interfaces for what you are trying to accomplish.  A \"generic pass-thru that takes binary blobs\" is not particular helpful to anyone.\n> > > \n> > > What are you trying to accomplish with this interface?  Earlier you said something about \"connecting libpeci to dbus\" but I don't understand the motivation for that.  What code is going to be interacting with PECI as a raw interface?  Why would we want to spread that knowledge out to various applications and not just have a single daemon that understands PECI?\n> > \n> > The only use-case today is we have an OEM Redfish Action that allows users to send raw PECI commands through the BMC.  It's mainly for CPU validation.\n> > \n> > The idea is that bmcweb would get the raw PECI commands from the user and pass them to a PECI daemon using this interface.\n> > \n> > But you bring up a very good point that libpeci already exists for this purpose.  Originally, the raw PECI Redfish Action was in upstream bmcweb, so this was designed around a D-Bus interface from bmcweb.  However, we have since moved it to a downstream patch, so instead of having it call a D-Bus method, I could probably just have bmcweb include libpeci and directly call it instead of going through D-Bus.  Maybe that is a good starting point, and we can revisit this if the raw PECI action ever needs to go back into upstream bmcweb?\n> \n> Oh man, for your sake, don't do that unless you can get the io-uring patches merged into upstream asio (the asio maintainer is working on it).  libpeci is all blocking calls to the filesystem today.\n> \n> > \n> > I'll test and see if it will work, then we wouldn't need this interface or a separate daemon anymore.\n> \n> One drive by comment here is that we already have some precedence for this kind of thing in the form of the IPMB interface that IPMB bridge exposes.  Granted, that's going IPMI->IPMB which is less of a stretch than Redfish->PECI, but is basically the same use case.  What's interesting to me is that at some point we're going to need more of these interface specific passthroughs on dbus, as we start to explore things like IPMB, so figuring out how to put guard rails on it so they're not abused is going to be interesting.\n\nThis should've read \"Explore things like RDE\"  I think we already do this for IPMB."
+        },
+        {
+            "timestamp": 1639139914,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639152845,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1639152860,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639152890,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639152971,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5: Patch Set 4 was rebased"
+        },
+        {
+            "timestamp": 1639152985,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639152990,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/31761/ : ABORTED"
+        },
+        {
+            "timestamp": 1639153403,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31762/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639158145,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1639158163,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639158742,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31763/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639159637,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 6: Code-Review+2"
+        },
+        {
+            "timestamp": 1639159641,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully merged by Patrick Williams"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "18fa31e3b7233b531dbc548417217cb423c40972",
+            "parents": [
+                "e0764cf41d16b823a519e9d4f508b588e3e84aba"
+            ],
+            "ref": "refs/changes/85/48885/1",
+            "uploader": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "createdOn": 1637091393,
+            "author": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/PECI/raw.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 25,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "21c50bf5743fdf86fc8b9c99eaeb4ea65e5b365b",
+            "parents": [
+                "e0764cf41d16b823a519e9d4f508b588e3e84aba"
+            ],
+            "ref": "refs/changes/85/48885/2",
+            "uploader": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "createdOn": 1637095252,
+            "author": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "yaml/xyz/openbmc_project/PECI/raw.interface.yaml",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Filename should be 'Raw'."
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/PECI/raw.interface.yaml",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jason Bills",
+                        "email": "jason.m.bills@linux.intel.com",
+                        "username": "jmbills"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/PECI/raw.interface.yaml",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I'm not especially happy we have a bunch of protocols cluttered in the root directory already (Ipmi, MCTP, PLDM, Smbios).  Maybe we could move this to a Protocol/PECI subdirectory at least?\n\nTechnically PECI is an Intel interface.  Should this go into `com/intel`?"
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/PECI/raw.interface.yaml",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Jason Bills",
+                        "email": "jason.m.bills@linux.intel.com",
+                        "username": "jmbills"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/xyz/openbmc_project/PECI/meson.build",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/xyz/openbmc_project/PECI/raw/meson.build",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/xyz/openbmc_project/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/xyz/openbmc_project/PECI/raw.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 55,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "3a27d4183aa453aca39273c16a6a0e0ab4a0e7dd",
+            "parents": [
+                "e0764cf41d16b823a519e9d4f508b588e3e84aba"
+            ],
+            "ref": "refs/changes/85/48885/3",
+            "uploader": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "createdOn": 1639096178,
+            "author": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "gen/com/meson.build",
+                    "line": 3,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "You also need to add a 'data_com_intel' option in meson_options.txt / meson.build."
+                },
+                {
+                    "file": "gen/com/meson.build",
+                    "line": 3,
+                    "reviewer": {
+                        "name": "Jason Bills",
+                        "email": "jason.m.bills@linux.intel.com",
+                        "username": "jmbills"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/Raw/meson.build",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/meson.build",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/com/intel/Protocol/PECI/Raw.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 59,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "ae2221becac72493d657632de15c0083926344d9",
+            "parents": [
+                "e0764cf41d16b823a519e9d4f508b588e3e84aba"
+            ],
+            "ref": "refs/changes/85/48885/4",
+            "uploader": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "createdOn": 1639152845,
+            "author": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/Raw/meson.build",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/meson.build",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/com/intel/Protocol/PECI/Raw.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "6367a6e6b60c71881ad9e4c4df06c70af855ddfb",
+            "parents": [
+                "f05e2050dbba80d130fa87875448cf48e97ce7f6"
+            ],
+            "ref": "refs/changes/85/48885/5",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1639152971,
+            "author": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/Raw/meson.build",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/meson.build",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/com/intel/Protocol/PECI/Raw.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "36ed8ad2b40e63eaa0aa8b37a5e6d6d2faa614db",
+            "parents": [
+                "54ed0a11ec7915618f839fe21cedb0ecc87c0f14"
+            ],
+            "ref": "refs/changes/85/48885/6",
+            "uploader": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "createdOn": 1639158145,
+            "author": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/Raw/meson.build",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/PECI/meson.build",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/Protocol/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/intel/meson.build",
+                    "type": "ADDED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "gen/com/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "yaml/com/intel/Protocol/PECI/Raw.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 0
+        }
+    ]
+}

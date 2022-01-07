@@ -1,0 +1,283 @@
+{
+    "project": "openbmc/phosphor-host-ipmid",
+    "branch": "master",
+    "id": "I8b55c01a61e568555983fc462d4508f2860217be",
+    "number": 44729,
+    "subject": "Fix unexpected change of ipsrc of ipv6",
+    "owner": {
+        "name": "Tony Lee",
+        "email": "tony.lee@quantatw.com",
+        "username": "tonylee79"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/44729",
+    "commitMessage": "Fix unexpected change of ipsrc of ipv6\n\nIssue: The initial ipsrc of ipv6 is dhcp. When setting different static\nipv4 twice, ipv6 will become static.\n\nFix: Rewrite the if condition. setDHCPv4Property is only for IPv4\nmanagement. It should not modify IPv6 state.\n\nTested: Verified step as below:\n\n1. Get dbus property 'DHCPEnabled' via\nbusctl get-property xyz.openbmc_project.Network\n/xyz/openbmc_project/network/eth1\nxyz.openbmc_project.Network.EthernetInterface DHCPEnabled\ns \"xyz.openbmc_project.Network.EthernetInterface.DHCPConf.both\"\n\n2. Set an static ipv4.\n3. Set another static ipv4.\n4. Check 'DHCPEnabled' is still v6 via dbus. And check the config\nin 00-bmc-eth1.network without ipv6 static address.\n\nChange-Id: I8b55c01a61e568555983fc462d4508f2860217be\nSigned-off-by: Tony Lee <tony.lee@quantatw.com>\n",
+    "createdOn": 1625571595,
+    "lastUpdated": 1627337092,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1625571595,
+            "reviewer": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1625571607,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625571651,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/21461/ : FAILURE"
+        },
+        {
+            "timestamp": 1625571887,
+            "reviewer": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1625571921,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625571966,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/21462/ : FAILURE"
+        },
+        {
+            "timestamp": 1625572085,
+            "reviewer": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1625572106,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625572269,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/21463/ : SUCCESS"
+        },
+        {
+            "timestamp": 1625583438,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\nThe change looks good. It should also be applied to the IPv6 code. Do you plan to submit a change to apply the code to IPv6?"
+        },
+        {
+            "timestamp": 1625622033,
+            "reviewer": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3: Code-Review+1\n> \n> The change looks good. It should also be applied to the IPv6 code. Do you plan to submit a change to apply the code to IPv6?\n\nYes, but it has a similar issue at \"dbus\" part for create ipv6.\ne.g. 1. At the beginning, it has a dhcp ipv6 and then uses dbus to create a static ipv6.\n2. The property 'origin' of the \"dhcp\" ipv6 became 'static' at dbus.\n3. Delete the static ipv6 which created at step 1.\n4. The address of dhcp ipv6 appears in 00-bmc-eth1.network.\n\nSince ipmi finally call the dbus, so I would like to fix it at package 'phosphor-networkd' first."
+        },
+        {
+            "timestamp": 1627337079,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 3: Code-Review+2"
+        },
+        {
+            "timestamp": 1627337092,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Change has been successfully rebased and submitted as d5967afbbec5c0829ceb8e274f2e58954942757c by Vernon Mauery"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "e3cad48d35af444530ee2b2f2e00b779a855ed7f",
+            "parents": [
+                "7fd91fa260a4c56448b46ae2735a0dd84e78225e"
+            ],
+            "ref": "refs/changes/29/44729/1",
+            "uploader": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "createdOn": 1625571595,
+            "author": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "transporthandler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -16
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 2,
+            "revision": "e85155e167055ec516cda1cfdcaded8e1c3006f3",
+            "parents": [
+                "7fd91fa260a4c56448b46ae2735a0dd84e78225e"
+            ],
+            "ref": "refs/changes/29/44729/2",
+            "uploader": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "createdOn": 1625571887,
+            "author": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "transporthandler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -16
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 3,
+            "revision": "6979a0a2ae68224afc0a1c82346fc70847282aa8",
+            "parents": [
+                "7fd91fa260a4c56448b46ae2735a0dd84e78225e"
+            ],
+            "ref": "refs/changes/29/44729/3",
+            "uploader": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "createdOn": 1625572085,
+            "author": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "transporthandler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -16
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 4,
+            "revision": "d5967afbbec5c0829ceb8e274f2e58954942757c",
+            "parents": [
+                "89a83b6726ba4e75d1af1f0b3524fca955e28413"
+            ],
+            "ref": "refs/changes/29/44729/4",
+            "uploader": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "createdOn": 1627337092,
+            "author": {
+                "name": "Tony Lee",
+                "email": "tony.lee@quantatw.com",
+                "username": "tonylee79"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "transporthandler.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -16
+                }
+            ],
+            "sizeInsertions": 15,
+            "sizeDeletions": 16
+        }
+    ]
+}

@@ -1,0 +1,3445 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "Ifa1cb51bb55cd6f00d2a2f79e9064d1a51354b06",
+    "number": 45405,
+    "subject": "Sensor mutability interface",
+    "owner": {
+        "name": "Jie Yang",
+        "email": "jjy@google.com",
+        "username": "PlotCondor"
+    },
+    "assignee": {
+        "name": "Josh Lehan",
+        "email": "krellan@google.com",
+        "username": "Krellan"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/45405",
+    "commitMessage": "Sensor mutability interface\n\nWe proposed a ValueMutablity interface in\nopenbmc/phosphor-dbus-interfaces which was accepted here:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/36333\n\nIt follows the IPMI fashion, checking\nthe sensor mutability before writing sensor values. The sensor\nmutability used to be hardcoded in the ipmi sensor map yaml file.\n\nThis provides feature parity with that old YAML hardcoded\n\"mutability: Mutability::Write|Mutability::Read\" setting.\n\nAs an example of implementation within dbus-sensors, ExternalSensor\nalways sets Mutable to true, given its purpose of accepting sensor\nwrites from an external source. PwmSensor accepts the \"Mutable\"\nparameter, from entity-manager configuration (aka JSON file). All\nother sensors always set Mutable to false, but it would be\nstraightforward to add similar code, like what was done for\nPwmSensor, when mutability is desired.\n\nThis parameter will be used by the IPMI server here:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407\n\nThere is currently no Redfish equivalent, although that would\nbe a welcome task for the future. This is not IPMI-specific,\nas the Redfish server can also use this as a hint, as to whether\nto allow read-write access, or merely to allow read-only access.\n\nThis is not to be confused with the \"manufacturing mode\" option, which\nis designed for use during manufacturing test, hence its name. This\nfeature is designed for production, and is intended to allow just a\nfew sensors to be writable, without needing to make them all writable.\n\nTested:\nDBus call on fan sensors with configurable tree mutability:\nbusctl introspect  xyz.openbmc_project.FanSensor /xyz/openbmc_project/sensors/fan_pwm/fan0\nNAME                                        TYPE      SIGNATURE RESULT/VALUE                             FLAGS\n...\nxyz.openbmc_project.Sensor.Value            interface -         -                                        -\n.MaxValue                                   property  x         100                                      emits-change\n.MinValue                                   property  x         0                                        emits-change\n.Unit                                       property  s         \"xyz.openbmc_project.Sensor.Value.Uni... emits-change\n.Value                                      property  d         42.7451                                  emits-change writable\nxyz.openbmc_project.Sensor.ValueMutability  interface -         -                                        -\n.Mutable                                    property  b         true                                     emits-change\n...\n\nDBus call on external sensors:\nbusctl introspect  xyz.openbmc_project.ExternalSensor /xyz/openbmc_project/sensors/tempera\nNAME                                                  TYPE      SIGNATURE RESULT/VALUE                             FLAGS\n...\nxyz.openbmc_project.Sensor.Value                      interface -         -                                        -\n.MaxValue                                             property  d         127                                      emits-change\n.MinValue                                             property  d         -128                                     emits-change\n.Unit                                                 property  s         \"DegreesC\"                               emits-change\n.Value                                                property  d         nan                                      emits-change writable\nxyz.openbmc_project.Sensor.ValueMutability            interface -         -                                        -\n.Mutable                                              property  b         true                                     emits-change\n...\n\nThe ValueMutability interface, with \"Mutable\", is correctly created.\n\nSigned-off-by: Jie Yang <jjy@google.com>\nChange-Id: Ifa1cb51bb55cd6f00d2a2f79e9064d1a51354b06\nSigned-off-by: Josh Lehan <krellan@google.com>\n",
+    "hashtags": [
+        "jjy-upstream-effort"
+    ],
+    "createdOn": 1627595816,
+    "lastUpdated": 1635811841,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1627595816,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1627595827,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627595891,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23257/ : FAILURE"
+        },
+        {
+            "timestamp": 1627597657,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1627597682,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627597859,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23258/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627601448,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Assignee added: Josh Lehan <krellan@google.com>"
+        },
+        {
+            "timestamp": 1627603149,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1627636522,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\nLooks good. For cleanliness, do we want to always create the interface, and set the value to \"False\". if the sensor is not mutable? Or, do we want to continue to leave it nonexistent if the sensor is not mutable?"
+        },
+        {
+            "timestamp": 1627636671,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 3:\n\nThe interface is added and documented here, in this change that was already merged: https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/36333"
+        },
+        {
+            "timestamp": 1627665629,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 3: Code-Review+1\n> \n> Looks good. For cleanliness, do we want to always create the interface, and set the value to \"False\". if the sensor is not mutable? Or, do we want to continue to leave it nonexistent if the sensor is not mutable?\n\nI'd prefer we just not include the interface at all if it's not needed, because that's the most common case and it's less code.  It'll also ensure that downstream clients don't rely on that optional interface being there."
+        },
+        {
+            "timestamp": 1627665916,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1627692628,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)\n\n> Patch Set 3:\n> \n> > Patch Set 3: Code-Review+1\n> > \n> > Looks good. For cleanliness, do we want to always create the interface, and set the value to \"False\". if the sensor is not mutable? Or, do we want to continue to leave it nonexistent if the sensor is not mutable?\n> \n> I'd prefer we just not include the interface at all if it's not needed, because that's the most common case and it's less code.  It'll also ensure that downstream clients don't rely on that optional interface being there.\n\nlooking through the code. The interface is only instantiated when the settable flag is true. Is it lightweight, we have a null interface in all sensor types? Not sure if other sensor types will use this interfaces in future. In our use case, external sensor and pwm sensor need it."
+        },
+        {
+            "timestamp": 1627692650,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1627692662,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627692705,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Topic set to dbus-sensor-mutability"
+        },
+        {
+            "timestamp": 1627692831,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23424/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627698103,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1627750842,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627975606,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627975901,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627975985,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1627975996,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627976135,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23644/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628012408,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 5:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1628012643,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628036510,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1628036525,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628036659,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23730/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628036681,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 6:\n\n(6 comments)\n\nPTAL"
+        },
+        {
+            "timestamp": 1628038770,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 6: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1628127120,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1628127139,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628127311,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23835/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628230366,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1628264674,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1628267216,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)\n\nisSettable and Mutibility seem to be redundant with this change.  Should isSettable be deleted from the sensor member?"
+        },
+        {
+            "timestamp": 1628277667,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 8: Commit message was updated."
+        },
+        {
+            "timestamp": 1628277766,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1628331383,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 8:\n\nGood catch about isSettable referring to something else (the manufacturing mode feature). Do we want to add our own variable, isMutable, to the Sensor base class?\n\nWe might want to do this, instead of re-using isSettable, to avoid confusion/overlap with the manufacturing mode feature (which is different from the Mutable feature)."
+        },
+        {
+            "timestamp": 1628560492,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1628560504,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628560644,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24102/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628564815,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1628564834,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628564974,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24105/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628612679,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 11: Commit message was updated."
+        },
+        {
+            "timestamp": 1628618225,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 11:\n\n(5 comments)\n\nThis is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature."
+        },
+        {
+            "timestamp": 1628622661,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1628622671,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 12:\n\n(5 comments)\n\n> Patch Set 11:\n> \n> (5 comments)\n> \n> This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature."
+        },
+        {
+            "timestamp": 1628622676,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628622813,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24165/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628626292,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 12: Code-Review+1\n\nNice, good fixes"
+        },
+        {
+            "timestamp": 1628725090,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 12:\n\n> Patch Set 11:\n> \n> (5 comments)\n> \n> This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature.\n\n+1 I agree that it is good to use separate flags if they serve different purpose. It would be nice add comments on the subtle difference. \nHaving said that, I am still struggling with whether two flags are needed and I don't think isSettable was added to support manufacturing mode. In the end we need to support Mutable interface to communicate from sensor to \"upper\" layer like IPMI and Redfish whether a sensor's value is writable. And if system is in manufacture (unsecure) mode this Mutable Interface is ignored both at Redfish and at sensor level."
+        },
+        {
+            "timestamp": 1628817399,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 12:\n\n> Patch Set 12:\n> \n> > Patch Set 11:\n> > \n> > (5 comments)\n> > \n> > This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature.\n> \n> +1 I agree that it is good to use separate flags if they serve different purpose. It would be nice add comments on the subtle difference. \n> Having said that, I am still struggling with whether two flags are needed and I don't think isSettable was added to support manufacturing mode. In the end we need to support Mutable interface to communicate from sensor to \"upper\" layer like IPMI and Redfish whether a sensor's value is writable. And if system is in manufacture (unsecure) mode this Mutable Interface is ignored both at Redfish and at sensor level.\n\nAs for two flags are needed, I'd rather err on the side of too many flags than too few. The intention is to avoid conflict or confusion with the \"manufacturing mode\" feature, which is written for another purpose. It makes sense to have separate flags for separate purposes, even if in practice they are oftentimes set to the sme value.\nYour assumptions above are correct, that's exactly why we need to support the Mutable interface, to communicate the correct access permissions to the Redfish and IPMI layer."
+        },
+        {
+            "timestamp": 1628817445,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 13: Patch Set 12 was rebased"
+        },
+        {
+            "timestamp": 1628817456,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628817590,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24319/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629156489,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 12:\n> \n> > Patch Set 12:\n> > \n> > > Patch Set 11:\n> > > \n> > > (5 comments)\n> > > \n> > > This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature.\n> > \n> > +1 I agree that it is good to use separate flags if they serve different purpose. It would be nice add comments on the subtle difference. \n> > Having said that, I am still struggling with whether two flags are needed and I don't think isSettable was added to support manufacturing mode. In the end we need to support Mutable interface to communicate from sensor to \"upper\" layer like IPMI and Redfish whether a sensor's value is writable. And if system is in manufacture (unsecure) mode this Mutable Interface is ignored both at Redfish and at sensor level.\n> \n> As for two flags are needed, I'd rather err on the side of too many flags than too few. The intention is to avoid conflict or confusion with the \"manufacturing mode\" feature, which is written for another purpose. It makes sense to have separate flags for separate purposes, even if in practice they are oftentimes set to the sme value.\n> Your assumptions above are correct, that's exactly why we need to support the Mutable interface, to communicate the correct access permissions to the Redfish and IPMI layer.\n\nThat is fair - Mutable and manufacturing mode are two different features. I think the change in here alone does not break the manufacturing mode. But I do want to make sure the plan on how Mutable is going to get used will still support the manufacturing mode. If a sensor is NOT Mutable, will redfish PATCH return without calling dbus sensor's setValue interface? If that is the plan, manufacture mode feature will be broken."
+        },
+        {
+            "timestamp": 1629187901,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Hashtag added: jjy-upstream-effort"
+        },
+        {
+            "timestamp": 1629202174,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 13:\n> \n> > Patch Set 12:\n> > \n> > > Patch Set 12:\n> > > \n> > > > Patch Set 11:\n> > > > \n> > > > (5 comments)\n> > > > \n> > > > This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature.\n> > > \n> > > +1 I agree that it is good to use separate flags if they serve different purpose. It would be nice add comments on the subtle difference. \n> > > Having said that, I am still struggling with whether two flags are needed and I don't think isSettable was added to support manufacturing mode. In the end we need to support Mutable interface to communicate from sensor to \"upper\" layer like IPMI and Redfish whether a sensor's value is writable. And if system is in manufacture (unsecure) mode this Mutable Interface is ignored both at Redfish and at sensor level.\n> > \n> > As for two flags are needed, I'd rather err on the side of too many flags than too few. The intention is to avoid conflict or confusion with the \"manufacturing mode\" feature, which is written for another purpose. It makes sense to have separate flags for separate purposes, even if in practice they are oftentimes set to the sme value.\n> > Your assumptions above are correct, that's exactly why we need to support the Mutable interface, to communicate the correct access permissions to the Redfish and IPMI layer.\n> \n> That is fair - Mutable and manufacturing mode are two different features. I think the change in here alone does not break the manufacturing mode. But I do want to make sure the plan on how Mutable is going to get used will still support the manufacturing mode. If a sensor is NOT Mutable, will redfish PATCH return without calling dbus sensor's setValue interface? If that is the plan, manufacture mode feature will be broken.\n\nI'm not sure about that. What are the details of how to support \"manufacturing mode\" over Redfish? I believe some work is still needed to add Mutable to Redfish, and perhaps that could be done at the same time."
+        },
+        {
+            "timestamp": 1629503786,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 13:\n> \n> > Patch Set 13:\n> > \n> > > Patch Set 12:\n> > > \n> > > > Patch Set 12:\n> > > > \n> > > > > Patch Set 11:\n> > > > > \n> > > > > (5 comments)\n> > > > > \n> > > > > This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature.\n> > > > \n> > > > +1 I agree that it is good to use separate flags if they serve different purpose. It would be nice add comments on the subtle difference. \n> > > > Having said that, I am still struggling with whether two flags are needed and I don't think isSettable was added to support manufacturing mode. In the end we need to support Mutable interface to communicate from sensor to \"upper\" layer like IPMI and Redfish whether a sensor's value is writable. And if system is in manufacture (unsecure) mode this Mutable Interface is ignored both at Redfish and at sensor level.\n> > > \n> > > As for two flags are needed, I'd rather err on the side of too many flags than too few. The intention is to avoid conflict or confusion with the \"manufacturing mode\" feature, which is written for another purpose. It makes sense to have separate flags for separate purposes, even if in practice they are oftentimes set to the sme value.\n> > > Your assumptions above are correct, that's exactly why we need to support the Mutable interface, to communicate the correct access permissions to the Redfish and IPMI layer.\n> > \n> > That is fair - Mutable and manufacturing mode are two different features. I think the change in here alone does not break the manufacturing mode. But I do want to make sure the plan on how Mutable is going to get used will still support the manufacturing mode. If a sensor is NOT Mutable, will redfish PATCH return without calling dbus sensor's setValue interface? If that is the plan, manufacture mode feature will be broken.\n> \n> I'm not sure about that. What are the details of how to support \"manufacturing mode\" over Redfish? I believe some work is still needed to add Mutable to Redfish, and perhaps that could be done at the same time.\nPlease refer to the following patch:https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/42448. The gating is moved from Redfish to dbus-sensors. I am bit concerned of Mutable will break the intention here."
+        },
+        {
+            "timestamp": 1629712456,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 13:\n> \n> > Patch Set 13:\n> > \n> > > Patch Set 13:\n> > > \n> > > > Patch Set 12:\n> > > > \n> > > > > Patch Set 12:\n> > > > > \n> > > > > > Patch Set 11:\n> > > > > > \n> > > > > > (5 comments)\n> > > > > > \n> > > > > > This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature.\n> > > > > \n> > > > > +1 I agree that it is good to use separate flags if they serve different purpose. It would be nice add comments on the subtle difference. \n> > > > > Having said that, I am still struggling with whether two flags are needed and I don't think isSettable was added to support manufacturing mode. In the end we need to support Mutable interface to communicate from sensor to \"upper\" layer like IPMI and Redfish whether a sensor's value is writable. And if system is in manufacture (unsecure) mode this Mutable Interface is ignored both at Redfish and at sensor level.\n> > > > \n> > > > As for two flags are needed, I'd rather err on the side of too many flags than too few. The intention is to avoid conflict or confusion with the \"manufacturing mode\" feature, which is written for another purpose. It makes sense to have separate flags for separate purposes, even if in practice they are oftentimes set to the sme value.\n> > > > Your assumptions above are correct, that's exactly why we need to support the Mutable interface, to communicate the correct access permissions to the Redfish and IPMI layer.\n> > > \n> > > That is fair - Mutable and manufacturing mode are two different features. I think the change in here alone does not break the manufacturing mode. But I do want to make sure the plan on how Mutable is going to get used will still support the manufacturing mode. If a sensor is NOT Mutable, will redfish PATCH return without calling dbus sensor's setValue interface? If that is the plan, manufacture mode feature will be broken.\n> > \n> > I'm not sure about that. What are the details of how to support \"manufacturing mode\" over Redfish? I believe some work is still needed to add Mutable to Redfish, and perhaps that could be done at the same time.\n> Please refer to the following patch:https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/42448. The gating is moved from Redfish to dbus-sensors. I am bit concerned of Mutable will break the intention here.\n\nI looked over that patch, and I don't think there's a conflict. Remember, the Mutable feature is different from the sensor override feature, and different from \"manufacturing mode\" feature. These are three different things."
+        },
+        {
+            "timestamp": 1629734137,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 13: Code-Review+1\n\n> Patch Set 13:\n> \n> > Patch Set 13:\n> > \n> > > Patch Set 13:\n> > > \n> > > > Patch Set 13:\n> > > > \n> > > > > Patch Set 12:\n> > > > > \n> > > > > > Patch Set 12:\n> > > > > > \n> > > > > > > Patch Set 11:\n> > > > > > > \n> > > > > > > (5 comments)\n> > > > > > > \n> > > > > > > This is good, it avoids conflict/confusion with the existing \"isSettable\" feature for the manufacturing mode feature.\n> > > > > > \n> > > > > > +1 I agree that it is good to use separate flags if they serve different purpose. It would be nice add comments on the subtle difference. \n> > > > > > Having said that, I am still struggling with whether two flags are needed and I don't think isSettable was added to support manufacturing mode. In the end we need to support Mutable interface to communicate from sensor to \"upper\" layer like IPMI and Redfish whether a sensor's value is writable. And if system is in manufacture (unsecure) mode this Mutable Interface is ignored both at Redfish and at sensor level.\n> > > > > \n> > > > > As for two flags are needed, I'd rather err on the side of too many flags than too few. The intention is to avoid conflict or confusion with the \"manufacturing mode\" feature, which is written for another purpose. It makes sense to have separate flags for separate purposes, even if in practice they are oftentimes set to the sme value.\n> > > > > Your assumptions above are correct, that's exactly why we need to support the Mutable interface, to communicate the correct access permissions to the Redfish and IPMI layer.\n> > > > \n> > > > That is fair - Mutable and manufacturing mode are two different features. I think the change in here alone does not break the manufacturing mode. But I do want to make sure the plan on how Mutable is going to get used will still support the manufacturing mode. If a sensor is NOT Mutable, will redfish PATCH return without calling dbus sensor's setValue interface? If that is the plan, manufacture mode feature will be broken.\n> > > \n> > > I'm not sure about that. What are the details of how to support \"manufacturing mode\" over Redfish? I believe some work is still needed to add Mutable to Redfish, and perhaps that could be done at the same time.\n> > Please refer to the following patch:https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/42448. The gating is moved from Redfish to dbus-sensors. I am bit concerned of Mutable will break the intention here.\n> \n> I looked over that patch, and I don't think there's a conflict. Remember, the Mutable feature is different from the sensor override feature, and different from \"manufacturing mode\" feature. These are three different things.\n\nThanks for double checking."
+        },
+        {
+            "timestamp": 1629746155,
+            "reviewer": {
+                "name": "Bruce Mitchell",
+                "email": "bruce.mitchell@linux.vnet.ibm.com",
+                "username": "BMC-Bruce"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)\n\nI am a bit nervous about nothing on the testing of this change, I need that before I can +1."
+        },
+        {
+            "timestamp": 1629749983,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13:\n\nI've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n\nSome of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message."
+        },
+        {
+            "timestamp": 1629763414,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 13:\n> \n> I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> \n> Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n\nSounds reasonable. My understanding: Sensors are normally read-only. The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all."
+        },
+        {
+            "timestamp": 1629767632,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 13:\n> \n> > Patch Set 13:\n> > \n> > I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> > \n> > Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n> \n> Sounds reasonable. My understanding: Sensors are normally read-only. The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all.\n\nThinking a little more on this. Manufacturing mode is dynamic and Mutable is static through configuration so far. dbus-sensors should be the place to \"stack\" them. Callback functions on manufacturing mode can update Mutable's value to true/false and ipmi/Redfish can just rely on Mutable.\nSetting Mutable back to false need to consider if there are other use reasons for it to stay true."
+        },
+        {
+            "timestamp": 1629915776,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 13:\n> \n> > Patch Set 13:\n> > \n> > > Patch Set 13:\n> > > \n> > > I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> > > \n> > > Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n> > \n> > Sounds reasonable. My understanding: Sensors are normally read-only. The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all.\n> \n> Thinking a little more on this. Manufacturing mode is dynamic and Mutable is static through configuration so far. dbus-sensors should be the place to \"stack\" them. Callback functions on manufacturing mode can update Mutable's value to true/false and ipmi/Redfish can just rely on Mutable.\n> Setting Mutable back to false need to consider if there are other use reasons for it to stay true.\n\nThis seems intriguing, but I am against this, because it would would complicate the design and tie these two features together. Perhaps in the future it could be done as an optimization, to save one bool per sensor. There's already too much controversy for what should be a simple trivial addition. Let's avoid causing further confusion by keeping these two features distinct, and not tying them together, for now."
+        },
+        {
+            "timestamp": 1629916075,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13:\n\n> Patch Set 13:\n> \n> > Patch Set 13:\n> > \n> > > Patch Set 13:\n> > > \n> > > I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> > > \n> > > Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n> > \n> > Sounds reasonable. My understanding: Sensors are normally read-only.\n> The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all.\n\nThat seems reasonable to me.\n\n> \n> Thinking a little more on this. Manufacturing mode is dynamic and Mutable is static through configuration so far. dbus-sensors should be the place to \"stack\" them. Callback functions on manufacturing mode can update Mutable's value to true/false and ipmi/Redfish can just rely on Mutable.\n\nThis would be putting business logic into IPMI and Redfish (and duplicating it in both of them).  In general, both IPMI and redfish need to be free of business logic.  If we need new interfaces here, lets invent them.  IMO, ideally manufacturing modes \"set\" would've been implemented as a separate interface from the sensor value interface, but that's ancient history, and we have a better understanding of the requirements now.\n\n> Setting Mutable back to false need to consider if there are other use reasons for it to stay true.\n\nI'm not following, what is \"setting mutable back to false\"?"
+        },
+        {
+            "timestamp": 1630545768,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1630545781,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630545922,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25490/ : SUCCESS"
+        },
+        {
+            "timestamp": 1630618667,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 14: Code-Review+1\n\nLGTM again"
+        },
+        {
+            "timestamp": 1630697395,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1631223853,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Topic dbus-sensor-mutability removed"
+        },
+        {
+            "timestamp": 1631231618,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 14:\n\n> Patch Set 13:\n> \n> > Patch Set 13:\n> > \n> > > Patch Set 13:\n> > > \n> > > > Patch Set 13:\n> > > > \n> > > > I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> > > > \n> > > > Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n> > > \n> > > Sounds reasonable. My understanding: Sensors are normally read-only.\n> > The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all.\n> \n> That seems reasonable to me.\n> \n> > \n> > Thinking a little more on this. Manufacturing mode is dynamic and Mutable is static through configuration so far. dbus-sensors should be the place to \"stack\" them. Callback functions on manufacturing mode can update Mutable's value to true/false and ipmi/Redfish can just rely on Mutable.\n> \n> This would be putting business logic into IPMI and Redfish (and duplicating it in both of them).  In general, both IPMI and redfish need to be free of business logic.  If we need new interfaces here, lets invent them.  IMO, ideally manufacturing modes \"set\" would've been implemented as a separate interface from the sensor value interface, but that's ancient history, and we have a better understanding of the requirements now.\n> \n> > Setting Mutable back to false need to consider if there are other use reasons for it to stay true.\n> \n> I'm not following, what is \"setting mutable back to false\"?\nIf remote write using IPMI/RedFish commands will always be passed to sensor's setValue, then I agree that sensor can stack mutable and manufacturing mode nicely and my comments can be ignored.\n\nI might be missing something. \nBut seems like at least IPMI will not let dbus-sensor decide with the following change:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407/11/dbus-sdr/sensorcommands.cpp#549"
+        },
+        {
+            "timestamp": 1631929347,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Uploaded patch set 15: Commit message was updated."
+        },
+        {
+            "timestamp": 1631929361,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 15:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1631929917,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Patch Set 15:\n\n> Patch Set 14:\n> \n> > Patch Set 13:\n> > \n> > > Patch Set 13:\n> > > \n> > > > Patch Set 13:\n> > > > \n> > > > > Patch Set 13:\n> > > > > \n> > > > > I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> > > > > \n> > > > > Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n> > > > \n> > > > Sounds reasonable. My understanding: Sensors are normally read-only.\n> > > The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all.\n> > \n> > That seems reasonable to me.\n> > \n> > > \n> > > Thinking a little more on this. Manufacturing mode is dynamic and Mutable is static through configuration so far. dbus-sensors should be the place to \"stack\" them. Callback functions on manufacturing mode can update Mutable's value to true/false and ipmi/Redfish can just rely on Mutable.\n> > \n> > This would be putting business logic into IPMI and Redfish (and duplicating it in both of them).  In general, both IPMI and redfish need to be free of business logic.  If we need new interfaces here, lets invent them.  IMO, ideally manufacturing modes \"set\" would've been implemented as a separate interface from the sensor value interface, but that's ancient history, and we have a better understanding of the requirements now.\n> > \n> > > Setting Mutable back to false need to consider if there are other use reasons for it to stay true.\n> > \n> > I'm not following, what is \"setting mutable back to false\"?\n> If remote write using IPMI/RedFish commands will always be passed to sensor's setValue, then I agree that sensor can stack mutable and manufacturing mode nicely and my comments can be ignored.\n> \n> I might be missing something. \n> But seems like at least IPMI will not let dbus-sensor decide with the following change:\n> https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407/11/dbus-sdr/sensorcommands.cpp#549\n\nMy understanding:\n\nsensor with intrinsic settable property (like external sensor and pwm sensors (in manual mode). Those sensors will be settable by IPMI or Redfish no matter any special modes \n\nsensor will be settable if the system is under certain special mode.\n\nFrom phosphor-host-ipmid viewpoint (not intel-ipmi-oem) sensor will be settable if it has intrinsic settable property.\n\nCorrect me. I do not have a system with intel-ipmi-oem and the service xyz.openbmc_project.SpecialMode running.\n\nI was stacking the two flags IsSettable and IsMutable as those flags both describe the intrinsic sensor settable properties. But someone suggests to split into two flags."
+        },
+        {
+            "timestamp": 1632120545,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 16: Patch Set 15 was rebased."
+        },
+        {
+            "timestamp": 1632120558,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632120898,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 17: Commit message was updated."
+        },
+        {
+            "timestamp": 1632121122,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/26578/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632121263,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 18: Commit message was updated."
+        },
+        {
+            "timestamp": 1632121432,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)\n\n> Patch Set 15:\n> \n> > Patch Set 14:\n> > \n> > > Patch Set 13:\n> > > \n> > > > Patch Set 13:\n> > > > \n> > > > > Patch Set 13:\n> > > > > \n> > > > > > Patch Set 13:\n> > > > > > \n> > > > > > I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> > > > > > \n> > > > > > Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n> > > > > \n> > > > > Sounds reasonable. My understanding: Sensors are normally read-only.\n> > > > The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all.\n> > > \n> > > That seems reasonable to me.\n> > > \n> > > > \n> > > > Thinking a little more on this. Manufacturing mode is dynamic and Mutable is static through configuration so far. dbus-sensors should be the place to \"stack\" them. Callback functions on manufacturing mode can update Mutable's value to true/false and ipmi/Redfish can just rely on Mutable.\n> > > \n> > > This would be putting business logic into IPMI and Redfish (and duplicating it in both of them).  In general, both IPMI and redfish need to be free of business logic.  If we need new interfaces here, lets invent them.  IMO, ideally manufacturing modes \"set\" would've been implemented as a separate interface from the sensor value interface, but that's ancient history, and we have a better understanding of the requirements now.\n> > > \n> > > > Setting Mutable back to false need to consider if there are other use reasons for it to stay true.\n> > > \n> > > I'm not following, what is \"setting mutable back to false\"?\n> > If remote write using IPMI/RedFish commands will always be passed to sensor's setValue, then I agree that sensor can stack mutable and manufacturing mode nicely and my comments can be ignored.\n> > \n> > I might be missing something. \n> > But seems like at least IPMI will not let dbus-sensor decide with the following change:\n> > https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407/11/dbus-sdr/sensorcommands.cpp#549\n> \n> My understanding:\n> \n> sensor with intrinsic settable property (like external sensor and pwm sensors (in manual mode). Those sensors will be settable by IPMI or Redfish no matter any special modes \n> \n> sensor will be settable if the system is under certain special mode.\n> \n> From phosphor-host-ipmid viewpoint (not intel-ipmi-oem) sensor will be settable if it has intrinsic settable property.\n> \n> Correct me. I do not have a system with intel-ipmi-oem and the service xyz.openbmc_project.SpecialMode running.\n> \n> I was stacking the two flags IsSettable and IsMutable as those flags both describe the intrinsic sensor settable properties. But someone suggests to split into two flags.\n\nI'll step back and try to clarify. All sensors begin read-only by default. There are two ways to make them read-write. The first way is to use Intel's \"manufacturing mode\" flag. This appears to be something designed for testing during manufacturing, and not be used during normal operation. The second way is to use this \"Mutability\" parameter. This is intended for normal operation, and provides a way to designate certain sensors as read-write, without needing to make all of them read-write. As these two features fit different use cases, they should not be merged together into one single combined feature. Hopefully this makes more sense now."
+        },
+        {
+            "timestamp": 1632154107,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 18: Code-Review+1\n\n> Patch Set 17:\n> \n> (1 comment)\n> \n> > Patch Set 15:\n> > \n> > > Patch Set 14:\n> > > \n> > > > Patch Set 13:\n> > > > \n> > > > > Patch Set 13:\n> > > > > \n> > > > > > Patch Set 13:\n> > > > > > \n> > > > > > > Patch Set 13:\n> > > > > > > \n> > > > > > > I've been following the discussion a bit.  As a maintainer, I would like the commit message here to explicitly call out Manufacturing mode, and make clear what the intended behavior is, and how this change relates.\n> > > > > > > \n> > > > > > > Some of the issue here is that both manufacturing mode AND mutable sensors are using the SetProperty(xyz....Value) interface.  If we have a plan to handle that cleanly, lets call it out in the commit message.\n> > > > > > \n> > > > > > Sounds reasonable. My understanding: Sensors are normally read-only.\n> > > > > The presence of the Mutable flag will allow those sensors to be written to, remotely. The presence of the Manufacturing Mode will also allow some sensors to be written to, remotely. So, write permission can be gained in two ways, mutable and/or manufacturing mode. They should stack nicely. If both mutable and manufacturing mode are granted simultaneously, that's not a problem at all.\n> > > > \n> > > > That seems reasonable to me.\n> > > > \n> > > > > \n> > > > > Thinking a little more on this. Manufacturing mode is dynamic and Mutable is static through configuration so far. dbus-sensors should be the place to \"stack\" them. Callback functions on manufacturing mode can update Mutable's value to true/false and ipmi/Redfish can just rely on Mutable.\n> > > > \n> > > > This would be putting business logic into IPMI and Redfish (and duplicating it in both of them).  In general, both IPMI and redfish need to be free of business logic.  If we need new interfaces here, lets invent them.  IMO, ideally manufacturing modes \"set\" would've been implemented as a separate interface from the sensor value interface, but that's ancient history, and we have a better understanding of the requirements now.\n> > > > \n> > > > > Setting Mutable back to false need to consider if there are other use reasons for it to stay true.\n> > > > \n> > > > I'm not following, what is \"setting mutable back to false\"?\n> > > If remote write using IPMI/RedFish commands will always be passed to sensor's setValue, then I agree that sensor can stack mutable and manufacturing mode nicely and my comments can be ignored.\n> > > \n> > > I might be missing something. \n> > > But seems like at least IPMI will not let dbus-sensor decide with the following change:\n> > > https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407/11/dbus-sdr/sensorcommands.cpp#549\n> > \n> > My understanding:\n> > \n> > sensor with intrinsic settable property (like external sensor and pwm sensors (in manual mode). Those sensors will be settable by IPMI or Redfish no matter any special modes \n> > \n> > sensor will be settable if the system is under certain special mode.\n> > \n> > From phosphor-host-ipmid viewpoint (not intel-ipmi-oem) sensor will be settable if it has intrinsic settable property.\n> > \n> > Correct me. I do not have a system with intel-ipmi-oem and the service xyz.openbmc_project.SpecialMode running.\n> > \n> > I was stacking the two flags IsSettable and IsMutable as those flags both describe the intrinsic sensor settable properties. But someone suggests to split into two flags.\n> \n> I'll step back and try to clarify. All sensors begin read-only by default. There are two ways to make them read-write. The first way is to use Intel's \"manufacturing mode\" flag. This appears to be something designed for testing during manufacturing, and not be used during normal operation. The second way is to use this \"Mutability\" parameter. This is intended for normal operation, and provides a way to designate certain sensors as read-write, without needing to make all of them read-write. As these two features fit different use cases, they should not be merged together into one single combined feature. Hopefully this makes more sense now.\n\nThank you for taking the time to write up the detailed commit message. It is really helpful to avoid confusion in the future."
+        },
+        {
+            "timestamp": 1633022289,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 19: Patch Set 18 was rebased"
+        },
+        {
+            "timestamp": 1633022300,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 19: Code-Review+1\n\nfriendly ping"
+        },
+        {
+            "timestamp": 1633989730,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 20: Patch Set 19 was rebased."
+        },
+        {
+            "timestamp": 1633989757,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633989798,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 20:\n\nRebased. This feature has been ready to go for some time now. Is there any reason still preventing this from being merged? Thanks!"
+        },
+        {
+            "timestamp": 1633989910,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28103/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634830285,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 21: Patch Set 20 was rebased"
+        },
+        {
+            "timestamp": 1634830293,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 21:\n\nfriendly ping"
+        },
+        {
+            "timestamp": 1634830298,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634830449,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28723/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635531940,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 21:\n\nare there any pending issue on this?"
+        },
+        {
+            "timestamp": 1635532319,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 21: Code-Review+1"
+        },
+        {
+            "timestamp": 1635804560,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 21:\n\nThe companion change has been merged already: https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407"
+        },
+        {
+            "timestamp": 1635804975,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Removed reviewer Andrew Jeffery."
+        },
+        {
+            "timestamp": 1635810327,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 21: Code-Review+2"
+        },
+        {
+            "timestamp": 1635811841,
+            "reviewer": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "message": "Change has been successfully merged by Jie Yang"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "009421b7dbfd9796074835d0108e019a9e4f7ff1",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/1",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1627595816,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 50,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 2,
+            "revision": "a4ad5cd8bd2878d7bcdebcb113a94094f41a8d62",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/2",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1627597657,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 49,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 3,
+            "revision": "c6b2cc77633d472374321cb33fd121c87e7ef86a",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/3",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1627603149,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This shouldn't be coming from the configuration.....   this sensor is always implicitly settable, right?"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "That is the previous downstream implementation. IIUC, all sensors are settable through d-bus. This is to follow the the phopshor-host-impid fashion, which checks the mutability of sensor before overwriting the value. \n\nAre there any concerns if we expose all PWM sensors as mutable sensors to IPMI?"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "It should come from the configuration. For security, all sensors are read-only, to preserve the previous existing behavior. I believe it would be best to have mutability be on an opt-in basis: the person writing the BMC configuration files must opt into this behavior, if they want their sensors to be writable.\n\nAs for defaulting certain classes of sensors to always be read-write instead of read-only, this should be done for ExternalSensor (because that's the main purpose of ExternalSensor). Doing it for the fan PWM sensor is up to the system designer: do they want their fans to be externally settable, or not? Note that it's also important to include fan auto/manual mode selection, if so, because otherwise, if they try to write the PWM while in auto mode, the PID loop will just overwrite their settings about a second later."
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "\"This is to follow the the phopshor-host-impid fashion, which checks the mutability of sensor before overwriting the value. \"\n\nThis seems really inefficient for something that we are going to be doing multiple times a second for host sensors.  I expected (and what was talked about a while ago, which quanta implemented) was for dbus-sensors to enforce the read-writeability of sensors, and this flag was only to drive the writable bit in the SDR, although you do bring up the corner case..... hmmm, this probably needs thought.\n\n\n\"Are there any concerns if we expose all PWM sensors as mutable sensors to IPMI?\"\nSo long as we're checking either a compile time option, or the \"is in manufacturing mode\" state, I don't think there's a concern, but I'm open to other opinions there.\n\n\" For security, all sensors are read-only, to preserve the previous existing behavior\"\n\nPrevious behavior was that sensors were read only unless in manufacturing mode.  We'll need to account for that in the mutability flag.\n\n\"I believe it would be best to have mutability be on an opt-in basis: the person writing the BMC configuration files must opt into this behavior, if they want their sensors to be writable.\"\n\nI think I agree with what you said, but in a different way than you were thinking.  A \"writable from IPMI\" sensor is a different class of sensor than a \"only internally writable\" sensor.  Maybe they share a lot of the backend code, but they are fundamentally a different type.\n\n\n\"Doing it for the fan PWM sensor is up to the system designer: do they want their fans to be externally settable, or not?\"\nThis imposes a serious security concern, because writable-from-the-host PWM sensors have thermal consequences.  I would really prefer that this just not be allowed outside of manufacturing mode.\n\n\n\"Note that it's also important to include fan auto/manual mode selection, if so, because otherwise, if they try to write the PWM while in auto mode, the PID loop will just overwrite their settings about a second later.\"\nThis is already handled in Redfish, IPMI just doesn't have the code to deal with this use case yet."
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "\"This seems really inefficient for something that we are going to be doing multiple times a second for host sensors.  I expected (and what was talked about a while ago, which quanta implemented) was for dbus-sensors to enforce the read-writeability of sensors, and this flag was only to drive the writable bit in the SDR, although you do bring up the corner case..... hmmm, this probably needs thought.\"\n\nI double check the downstream code. As you expected, this flag is only for the writable bit in the SDR. https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407\n\n\"So long as we're checking either a compile time option, or the \"is in manufacturing mode\" state, I don't think there's a concern, but I'm open to other opinions there\"\n\nI think the mutability is case by case depending on sensors, that is why we can not determine it at compile time and why Josh would like hardcoded it in the entity config and phosphor-host-ipmid requires to hardcode it in a YAML file. Checking manufacturing mode is an intel-ipmi-oem feature?\n\n\n\"Previous behavior was that sensors were read only unless in manufacturing mode.  We'll need to account for that in the mutability flag\"\n\nmutability is a dbus interface shows if a sensor value is settable in prod environment. (only external sensors and pwn sensors are settable in prod and will have this interface).\n\n\"I think I agree with what you said, but in a different way than you were thinking.  A \"writable from IPMI\" sensor is a different class of sensor than a \"only internally writable\" sensor.  Maybe they share a lot of the backend code, but they are fundamentally a different type.\"\n\nLooking through the code only internally writable sensor can be overwritten in manufacturing mode. But from mutability viewpoint, it is always not writable through IPMI. IPMI checks if a mutability interface exist and then checks the boolean.\n\n\n\"Note that it's also important to include fan auto/manual mode selection, if so, because otherwise, if they try to write the PWM while in auto mode, the PID loop will just overwrite their settings about a second later.\"\n> This is already handled in Redfish, IPMI just doesn't have the code to deal with this use case yet.\"\n\nIn order to move forward, 1. all pwm sensor are brutally settable now. I did not see any settable flag and manufacturing check present in Pwmsensor. 2. I do not have many contexts in pid loop. Sounds like fan manual mode will only be enable when sensor mutability is true. Question is is it safe to set all PWM sensors mutability true?"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "< 1. all pwm sensor are brutally settable now. I did not see any settable flag and manufacturing check present in Pwmsensor. \nline 540 is checking for manufacture mode"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "I see. Looks like there is gap. I searched some background knowledge. Looks like manufacture mode is an intel oem code stack."
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 375,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "As for this being inefficient, it is only used once during the initialization of each sensor. So, it's OK to be inefficient here. The value of the Mutable parameter is cached locally by each dbus-sensor daemon (and also the IPMI implementation, but that's another patch, not here). \n\nI do not see a use case in which we would want to change the Mutable parameter at runtime. If somebody wants to add that, I'm OK with it, but it would be very inefficient to have to poll that parameter every time, you're right about that, so a new implementation would be required (subscribe, not poll) if anybody actually wanted to add this use case.\n\nAs for \"manufacturing mode\", I'm not sure about that, and it's intended for use in a different environment. Regardless, I don't see it overlapping or conflicting with Mutable in any way, so it should be OK. Remember, the Mutable parameter is only to give us feature equivalence to the old \"Mutability\" parameter in the old hardcoded YAML way of doing things. It doesn't introduce a new feature that didn't exist before, but rather, merely restores a feature that used to exist in the previous implementation but no longer does until now.\n\nAs for allowing PWM sensors to be settable all the time, this should be OK. If the BMC is in automatic mode (the default), then the BMC will issue new fan speed commands regularly, so the lifetime of a manually-changed PWM sensor value should be fairly short, as it will get overwritten internally when the BMC decides that the fans should be spinning at a different speed in order to keep the system cool."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Aren't PSU pwm sensors settable?"
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "the original downstream implementation does this way. All sensor mutability is false at default except external sensors. The sensor mutability is configured through entity config.\n\nJosh, any comments? Are we safe to set all PWM mutability with true?"
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "See my comments around FanSensor. I'm honestly unsure why PSUSensor was expanded to also include PWM support here, that seems to be more the domain of FanSensor, I would think. Maybe it's because power supplies contain fans in them.\n\nIt's acceptable to default all PWM mutability to true instead of false, if we want to have a special case to encourage this behavior. It seems easiest just to rely on the system configuration, setting Mutable to True, for the desired PWM sensors that the system designer wishes to have externally settable by the user."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "line": 154,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please avoid duplicating this string with line 41"
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "line": 154,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "line": 154,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Good catch. In general, dbus-sensors is full of repeated string constants, which we should try to refactor out as we make changes over time."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 49,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 4,
+            "revision": "8a839868dda1a630541eb51d4e61db3ae06e844d",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/4",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1627692650,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 49,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 5,
+            "revision": "69db992425a056fe905151b4430109f1b4ab7a06",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/5",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1627975985,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I did not find changes for external sensor"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "It is in sensor.hpp. We reuse the `isSettable` flag for this mutability interface."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "In ExternalSensor, the flag is \"true\" always, as should be the case for ExternalSensor sensors (the entire purpose of ExternalSensor is to accept externally-issued values, thus, the sensor must be writable by external users).\n\nhttps://github.com/openbmc/dbus-sensors/blob/5cf0f99210890d0cd52d5929e919316d238a5701/src/ExternalSensor.cpp#L35\n\nUnfortunately, the comment above this line was not removed, but we can do that in another patch. The work was already done, but the TODO comment was not removed."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "ACK. My confusion came from not seeing changes in external sensor. This change affects all sensors that have isSettable set to true. Please clarify in the commit message"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Is the Mutability only used through ipmi? How would manufacturing unsecure mode work with this change?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "IIUC, manufacturing unsecure mode is intel oem? It is included in `phopshor-host-ipmid`? This is for phosphor-host-ipmid user. Set the mutability bit in ipmi SDR."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "sensors value can be overwritten when in manufacturing mode regardless of is settable to aid manufacturing test.\nhttps://github.com/openbmc/dbus-sensors/blob/master/include/sensor.hpp#L183\nThis change would break the feature if it is blocked at IPMI level base on Mutability at construct time and sensors are default to readonly unless config files are updated."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "I do not know how the manufacturing mode works before. phoshor-host-ipmid always block if no mutability property, unless you override the ipmi Set command.\n\nhttps://github.com/openbmc/phosphor-host-ipmid/blob/43a88109831d8e62150575e200af449194a5b6a8/sensorhandler.cpp#L376"
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 328,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "should valueMutabilityInterface set back to be nullptr?"
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 328,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 383,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Should this be only for pwm sensor, ie. inside line 398?"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 383,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 383,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "ACK"
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "The default behavior should be the same - PSU's pwm and other pwm. Here the default is true while pwm needs to opt in - add it in config file."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done. Change the constructor. Default value is false."
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Sorry, looking back I think I made a mistake. PwmSensor does not inherit from sensor and PwmSensor should default to be isSettable=true if we want to be backwards compatible and not break phosphor-pid-control.\nActually, since it has its own setValue function, isSettable flag is not checked like in sensors.hpp, so pid-control still works regardless of this flag here."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 49,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 6,
+            "revision": "c8d9242288a7fc1d21476d1b59f494a841b9a11b",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/6",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1628036510,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 51,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 7,
+            "revision": "a72fd141bb1ba489f111249d057a05e986b61534",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/7",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1628127120,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 74,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "isSettable and Mutibility seem to be redundant. isSettable = (valueMutabilityInterface != nullptr). \nShould isSettable be deleted from the sensor member?"
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 74,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "It is werid to make a flag equivalent to a interface, as the property under the interface  might change. I would like to keep this."
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "This is `isSettable`. How are these configurable? \n\nOr is this only depends ont he type of sensors.\n\nDo we want a way to config each sensor to see if we want to to be set able?"
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "I did not touch this. https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/42453 check this if you are interested."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 51,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 8,
+            "revision": "e852ffaba7015d691227fb94347f3997bee6855f",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/8",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1628277667,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -4
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 51,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 9,
+            "revision": "abeb31a2a7b047452b30ff9a8430d491f00a2f85",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/9",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1628560492,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 23,
+                    "deletions": -4
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 70,
+            "sizeDeletions": 25
+        },
+        {
+            "number": 10,
+            "revision": "624776cac64baca85b78d4fec6730f27cfc4c979",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/10",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1628564815,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -4
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 25
+        },
+        {
+            "number": 11,
+            "revision": "bd2f8e869b97d4aa41b8fc7ce642a94348fe42aa",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/11",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1628612679,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "I recommend the name \"isMutable\" here, for the temporary bool that is passed in by the caller, to avoid shadowing the \"isValueMutable\" member of this class. It also fits the established pattern set by \"isSettable\" to \"isSensorSettable\"."
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Not just IPMI. This feature isn't tied to IPMI. There's nothing about the ValueMutability feature that prevents it from being used with Redfish as well (once writeable sensors in Redfish are implemented, a future project)."
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "line": 67,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 386,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "We should rename this to isValueMutable, to be consistent with how it is done in the main Sensor object."
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 386,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 421,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Same as above, please rename to isValueMutable."
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "line": 421,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "line": 163,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "In this error block, we should also do what we did in the main Sensor class: valueMutabilityInterface = nullptr;"
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "line": 163,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -4
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 25
+        },
+        {
+            "number": 12,
+            "revision": "75c29327d63ae8f2f49b82faba603482357549b3",
+            "parents": [
+                "913d4d00c0b31e968fee506298b78bb012ff6a3d"
+            ],
+            "ref": "refs/changes/05/45405/12",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1628622661,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 13,
+            "revision": "cb9410a9c43edab8c0367660da38c909cd6c275e",
+            "parents": [
+                "5cf0f99210890d0cd52d5929e919316d238a5701"
+            ],
+            "ref": "refs/changes/05/45405/13",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1628817445,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Bruce Mitchell",
+                        "email": "bruce.mitchell@linux.vnet.ibm.com",
+                        "username": "BMC-Bruce"
+                    },
+                    "message": "Has this been tested?\n\nThere is nothing in the commit message talking about being tested."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "Tested. Updated in commit message"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 14,
+            "revision": "d95a9f5d125a08dd935efcf8e9d651a6ab639b8d",
+            "parents": [
+                "2932a7bb38e49ee79ec87114927b3d95a82f18cd"
+            ],
+            "ref": "refs/changes/05/45405/14",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1630545768,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "what does this mean?\n\nThis commit message could use more details on what this patchset is actually accomplishing.  What use cases does it fulfill?  Are there any backward compatibility issues?  How does it relate to manufacturing mode?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "externalsensor is intended to be mutable through IPMI. I mention in  the comment threads manufacturing mode is a Intel OEM property published by a service xyz.openbmc_project.SpecialMode. I think in intel IPMI oem setting sensor value needs to check the special mode. Looks like in some special modes, all sensor can be settable through IPMI.\n\nThis change will support the phosphor-host-ipmid change https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/45407, where IPMI will not check if the system in a special mode or not. It checks if the sensor has ValueMutability interface and the mutable property.\n\nThere will be no conflicts between this change and manufacturing mode, unless someone adds the intel-ipmi-oem SpecialMode functionality to phospho-host-ipmid."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "I reworded the text to avoid the \"true mutability\" phrase, hopefully to make it more clear."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "tested?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Jie Yang",
+                        "email": "jjy@google.com",
+                        "username": "PlotCondor"
+                    },
+                    "message": "added tested info"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 15,
+            "revision": "e132d428f832649c22224e9841b08a3540a34a6a",
+            "parents": [
+                "2932a7bb38e49ee79ec87114927b3d95a82f18cd"
+            ],
+            "ref": "refs/changes/05/45405/15",
+            "uploader": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "createdOn": 1631929347,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 16,
+            "revision": "e8a36ffff6709f44695a7160ada54a568c2b6e4e",
+            "parents": [
+                "0c42f40e55fd4fe6274962ea17e804f49f5de19e"
+            ],
+            "ref": "refs/changes/05/45405/16",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1632120545,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 17,
+            "revision": "8407132977b7ef6ac956504a71c61f4a8e13fa6e",
+            "parents": [
+                "0c42f40e55fd4fe6274962ea17e804f49f5de19e"
+            ],
+            "ref": "refs/changes/05/45405/17",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1632120898,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 69,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 18,
+            "revision": "19d3a373036273088c9a5a8e952f42fa8b9712a8",
+            "parents": [
+                "0c42f40e55fd4fe6274962ea17e804f49f5de19e"
+            ],
+            "ref": "refs/changes/05/45405/18",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1632121263,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 72,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 19,
+            "revision": "c55c213a171bbf5d24fb5a312753bd914c6f6272",
+            "parents": [
+                "1e34cecad498e89fb52b4c73cb19e62a297f2329"
+            ],
+            "ref": "refs/changes/05/45405/19",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1633022289,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 72,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 20,
+            "revision": "1afb2e790b2b9a35684d0bcb8b76b8e1d1c283ff",
+            "parents": [
+                "1dc85f51670dea67df5bb80c7328419f2eacec27"
+            ],
+            "ref": "refs/changes/05/45405/20",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1633989730,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 72,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 21,
+            "revision": "3291b9c755458663b284d87fda8f580f7673ff76",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/05/45405/21",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1634830285,
+            "author": {
+                "name": "Jie Yang",
+                "email": "jjy@google.com",
+                "username": "PlotCondor"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 72,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PwmSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/sensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -3
+                },
+                {
+                    "file": "src/ADCSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExitAirTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ExternalSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "src/FanMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/HwmonTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/IpmbSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/MCUTempSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/NVMeSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PwmSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 76,
+            "sizeDeletions": 24
+        }
+    ]
+}

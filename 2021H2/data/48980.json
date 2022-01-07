@@ -1,0 +1,196 @@
+{
+    "project": "openbmc/phosphor-networkd",
+    "branch": "master",
+    "id": "Id7acd94c728bf4ab4167868f80b48c9171f2d5eb",
+    "number": 48980,
+    "subject": "Persist \"Enabled\" property accross reboot",
+    "owner": {
+        "name": "Asmitha Karunanithi",
+        "email": "asmitk01@in.ibm.com",
+        "username": "asmithakarun"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-networkd/+/48980",
+    "commitMessage": "Persist \"Enabled\" property accross reboot\n\nThe \"Enabled\" property of xyz.openbmc_project.Object.Enable\ninterface of the ip address object\n(eg: /xyz/openbmc_project/network/hypervisor/eth<0/1>/ipv4/addr0)\nwill be set by pldm once the host consumes the ip address set by\nthe user. When the system reboots, this value is not persisted\nand is defaulted to false.\nPldm will not be updating this value on reboot, it only sets it\nwhen phyp sends the sensor event when the ip is consumed and\npldm receives this and sets the \"Enabled\" property.\n\nbusctl introspect xyz.openbmc_project.Network.Hypervisor /xyz/openbmc_project/network/hypervisor/eth0/ipv4/addr0\nNAME                                TYPE      SIGNATURE RESULT/VALUE                             FLAGS\norg.freedesktop.DBus.Introspectable interface -         -                                        -\n.Introspect                         method    -         s                                        -\norg.freedesktop.DBus.Peer           interface -         -                                        -\n.GetMachineId                       method    -         s                                        -\n.Ping                               method    -         -                                        -\norg.freedesktop.DBus.Properties     interface -         -                                        -\n.Get                                method    ss        v                                        -\n.GetAll                             method    s         a{sv}                                    -\n.Set                                method    ssv       -                                        -\n.PropertiesChanged                  signal    sa{sv}as  -                                        -\nxyz.openbmc_project.Network.IP      interface -         -                                        -\n.Address                            property  s         \"10.6.6.2\"                               emits-change writable\n.Gateway                            property  s         \"10.6.6.1\"                               emits-change writable\n.Origin                             property  s         \"xyz.openbmc_project.Network.IP.Address\u2026 emits-change writable\n.PrefixLength                       property  y         22                                       emits-change writable\n.Type                               property  s         \"xyz.openbmc_project.Network.IP.Protoco\u2026 emits-change writable\nxyz.openbmc_project.Object.Delete   interface -         -                                        -\n.Delete                             method    -         -                                        -\nxyz.openbmc_project.Object.Enable   interface -         -                                        -\n.Enabled                            property  b         true                                     emits-change writable\n\nThe values will be stored under /var/lib/network/hypervisor/ path\nwith the file name being eth0_network/eth1_network.\n\nNote:\nAny property can be persisted with this change. For now, \"Enabled\"\nproperty is only persisted, since there are no ther properties\nthat needs to be persisted, the reason being, all the other properties\nare read from the bios table.\n\nTested By:\n\n1. Set vmi ip through redfish command:\nPATCH -D patch.txt -d '{\"IPv4StaticAddresses\":[{\"Address\": \"10.6.6.2\",\n\"SubnetMask\": \"255.255.252.0\",\"Gateway\":\"10.6.6.1\"}]}'\nhttps://${bmc}/redfish/v1/Systems/hypervisor/EthernetInterfaces/eth0\n\n2. reboot the system\n3. check if the enabled property is still true on the ip dbus object\n\nSigned-off-by: Asmitha Karunanithi <asmitk01@in.ibm.com>\nChange-Id: Id7acd94c728bf4ab4167868f80b48c9171f2d5eb\n",
+    "createdOn": 1637324725,
+    "lastUpdated": 1639724485,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1637324725,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1637324739,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637324887,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30565/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639724153,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 2: Patch Set 1 was rebased"
+        },
+        {
+            "timestamp": 1639724166,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639724485,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32194/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "6cdc70de33fcc98e31524c365fc5286da20639f8",
+            "parents": [
+                "3a1323379de9989aa5f6ffd913b54b4320042c35"
+            ],
+            "ref": "refs/changes/80/48980/1",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1637324725,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_ip_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_ip_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_nw_config_serialize.cpp",
+                    "type": "ADDED",
+                    "insertions": 132,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_nw_config_serialize.hpp",
+                    "type": "ADDED",
+                    "insertions": 34,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 228,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "d8579b1e7e1dc5ffa03074d184cfc89343000d79",
+            "parents": [
+                "5bbc260a4797e4a94999ca5d2868f323a6b9ce68"
+            ],
+            "ref": "refs/changes/80/48980/2",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1639724153,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 62,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_ip_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_ip_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_nw_config_serialize.cpp",
+                    "type": "ADDED",
+                    "insertions": 132,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/hyp_nw_config_serialize.hpp",
+                    "type": "ADDED",
+                    "insertions": 34,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ibm/hypervisor-network-mgr-src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 228,
+            "sizeDeletions": 0
+        }
+    ]
+}

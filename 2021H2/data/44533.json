@@ -1,0 +1,233 @@
+{
+    "project": "openbmc/phosphor-sel-logger",
+    "branch": "master",
+    "id": "If5caa545c43963f9cdc16d3bdbe8f83205397f1a",
+    "number": 44533,
+    "subject": "Assign Record ID 1 to only one SEL entry",
+    "owner": {
+        "name": "Charles Boyer",
+        "email": "Charles.Boyer@fii-usa.com",
+        "username": "boyercee"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-sel-logger/+/44533",
+    "commitMessage": "Assign Record ID 1 to only one SEL entry\n\nIf more than one SEL event is triggered at the same time while the\nSEL log file(s) are not generated, then these SEL records have been\nobserved to share Record ID 1. The first SEL entry will correctly\nassign its Record ID to 1, but it takes time for the ipmi_sel file\nto be created with that entry. Until the file is created, each of\nthe following SEL entries will have Record ID 1 because the file\ndoes not exist. This causes more than one SEL entry to share Record\nID 1. Below is a /var/log/ipmi_sel from a system,\n\n2021-06-25T14:59:46.135187+00:00 1,2,50089E,20,/xyz/openbmc_project/sensors/voltage/CPU0_3V3_SOC,1\n2021-06-25T14:59:46.137358+00:00 1,2,520872,20,/xyz/openbmc_project/sensors/voltage/CPU0_3V3_SOC,1\n2021-06-25T14:59:46.138190+00:00 1,2,50006B,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_VDDH,1\n2021-06-25T14:59:46.198081+00:00 1,2,52004C,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_VDDH,1\n2021-06-25T14:59:46.198624+00:00 1,2,500055,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_SOC,1\n2021-06-25T14:59:46.211462+00:00 1,2,52003C,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_SOC,1\n2021-06-25T14:59:46.211992+00:00 1,2,50005F,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V2_DQ0123,1\n2021-06-25T14:59:46.212435+00:00 1,2,520040,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V2_DQ0123,1\n2021-06-25T14:59:46.212842+00:00 1,2,500077,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V5_VDDH,1\n2021-06-25T14:59:46.213264+00:00 1,2,520055,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V5_VDDH,1\n2021-06-25T14:59:46.213660+00:00 1,2,500037,20,/xyz/openbmc_project/sensors/voltage/CPU0_0V8_DC_SOC,1\n2021-06-25T14:59:46.214049+00:00 1,2,520031,20,/xyz/openbmc_project/sensors/voltage/CPU0_0V8_DC_SOC,1\n2021-06-25T14:59:46.214450+00:00 1,2,500061,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V2_DQ4567,1\n2021-06-25T14:59:46.214867+00:00 1,2,520044,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V2_DQ4567,1\n2021-06-25T14:59:46.215293+00:00 1,2,500083,20,/xyz/openbmc_project/sensors/voltage/Mobo_VBAT_RTC,1\n2021-06-25T14:59:46.215692+00:00 1,2,520061,20,/xyz/openbmc_project/sensors/voltage/Mobo_VBAT_RTC,1\n2021-06-25T14:59:46.216094+00:00 1,2,500064,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_PCP,1\n2021-06-25T14:59:46.216492+00:00 1,2,520046,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_PCP,1\n2021-06-25T14:59:46.216886+00:00 1,2,500037,20,/xyz/openbmc_project/sensors/voltage/CPU0_0V75_PCP,1\n2021-06-25T14:59:46.217280+00:00 1,2,52002D,20,/xyz/openbmc_project/sensors/voltage/CPU0_0V75_PCP,1\n2021-06-25T14:59:47.314383+00:00 2,2,50A89E,20,/xyz/openbmc_project/sensors/voltage/CPU0_3V3_SOC,0\n2021-06-25T14:59:47.316763+00:00 3,2,52A872,20,/xyz/openbmc_project/sensors/voltage/CPU0_3V3_SOC,0\n2021-06-25T14:59:47.318955+00:00 4,2,50726B,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_VDDH,0\n2021-06-25T14:59:47.330269+00:00 5,2,52724C,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_VDDH,0\n2021-06-25T14:59:47.333422+00:00 6,2,505C55,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_SOC,0\n2021-06-25T14:59:47.335508+00:00 7,2,525C3C,20,/xyz/openbmc_project/sensors/voltage/CPU0_1V8_SOC,0\n\nThis change solves the problem with the first entry trigger a flag\ncausing the next entries to delay from assigning their Record IDs\nuntil the ipmi_sel file is created. After the ipmi_sel file is\ncreated, then the flag is reset for the process to repeat after\nthe SEL is cleared.\n\nTested:\n - Verified that Record ID 1 is assigned to one SEL entry\n - After clearing SEL, Record ID 1 is assigned to one SEL entry\n\nChange-Id: If5caa545c43963f9cdc16d3bdbe8f83205397f1a\nSigned-off-by: Charles Boyer <Charles.Boyer@fii-usa.com>\n",
+    "createdOn": 1624920195,
+    "lastUpdated": 1627668611,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1624920195,
+            "reviewer": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1624920207,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624920241,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/20946/ : FAILURE"
+        },
+        {
+            "timestamp": 1624973981,
+            "reviewer": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1624973991,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624974040,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/21010/ : SUCCESS"
+        },
+        {
+            "timestamp": 1625608551,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\nI wonder if it would be worth considering a D-Bus method to reset the ID.  That way when 'SEL Clear' is called, it would deterministically reset the ID without any timing involved around the existence of the ipmi_sel file."
+        },
+        {
+            "timestamp": 1625688903,
+            "reviewer": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> (1 comment)\n> \n> I wonder if it would be worth considering a D-Bus method to reset the ID.  That way when 'SEL Clear' is called, it would deterministically reset the ID without any timing involved around the existence of the ipmi_sel file.\n\nAt the moment, IPMI handlers such as dbus-sdr, take responsibility for removing the ipmi_sel file(s) and reloading rsyslog. I would prefer that phosphor-sel-logger takes control of clearing the SEL through a D-Bus method that the IPMI handlers would call in their 'Clear SEL' command(s). Then sel-logger could simply iterate the Record ID or reset it back to 1 after the SEL is cleared, like you said. Therefore, I am in favor of this approach, and I understand it would require cooperation with the maintainers of the IPMI handlers, as well."
+        },
+        {
+            "timestamp": 1625761351,
+            "reviewer": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1626808795,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > (1 comment)\n> > \n> > I wonder if it would be worth considering a D-Bus method to reset the ID.  That way when 'SEL Clear' is called, it would deterministically reset the ID without any timing involved around the existence of the ipmi_sel file.\n> \n> At the moment, IPMI handlers such as dbus-sdr, take responsibility for removing the ipmi_sel file(s) and reloading rsyslog. I would prefer that phosphor-sel-logger takes control of clearing the SEL through a D-Bus method that the IPMI handlers would call in their 'Clear SEL' command(s). Then sel-logger could simply iterate the Record ID or reset it back to 1 after the SEL is cleared, like you said. Therefore, I am in favor of this approach, and I understand it would require cooperation with the maintainers of the IPMI handlers, as well.\n\nSorry for the delay.  I like this idea.  Could we keep the current handler as it is and just add the new D-Bus method?  That might make it more \"backward compatible\" and the IPMI handlers wouldn't be required to update.  Then anyone who hits this same ID 1 error can update their IPMI handler to the new method over time?"
+        },
+        {
+            "timestamp": 1626880921,
+            "reviewer": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 2:\n> > > \n> > > (1 comment)\n> > > \n> > > I wonder if it would be worth considering a D-Bus method to reset the ID.  That way when 'SEL Clear' is called, it would deterministically reset the ID without any timing involved around the existence of the ipmi_sel file.\n> > \n> > At the moment, IPMI handlers such as dbus-sdr, take responsibility for removing the ipmi_sel file(s) and reloading rsyslog. I would prefer that phosphor-sel-logger takes control of clearing the SEL through a D-Bus method that the IPMI handlers would call in their 'Clear SEL' command(s). Then sel-logger could simply iterate the Record ID or reset it back to 1 after the SEL is cleared, like you said. Therefore, I am in favor of this approach, and I understand it would require cooperation with the maintainers of the IPMI handlers, as well.\n> \n> Sorry for the delay.  I like this idea.  Could we keep the current handler as it is and just add the new D-Bus method?  That might make it more \"backward compatible\" and the IPMI handlers wouldn't be required to update.  Then anyone who hits this same ID 1 error can update their IPMI handler to the new method over time?\n\nTo accomplish the transition of control of the ipmi_sel to sel-logger and fix the same ID 1 error, I think we need to add the new D-Bus method and simplify getNewRecordId to iterate the ID (different than these patch changes). Without such modifications to getNewRecordId, the reset of ID in the new D-Bus method is useless. However, the simplification of getNewRecordId removes \"backward compatibility\" for sel-logger because the IPMI Clear SEL command will remove the file without informing sel-logger to reset the ID. The simplified getNewRecordId no longer checks for ipmi_sel, resulting in the first SEL in the file to have a Record ID > 1.\n\nA temporary compile flag can be added to enable the new getNewRecordId implementation and reset the ID in the new D-Bus method. The flag would be disabled by default, meaning the current implementation of getNewRecordId that checks for ipmi_sel would be used for \"backward compatibility\". We could also use this patch's changes as the default implementation (with a timeout to prevent infinite loop), unless this should be abandoned for the new process. The new D-Bus method would be added separate from the new getNewRecordId implementation, with the exception of the ID reset. The intention is for the flag to be temporary because once the IPMI handlers that use ipmi_sel transition to the new D-Bus method, the compile flag can be removed and new implementations solidified."
+        },
+        {
+            "timestamp": 1626892837,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 2:\n> > > \n> > > > Patch Set 2:\n> > > > \n> > > > (1 comment)\n> > > > \n> > > > I wonder if it would be worth considering a D-Bus method to reset the ID.  That way when 'SEL Clear' is called, it would deterministically reset the ID without any timing involved around the existence of the ipmi_sel file.\n> > > \n> > > At the moment, IPMI handlers such as dbus-sdr, take responsibility for removing the ipmi_sel file(s) and reloading rsyslog. I would prefer that phosphor-sel-logger takes control of clearing the SEL through a D-Bus method that the IPMI handlers would call in their 'Clear SEL' command(s). Then sel-logger could simply iterate the Record ID or reset it back to 1 after the SEL is cleared, like you said. Therefore, I am in favor of this approach, and I understand it would require cooperation with the maintainers of the IPMI handlers, as well.\n> > \n> > Sorry for the delay.  I like this idea.  Could we keep the current handler as it is and just add the new D-Bus method?  That might make it more \"backward compatible\" and the IPMI handlers wouldn't be required to update.  Then anyone who hits this same ID 1 error can update their IPMI handler to the new method over time?\n> \n> To accomplish the transition of control of the ipmi_sel to sel-logger and fix the same ID 1 error, I think we need to add the new D-Bus method and simplify getNewRecordId to iterate the ID (different than these patch changes). Without such modifications to getNewRecordId, the reset of ID in the new D-Bus method is useless. However, the simplification of getNewRecordId removes \"backward compatibility\" for sel-logger because the IPMI Clear SEL command will remove the file without informing sel-logger to reset the ID. The simplified getNewRecordId no longer checks for ipmi_sel, resulting in the first SEL in the file to have a Record ID > 1.\n> \n> A temporary compile flag can be added to enable the new getNewRecordId implementation and reset the ID in the new D-Bus method. The flag would be disabled by default, meaning the current implementation of getNewRecordId that checks for ipmi_sel would be used for \"backward compatibility\". We could also use this patch's changes as the default implementation (with a timeout to prevent infinite loop), unless this should be abandoned for the new process. The new D-Bus method would be added separate from the new getNewRecordId implementation, with the exception of the ID reset. The intention is for the flag to be temporary because once the IPMI handlers that use ipmi_sel transition to the new D-Bus method, the compile flag can be removed and new implementations solidified.\n\nI'm good with a compile flag to separate the old and new functionality.  In my opinion the new method would replace this patch, and the existing implementation can be left as it is.  Anyone who wants the duplicate ID 1 fix can adopt the new D-Bus method."
+        },
+        {
+            "timestamp": 1627668611,
+            "reviewer": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "message": "Abandoned\n\nClear method approach introduced in https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-sel-logger/+/45438, which makes this solution obsolete."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "a2ccfc2e3ea2b67f08afd43cc639b44457d80e87",
+            "parents": [
+                "486e42e9db215070d631b7ac1f8f32537cb3bfe7"
+            ],
+            "ref": "refs/changes/33/44533/1",
+            "uploader": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "createdOn": 1624920195,
+            "author": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sel_logger.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "2ece17b1548cf2efd90977fa8ceace59b99f2c05",
+            "parents": [
+                "486e42e9db215070d631b7ac1f8f32537cb3bfe7"
+            ],
+            "ref": "refs/changes/33/44533/2",
+            "uploader": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "createdOn": 1624973981,
+            "author": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/sel_logger.cpp",
+                    "line": 135,
+                    "reviewer": {
+                        "name": "Jason Bills",
+                        "email": "jason.m.bills@linux.intel.com",
+                        "username": "jmbills"
+                    },
+                    "message": "Does this need a maximum timeout?  Is it possible that between checks, the ipmi_sel file could be deleted again and cause this to get stuck in an infinite loop?"
+                },
+                {
+                    "file": "src/sel_logger.cpp",
+                    "line": 135,
+                    "reviewer": {
+                        "name": "Charles Boyer",
+                        "email": "Charles.Boyer@fii-usa.com",
+                        "username": "boyercee"
+                    },
+                    "message": "A timeout would be necessary because I triggered the scenario where the sel-logger got stuck in an infinite loop. How should the SEL entry be handled if the timeout expires? I do not want to drop the entry because it could be an important message. An option is for sel-logger to assume that the deletion of ipmi_sel file caused the timeout, and the entry should become the first entry."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/sel_logger.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 18,
+            "sizeDeletions": 1
+        }
+    ]
+}

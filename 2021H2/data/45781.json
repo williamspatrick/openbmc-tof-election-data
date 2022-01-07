@@ -1,0 +1,599 @@
+{
+    "project": "openbmc/smbios-mdr",
+    "branch": "master",
+    "id": "Ia07df1f9ad502308181a791f6afc2554f6d8a6fc",
+    "number": 45781,
+    "subject": "Fix SMMDR send directory info call",
+    "owner": {
+        "name": "Mansi Joshi",
+        "email": "mansi.joshi@linux.intel.com",
+        "username": "Joshi-Mansi"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/smbios-mdr/+/45781",
+    "commitMessage": "Fix SMMDR send directory info call\n\nCall to send directory method fails to give data if it sends input\nbelow 32 bytes, which as per spec should be allowed considering\nN*16 bytes. Hence changing the condition.\nAlso, it wasn't working for more than 1 directory , so made changes\naccordingly.\n\nTested:\nChecked via dbus method-call and IPMI OEM commands, it works fine.\n\nbusctl call xyz.openbmc_project.Smbios.MDR_V2 /xyz/openbmc_project/Smbios/MDR_V2\nxyz.openbmc_project.Smbios.MDR_V2 SendDirectoryInformation yyyyay\n2 0 2 0 32 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 66\n50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 76\nb true\n\nbusctl call xyz.openbmc_project.Smbios.MDR_V2 /xyz/openbmc_project/Smbios/MDR_V2\nxyz.openbmc_project.Smbios.MDR_V2 GetDirectoryInformation y 0\nay 36 2 2 2 0 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 66\n50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 76\n\nSmmdrSendDirectoryInfo(38h) executes successfully with correct input\nand fails with request data length invalid in case of incorrect input.\n\nipmitool raw 0x3E 0x38 0x1 0x1 0x1 0x0 0x1 0x0 0x28 0x29 0x2a 0x2b 0x2c\n0x2d 0x2e 0x2f 0x30 0x31 0x32 0x33 0x34 0x35 0x36 0x42\n 01         // SUCCESS\n\nipmitool raw 0x3E 0x38 0x1 0x1 0x1 0x0 0x1 0x0 0x28 0x29 0x2a 0x2b 0x2c\n0x2d 0x2e 0x2f 0x30 0x31 0x32\nUnable to send RAW command (channel=0x0 netfn=0x3e lun=0x0 cmd=0x38\nrsp=0xc7): Request data length invalid\n\nSigned-off-by: Mansi Joshi <mansi.joshi@linux.intel.com>\nChange-Id: Ia07df1f9ad502308181a791f6afc2554f6d8a6fc\n",
+    "createdOn": 1628615809,
+    "lastUpdated": 1631311309,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1628615809,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1628615821,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628616157,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24158/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628665855,
+            "reviewer": {
+                "name": "Chen, Yugang",
+                "email": "yugang.chen@linux.intel.com",
+                "username": "ygangch"
+            },
+            "message": "Patch Set 1:\n\nwangkuiying.wky: any comments? thanks."
+        },
+        {
+            "timestamp": 1628831909,
+            "reviewer": {
+                "name": "Chen, Yugang",
+                "email": "yugang.chen@linux.intel.com",
+                "username": "ygangch"
+            },
+            "message": "Patch Set 1:\n\nThere was a patch \"https://gerrit.openbmc-project.xyz/c/openbmc/smbios-mdr/+/37533\" near to this change, it could be assumed this \"if-condition\" should have been in the scope of checking there.\nIt's not going to doubt the new change, but could you please double check it?"
+        },
+        {
+            "timestamp": 1628836063,
+            "reviewer": {
+                "name": "Kuiying Wang",
+                "email": "wangkuiying.wky@alibaba-inc.com",
+                "username": "kuiyingw"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1629134791,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> There was a patch \"https://gerrit.openbmc-project.xyz/c/openbmc/smbios-mdr/+/37533\" near to this change, it could be assumed this \"if-condition\" should have been in the scope of checking there.\n> It's not going to doubt the new change, but could you please double check it?\n\nI agree, but after the change from below patch, this check is throwing error.\nhttps://gerrit.openbmc-project.xyz/c/openbmc/intel-ipmi-oem/+/41476\n\nThis patch has modification in OEM input params based on SMMDRSend Directory Info command rightly followed from EPS that."
+        },
+        {
+            "timestamp": 1629134903,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > There was a patch \"https://gerrit.openbmc-project.xyz/c/openbmc/smbios-mdr/+/37533\" near to this change, it could be assumed this \"if-condition\" should have been in the scope of checking there.\n> > It's not going to doubt the new change, but could you please double check it?\n> \n> I agree, but after the change from below patch, this check is throwing error.\n> https://gerrit.openbmc-project.xyz/c/openbmc/intel-ipmi-oem/+/41476\n> \n> This patch has modification in OEM input params based on SMMDRSend Directory Info command rightly followed from EPS that.\n\nsizeof(Mdr2DirEntry) = 32 bytes that includes TimeStamp, DataVersion etc, which is not part of input parameter of Send dir command."
+        },
+        {
+            "timestamp": 1629135765,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1629136007,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1629136140,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1629138543,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1629141463,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1629141478,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629141942,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24427/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629142196,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1629142615,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)\n\nHi Everyone,\nHave addressed the comments, please review the latest patch.\n\nThank you!"
+        },
+        {
+            "timestamp": 1629320924,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1630613007,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1630613021,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1630613377,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/25602/ : SUCCESS"
+        },
+        {
+            "timestamp": 1630613483,
+            "reviewer": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1631126662,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1631150186,
+            "reviewer": {
+                "name": "Chen, Yugang",
+                "email": "yugang.chen@linux.intel.com",
+                "username": "ygangch"
+            },
+            "message": "Patch Set 4: Code-Review+2"
+        },
+        {
+            "timestamp": 1631173640,
+            "reviewer": {
+                "email": "smriti.ayushi@linux.intel.com",
+                "username": "Smriti-Ayushi"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1631311309,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Change has been successfully rebased and submitted as ecbd71baa68d0c2834614d84f24de7d369a51ce4 by Zhikui Ren"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "7811476409e314885b9f5cef68f1e1cd538bedfc",
+            "parents": [
+                "6e3e9c2598a7a14f31e2581a472686368f00e5b4"
+            ],
+            "ref": "refs/changes/81/45781/1",
+            "uploader": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "createdOn": 1628615809,
+            "author": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Can you explain what issue is being addressed?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Mansi Joshi",
+                        "email": "mansi.joshi@linux.intel.com",
+                        "username": "Joshi-Mansi"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Did the command fail before? For completeness, test should be run to confirm both success and fail cases. Having said that, I am not sure it is feasible to inject the error."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Mansi Joshi",
+                        "email": "mansi.joshi@linux.intel.com",
+                        "username": "Joshi-Mansi"
+                    },
+                    "message": "Yes it failed before. Added both success and failure cases. Thanks for pointing it out."
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Kuiying Wang",
+                        "email": "wangkuiying.wky@alibaba-inc.com",
+                        "username": "kuiyingw"
+                    },
+                    "message": "I think it should be != , please double check on it"
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Mansi Joshi",
+                        "email": "mansi.joshi@linux.intel.com",
+                        "username": "Joshi-Mansi"
+                    },
+                    "message": "sizeof(Mdr2DirEntry) = 32 bytes that struct includes TimeStamp, DataVersion etc, which is not part of input parameter of Send Dir command.\ndirEntry is from byte 7 and its size can be 16. In that context I thought direEntry size can't be greater than 32 bytes.\n\nByte 7 - N*16 bytes\nN means the numbers of Directory entries\n\nMy question is: how many number of different \u201cfiles\u201d can be available? Any max limit?"
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "+1\nSeems like it shouldn't be < either."
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "My comments above was written before @Mansi's latest question"
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I read through this function, it seems strange to do the casting at line 290 where dirEntry is a different struct than Mdr2DirEntry. Line 298 is just the next byte in dirEntry? Seems like it lacks boundary check also."
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Mansi Joshi",
+                        "email": "mansi.joshi@linux.intel.com",
+                        "username": "Joshi-Mansi"
+                    },
+                    "message": "Updated the condition.\n\nYes @Zhikui, I feel the same. From line number 290 to 298, the code seems incorrect and also didn't not follow as per command 38h."
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This need to be understood before I can do a proper review for the size checking."
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Mansi Joshi",
+                        "email": "mansi.joshi@linux.intel.com",
+                        "username": "Joshi-Mansi"
+                    },
+                    "message": "Sure please, it follows command 38h - SMMDR Send Directory Info. I have made changes as per that!"
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 259,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 1,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "38c76df8fc76a911600614e3418eb714d19e99a6",
+            "parents": [
+                "6e3e9c2598a7a14f31e2581a472686368f00e5b4"
+            ],
+            "ref": "refs/changes/81/45781/2",
+            "uploader": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "createdOn": 1629141463,
+            "author": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 2,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "a11e436efb190b23c2bf9d4b883e045a9c6b0ead",
+            "parents": [
+                "6e3e9c2598a7a14f31e2581a472686368f00e5b4"
+            ],
+            "ref": "refs/changes/81/45781/3",
+            "uploader": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "createdOn": 1629142196,
+            "author": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 260,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "I don't know what is specification this function is supporting. \nI am reviewing from security coding perspective.\nFrom this check, looks like dirEntry is an array of DataIdStruct and size of array is expected to be returnedEntries.  But the loop line 289-300 suggest different. \nMy previous comments did not get addressed with this change.\n\nCommit message says command was successful. But were the correct data sent for different sizes?"
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 260,
+                    "reviewer": {
+                        "name": "Mansi Joshi",
+                        "email": "mansi.joshi@linux.intel.com",
+                        "username": "Joshi-Mansi"
+                    },
+                    "message": "Agreed. Made changes overall. Please review."
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "line": 260,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 2,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "89f7b63e8485657101d2ca5ec8d0a2ca92882448",
+            "parents": [
+                "6e3e9c2598a7a14f31e2581a472686368f00e5b4"
+            ],
+            "ref": "refs/changes/81/45781/4",
+            "uploader": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "createdOn": 1630613007,
+            "author": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -9
+                }
+            ],
+            "sizeInsertions": 6,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 5,
+            "revision": "ecbd71baa68d0c2834614d84f24de7d369a51ce4",
+            "parents": [
+                "511b06c05d43c217aa5d7620bd052fafda09d586"
+            ],
+            "ref": "refs/changes/81/45781/5",
+            "uploader": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "createdOn": 1631311309,
+            "author": {
+                "name": "Mansi Joshi",
+                "email": "mansi.joshi@linux.intel.com",
+                "username": "Joshi-Mansi"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/mdrv2.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -9
+                }
+            ],
+            "sizeInsertions": 6,
+            "sizeDeletions": 9
+        }
+    ]
+}

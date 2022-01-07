@@ -1,0 +1,887 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I416505a1b001a898429c0526f73002bc45407bf0",
+    "number": 49225,
+    "subject": "psusensor: optimize hwmon file read paths",
+    "owner": {
+        "name": "Zev Weiss",
+        "email": "zev@bewilderbeest.net",
+        "username": "zevweiss"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/49225",
+    "commitMessage": "psusensor: optimize hwmon file read paths\n\nBy using pread(2) instead of read(2)+lseek(2) we can significantly\nreduce the number of syscalls involved in reading from our hwmon files.\nThe code rearrangement for that (dropping async_read_until() and doing\nthe pread ourselves in handleResponse()) also allows us to simplify the\nmanagement of the read buffer, converting it to a temporary on-stack\narray instead of creating and destroying a new one on each read.\n\nTested: on an AST1250 system with 50 LM25066 pmbus devices monitored by\npsusensor, measured the average time taken to run\n\n  $ busctl tree xyz.openbmc_project.PSUSensor\n\nBefore: 16.5 seconds\nAfter:  14.5 seconds\n\nChange-Id: I416505a1b001a898429c0526f73002bc45407bf0\nSigned-off-by: Zev Weiss <zev@bewilderbeest.net>\n",
+    "createdOn": 1638389240,
+    "lastUpdated": 1640461047,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1638389240,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1638389253,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638389391,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/31018/ : FAILURE"
+        },
+        {
+            "timestamp": 1638389461,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1638389473,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638389632,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31019/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638390766,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638391126,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1638391993,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 2:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1638413641,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1638413656,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638413697,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/31032/ : FAILURE"
+        },
+        {
+            "timestamp": 1638413838,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)\n\nRe-did my performance measurements with a slightly more rigorous methodology (described in updated commit message)."
+        },
+        {
+            "timestamp": 1638413884,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1638413896,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638414091,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31033/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638414544,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1638414561,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638414754,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31034/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638422251,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638433552,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638482071,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638494122,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638499534,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638501913,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639416661,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1639426785,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1639465225,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1640461047,
+            "reviewer": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "a98688cfb2b01934656340ca817fc2702d5335b4",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/25/49225/1",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1638389240,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -19
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 21,
+            "sizeDeletions": 24
+        },
+        {
+            "number": 2,
+            "revision": "ecd1f9af671550ec5c8f4da0a1a3f5bc959888c3",
+            "parents": [
+                "b782eec69267206863c07f9ea26b475be7f0f291"
+            ],
+            "ref": "refs/changes/25/49225/2",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1638389461,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "pread is a blocking call, this is an asyncronous daemon.  One reason you see the speedup is because it blocks all other operations (dbus, ect) while it does the read which while great for this level of performance measurement, isn't great for the system as a whole, and impacts the ability to return dbus responses quickly.\n\nWith that said, I do very much want to see the performance of psusensor improve, but not at the expense of the dbus APIs.\n\nThe actions I think we need to take:\n1. Get the iouring patches landed.  https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/46919\n\nThat should make all of these async calls actually async.  It's currently waiting on boost 1.78 to be final.\n\n2. Change async_read_until in all the dbus daemons to use async_read.  async_read_until + the streambuf is really wasteful in terms of resources, and is likely a big source of the speedup you're seeing in not reconstructing the buffers every time.  Given the kernel apis gaurantee to return in a single read, async_read_until isn't necessary, and is just wasted CPU resources."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "> pread is a blocking call, this is an asyncronous daemon.  One reason you see the speedup is because it blocks all other operations (dbus, ect) while it does the read which while great for this level of performance measurement, isn't great for the system as a whole, and impacts the ability to return dbus responses quickly.\n\nDoesn't the `async_wait(boost::asio::posix::descriptor_base::wait_read, ...)` ensure that the FD is ready to read without blocking?  When strace-ing it prior to this patch, it was ultimately boiling down to a regular `read(2)` call anyway, which I'm pretty sure is no more or less blocking than `pread(2)`."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You would think that, but no, it doesn't for filesystem descriptors with epoll.  for iouring (the patches under #1 above) it should.\n\n> When strace-ing it prior to this patch, it was ultimately boiling down to a regular `read(2)` call anyway, which I'm pretty sure is no more or less blocking than `pread(2)`.\n\nin the iouring backend, that's different."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "I mean, I realize that (io_uring aside) the underlying syscall is eventually going to block during the i2c transaction regardless, but considering that this is the exact same pattern already employed in PSUSensor.cpp (a synchronous read call issued from an `async_wait(wait_read, ...)` callback) I figured it would be considered acceptable, given the precedent?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "In a world where we don't have io_uring, yes, it would be equivalent, but considering that we have patches in review to do io_uring, and are largely just waiting on a boost release to turn it on, and the async_wait+read model doesn't give the behavior we want with iouring, I'm wanting to avoid making a change, then having to immediately change it back to something similar.  Hopefully that makes sense?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Yeah, I can understand the reasoning there, I guess it just comes down to deciding on the balance between:\n\n (A) how long we expect it to take for the io_uring stuff to land,\n (B) the (presumably smaller) improvement this can provide in the meantime while waiting for A, and\n (C) the amount of additional work incurred by B when A arrives.\n\nJudging by https://www.boost.org/users/history/, it looks like boost 1.79 probably won't be available until April, which I assume provides a lower bound for A.  C seems (by my estimation) unlikely to be terribly bad (this is a fairly small patch that I'd expect should be easy to revert unless there's a lot more churn in this area between now and whenever that happens).  B is...not huge by any means, but maybe worthwhile considering A?  I dunno."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Yeah, I can understand the reasoning there, I guess it just comes down to deciding on the balance between:\n> \n>  (A) how long we expect it to take for the io_uring stuff to land,\n>  (B) the (presumably smaller) improvement this can provide in the meantime while waiting for A, and\n>  (C) the amount of additional work incurred by B when A arrives.\n> \n> Judging by https://www.boost.org/users/history/, it looks like boost 1.79 probably won't be available until April, which I assume provides a lower bound for A.\n\nThe release notes for boost shows that it landed a couple days ago in the 1.78 release, which is what I was expecting, so A should be pretty short:\n\"Added an io_uring backend that may optionally be used for all I/O objects, including sockets, timers, and posix descriptors.\"\n\nhttps://www.boost.org/users/history/version_1_78_0.html\n\nSo A seems like a matter of a week or two, not months.  From my perspective, this means that A is basically here (just waiting on yocto subtree updates) so I'm not a huge fan of merging a patch to hold it for a week or two, then revert it, given that it's unlikely we'll do significant testing in that time.\n\nIf io_uring doesn't solve this performance problem, that's a very different discussion, although I'm not sure we're there yet.\n\n\n>  C seems (by my estimation) unlikely to be terribly bad (this is a fairly small patch that I'd expect should be easy to revert unless there's a lot more churn in this area between now and whenever that happens).  B is...not huge by any means, but maybe worthwhile considering A?  I dunno.\n\nIn my perfect world, I'd like to see us start by moving this to async_read_some, with a fixed size std::array buffer.\nhttps://www.boost.org/doc/libs/1_78_0/doc/html/boost_asio/reference/posix__basic_stream_descriptor/async_read_some.html\n\nand measure how much of the performance boost that gives us.  I suspect that will be a majority of the speedup here, given we won't be allocating and destroying a buffer on every read, nor parsing the input twice.\n\nThat also has the added advantage of not conflicting with the io_uring updates when they land."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "> The release notes for boost shows that it landed a couple days ago in the 1.78 release\n\nOh neat -- I had thought I'd seen some previous comment somewhere indicating it wasn't expected until 1.79, but I must've been misremembering.\n\n> If io_uring doesn't solve this performance problem, that's a very different discussion, although I'm not sure we're there yet.\n\nObviously I don't have any actual results to go on yet here, but looking at it analytically I'm actually starting to wonder if maybe it won't ultimately be a big win in this case...the APIs in the underlying pmbus/i2c drivers that the read syscalls eventually filter down to are still fundamentally synchronous (unlike block I/O and networking), and I don't think there's any magic io_uring can really do to change that, so I think the real work of the syscalls is probably just going to get kicked to a workqueue and handled in a kworker thread instead of the invoking process -- so given the added scheduling/context-switching work I expect that will incur, I wouldn't be *too* shocked if it ended up being a wash or a net loss.\n\nThough on a slightly separate tangent, one area where it should help is in avoiding the bulk `epoll_ctl()` calls that are currently happening.  Looking at some strace results, I'm not 100% certain, but if I'm reading the trace & epoll_ctl man page right, it *looks* like all the steady-state `EPOLL_CTL_MOD` calls it makes are redundant?  (i.e. it's rearming file descriptors that I think should still be armed from the last time they were used, since there's no EPOLLONESHOT or the like involved.)  I'm a bit reluctant to dig into debugging/modifying the boost asio code, but as a debug hack I think I might experiment with a little `LD_PRELOAD` wrapper to track FDs and elide those calls and see (a) if it still works as it should, and (b) how much it helps on the performance front."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Clearly you tested this (because you gave numbers above).  Please outline your steps a little."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "I hacked in some very ad-hoc instrumentation of how late the timer callbacks were running (which itself added some overhead due to the `gettimeofday()` calls involved)...guess I'll add some appropriate description of that to the commit message.\n\n(I'm working on optimizing psusensor on the system in question because its background polling is swamping it to the point that by the time the poll-interval timer expires it's still busy doing all the work from the other 649 file descriptors it's checking.)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Would you mind trying the iouring patches and running them against the same tests?  They're designed to solve this exact problem."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "An attempt to build with that patch yields:\n\n```\nERROR: boost-1.77.0-r0 do_fetch: Fetcher failure: Unable to find revision 95e645086e920b88b4c12c5da9fc7088964480ac in branch io-uring-1 even from upstream\nERROR: boost-1.77.0-r0 do_fetch: Fetcher failure for URL: 'git://github.com/chriskohlhoff/asio.git;protocol=https;rev=95e645086e920b88b4c12c5da9fc7088964480ac;destsuffix=asio_git;branch=io-uring-1'. Unable to fetch URL from any source.\n```\n\nAny suggestions on how to proceed?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Damn..... chriskohlhoff deleted the branch when he merged this on master.  One moment, let me update the review to point at master."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I updated the patch with the current sha1s from the repo.  It should build now."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Alright, thanks -- I've now got that built and running.  The results are...well, a bit unclear at the moment.  psusensor is now consuming every CPU cycle it can get (top shows 0% idle), which may be \"legitimate\" for all I know at the moment given the workload I'm giving it, but in terms of observable behavior my `busctl tree` command is back to where it was before I started my current optimization efforts -- it times out after 25 seconds (and I suspect that's not just due to psusensor starving busctl/dbus-daemon of CPU cycles, because it still timed out after renicing psusensor to +20).  I think I'll try running it with a pared-down E-M config with fewer sensors to see how behaves with a lighter load (if you've got any suggestions for other things to check, I'm all ears).\n\nAlso, while I unfortunately didn't have the presence of mind to look into *why* before I control-C-ed it, on one occasion the io_uring-enabled psusensor seemed to just hang when I started (it never printed the messages it normally does during sensor creation)...if it happens again I'll try to get more info on it."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "(Further io_uring-specific discussion moved back to https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/46919)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> if you've got any suggestions for other things to check\n\nWe might want to try io-uring in combination with moving to async_read_some.  I did just realize that the version in the aforementioned commit, and the version that got merged in boost 1.78 are different, so I wonder if we're pointing at a more experimental asio-next repo now, and rolling back to 1.78 might fix some of the lockups.  \n\nDo the other non psu-sensor sensor types work correctly on your platform?\n\nThanks for helping to test this."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "> Do the other non psu-sensor sensor types work correctly on your platform?\n\nI'll try to check on that and get back to you (lots of stuff piling up on the TODO list in the next few days unfortunately)."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If you haven't already done so, try the latest patchset I pushed a few mintues ago.  It turns out that without the right flags and objects, the reads fall back to epoll, so in terms of your testing, the one you tested should've been the exact same speed (can't explain why it was slightly slower).\n\nin theory the latest patch (untested) uses the right random_access_file objects, and sets the correct compiler flags to actually invoke an io_uring for those files, so it should be really interesting test."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 209,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I think this construction, and lack of parsring is the source of most of your speedup."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 208,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Could this use async_read instead?"
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 208,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "That would be back to `read(2)` semantics, thus re-necessitating the lseek...I saw the existence of `async_read_at()` (pread-analogous), but it failed to compile due to what I think looked like a boost bug?  (Something in its definition referring to something else that wasn't defined I think.)"
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 212,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, and not your fault, but something you could clean up if you wanted.\n\nPrefer to return early on errors, so something like\n\nif(!self){\n   return;\n}\nself->handleResponse(ec);\n\nwhich saves a scope."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 212,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Sure, happy to make that change while I'm at it."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 212,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 235,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please declare in the scope it's used (although moving to std::array will mostly render this moot, as the buffers will use size())"
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 235,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Okay -- I was emulating the corresponding code in PSUSensor.cpp (psuBufLen), perhaps that should also be changed..."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 235,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "std::array please."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 246,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 253,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, and again, not your fault, but something that could be cleaned up if you felt like it.  Generally we prefer std::from_chars these days because they have better failure modes, and we can handle the errors a little easier."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 253,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ack, will look into that..."
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 253,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -25
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 26,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 3,
+            "revision": "b3c354c2116bb6c0cd8f3f130989ead21ee32d17",
+            "parents": [
+                "77518b28db824e01af18351094680a99b1ba3cae"
+            ],
+            "ref": "refs/changes/25/49225/3",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1638413641,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -25
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 27,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 4,
+            "revision": "100d231289188c33ac6966e0caeb3279d991f0dd",
+            "parents": [
+                "77518b28db824e01af18351094680a99b1ba3cae"
+            ],
+            "ref": "refs/changes/25/49225/4",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1638413884,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -25
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 27,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 5,
+            "revision": "8b63f22ea75e74683619fad5f55db49104a1c283",
+            "parents": [
+                "77518b28db824e01af18351094680a99b1ba3cae"
+            ],
+            "ref": "refs/changes/25/49225/5",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1638414544,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "line": 247,
+                    "reviewer": {
+                        "name": "Arun Lal K M",
+                        "email": "arun.lal@intel.com",
+                        "username": "arunlalkm-intel"
+                    },
+                    "message": "Question:\nAs per commit message \"simplify the management of the read buffer, converting it to a temporary on-stack array instead of creating and destroying a new one on each read\"\n\nWe are still creating and destroying readBuf here rt? every time handleResponse is called."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 25,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/PSUEvent.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/PSUEvent.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -25
+                },
+                {
+                    "file": "src/PSUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 28,
+            "sizeDeletions": 30
+        }
+    ]
+}

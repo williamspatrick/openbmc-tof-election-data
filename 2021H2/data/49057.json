@@ -1,0 +1,309 @@
+{
+    "project": "openbmc/sdbusplus",
+    "branch": "master",
+    "id": "I10635a256aafbdc1e42439a49fa61127e06c8e36",
+    "number": 49057,
+    "subject": "object: handle diamond inheritance",
+    "owner": {
+        "name": "Patrick Williams",
+        "email": "patrick@stwcx.xyz",
+        "username": "williamspatrick"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/sdbusplus/+/49057",
+    "commitMessage": "object: handle diamond inheritance\n\nCommit 664922157bbbd14f0ad1692cee5547f60f6c617c added an inheritance\nto `server::object` to gain access to the bus-pointer.  This was\nobserved to cause a compile failure in some applications which had a\ndiamond-inheritance structure due to a nested `object` inheritance:\n\n    `object<object<iface0, iface1>, object<iface2, iface3>>`\n\nThese clients probably should not have attempted a nested/diamond\nbecause the previous implementation would have resulted in a silent\nfailure to make `action::emit_interface_added` work properly (since\nobject itself doesn't have an `emit_added` function).\n\nImprove the `object` so that:\n    - Diamond inheritance is no longer possible with nested inherits.\n    - The `action::emit_interface_added` action works properly with\n      nested inherits.\n\nThis required adding some template specialization to determine if one of\nthe type arguments to `object` were nested (ie.\n`object<Args0..., object<Args1...>, Args2...>`) and collapse out the\nnested `object` inheritance (so that the example acts exactly the same\nas `object<Args0..., Args1..., Args2...>`).\n\nTested: Enhance the existing `object::emit` test cases to operate on a\nnested `object` structure.\n\nSigned-off-by: Patrick Williams <patrick@stwcx.xyz>\nChange-Id: I10635a256aafbdc1e42439a49fa61127e06c8e36\n",
+    "createdOn": 1637682559,
+    "lastUpdated": 1638982862,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1637682559,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1637682583,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637683307,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30730/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638545574,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1638545587,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638546344,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31185/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638932154,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638934012,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638941651,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 2: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638982859,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 2: Code-Review+2"
+        },
+        {
+            "timestamp": 1638982862,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully rebased and submitted as 4a46eb5aa05df6da3ba66446a6e1526098e47d0f by Patrick Williams"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "d7d044c5837e2d3e738feb6e181a31554b1c84ef",
+            "parents": [
+                "f0eb650e27103c90536c4bc4ab0b51d186de64a0"
+            ],
+            "ref": "refs/changes/57/49057/1",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1637682559,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/server/object.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -29
+                },
+                {
+                    "file": "test/server/object.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 102,
+            "sizeDeletions": 31
+        },
+        {
+            "number": 2,
+            "revision": "c489a6df5a0e0374d215c55a36456b294abd7c10",
+            "parents": [
+                "f0eb650e27103c90536c4bc4ab0b51d186de64a0"
+            ],
+            "ref": "refs/changes/57/49057/2",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1638545574,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "Oh is this really valid use case?\n\nI was expecting the object is a \"hodler\" for the interfaces, but not for nested objects.\n\nCould we simply ask the application to change the above to object<iface0, iface1, iface2, iface3>?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I think it is possible someone could do something like:\n\nInterfaceOne = object<One>;\nInterfaceTwo = object<Two>;\nInterfaceBoth = object<InterfaceOne, InterfaceTwo>;\n\nAnd in some cases make independent One or Two objects and in other cases make a combined Both.  That seemed to be the original intent of the failing repository but due to code maintenance it ended up never making smaller One objects anymore.\n\nIt isn't particularly difficult to not do the wrong thing if someone were to inherit the object twice.\n\n(BTW, I am making changes to the application in question anyhow because they were also doing `InterfaceOne::function()` calls which ended up not being able to be fixed automatically for them.)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "test/server/object.cpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "This only tests the case of inherit object_t<xxx, object_t<iface0>>\n\nIf we are going to support the nested case, it's better to add a new case to test the case of\nobject_t<xxx, object_t<iface0>, object_t<iface1, iface2>> and make sure all the iface0~2 are emitting the interfaces as expected."
+                },
+                {
+                    "file": "test/server/object.cpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I could do `object<Useless, object<UselessAlso, Test>>` if you really want, but I don't want to bother with generating a whole new sdbus++ YAML file just to test this case.  The template is recursive so I don't think it is particularly necessary.  \n\nBefore the code changes this code would have failed to compile with a duplicate inheritance / ambiguous overload error.  With the code change it doesn't.  That seems good enough?"
+                },
+                {
+                    "file": "test/server/object.cpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "Ack.\n\nI think we probably should make new yaml file(s) to test the cases with multiple interfaces.\n\nIt was missing before this change as well, so it's OK for now."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/server/object.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -29
+                },
+                {
+                    "file": "test/server/object.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 102,
+            "sizeDeletions": 31
+        },
+        {
+            "number": 3,
+            "revision": "4a46eb5aa05df6da3ba66446a6e1526098e47d0f",
+            "parents": [
+                "2404176d3ca9e3b5543204f1986a8e9b153522a4"
+            ],
+            "ref": "refs/changes/57/49057/3",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1638982862,
+            "author": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/server/object.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -29
+                },
+                {
+                    "file": "test/server/object.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 102,
+            "sizeDeletions": 31
+        }
+    ]
+}

@@ -1,0 +1,726 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I4ad2652a80fb1c441a25382b7d422ecd7ffc8557",
+    "number": 48266,
+    "subject": "Redfish: Support Host Log Entries",
+    "owner": {
+        "name": "Spencer Ku",
+        "email": "Spencer.Ku@quantatw.com",
+        "username": "SpencerKu"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/48266",
+    "commitMessage": "Redfish: Support Host Log Entries\n\nThis commit is designing and implementing a new logging service in\nRedfish to expose host serial console logs.The goal is that clients\ncan talk to bmc via Redfish and get a real-time console. It will improve\nthe debuggability of BMCs.\n\nWe will add three paths to redfish tree to implement the feature:\n1. /redfish/v1/Systems/system/LogServices/HostLogger\n2. /redfish/v1/Systems/system/LogServices/HostLogger/Entries\n3. /redfish/v1/Systems/system/LogServices/HostLogger/Entries/<str>\n\nTo use this feature, we expect to use phosphor-hostlogger(stream mode)\n+ rsyslog + bmcweb. Phosphor-hostlooger in stream mode forwards the byte\nstream into rsyslog via the imuxsock module. The log is persisted via\nthe omfile module as soon as collected. It makes Host Logger leverage\nexsisting tools (rsyslog and logrotate). Then we can expose host serial\nconsole logs via bmcweb.\n\nThis feature can be enabled or disabled by setting the option\n\"redfish-host-logger\", and the default value is \"enabled\". If you don't\nwant to expose host serial console logs, you need to turn the value to\n\"disabled\".\n\nSample Output:\ncurl -k -H \"X-Auth-Token: $token\" -X GET https://${bmc}/redfish/v1/Systems/system/LogServices/HostLogger/\n{\n  \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/HostLogger\",\n  \"@odata.type\": \"#LogService.v1_1_0.LogService\",\n  \"Description\": \"Host Logger Service\",\n  \"Entries\": {\n    \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/HostLogger/Entries\"\n  },\n  \"Id\": \"HostLogger\",\n  \"Name\": \"Host Logger Service\"\n}\n\ncurl -k -H \"X-Auth-Token: $token\" -X GET https://${bmc}/redfish/v1/Systems/system/LogServices/HostLogger/Entries\n{\n  \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/HostLogger/Entries\",\n  \"@odata.type\": \"#LogEntryCollection.LogEntryCollection\",\n  \"Description\": \"Collection of HostLogger Entries\",\n  \"Members\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/HostLogger/Entries/0\",\n      \"@odata.type\": \"#LogEntry.v1_4_0.LogEntry\",\n      \"EntryType\": \"Oem\",\n      \"Id\": \"0\",\n      \"Message\": \"123123\",\n      \"Name\": \"Host Logger Entry\",\n      \"OemRecordFormat\": \"Host Logger Entry\",\n      \"Severity\": \"OK\"\n    }\n  ],\n  \"Members@odata.count\": 1,\n  \"Name\": \"HostLogger Entries\"\n}\n\ncurl -k -H \"X-Auth-Token: $token\" -X GET https://${bmc}/redfish/v1/Systems/system/LogServices/HostLogger/Entries/0\n{\n  \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/HostLogger/Entries/0\",\n  \"@odata.type\": \"#LogEntry.v1_4_0.LogEntry\",\n  \"EntryType\": \"Oem\",\n  \"Id\": \"0\",\n  \"Message\": \"123123\",\n  \"Name\": \"Host Logger Entry\",\n  \"OemRecordFormat\": \"Host Logger Entry\",\n  \"Severity\": \"OK\"\n}\n\nSigned-off-by: Spencer Ku <Spencer.Ku@quantatw.com>\nChange-Id: I4ad2652a80fb1c441a25382b7d422ecd7ffc8557\n",
+    "createdOn": 1635235176,
+    "lastUpdated": 1636054531,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1635235176,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1635235193,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635235737,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/29017/ : FAILURE"
+        },
+        {
+            "timestamp": 1635238271,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1635238289,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635238736,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29027/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635239207,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Patch Set 2:\n\nUpdate the paging feature, and it will return empty collection if the log files don't exist to fix the issue: https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/47972"
+        },
+        {
+            "timestamp": 1635356456,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 2:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1635495762,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1635495799,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635496257,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29361/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635496479,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1635740874,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635740914,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635753431,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1635753453,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635754682,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29430/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635755788,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635782754,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1635801496,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 4:\n\nPTAL"
+        },
+        {
+            "timestamp": 1635881667,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4: Code-Review+1\n\nLGTM"
+        },
+        {
+            "timestamp": 1635984370,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1635984387,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635984664,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5: Code-Review+1\n\nCan we +2 this change?"
+        },
+        {
+            "timestamp": 1635984874,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n> Patch Set 5: Code-Review+1\n> \n> Can we +2 this change?\n\nSoon.  Considering this patch broke master last time, I want to give an opportunity for others to test if they choose to, and the newest patchset is <48 hours old (assuming PS5 is just a rebase)."
+        },
+        {
+            "timestamp": 1635984966,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29771/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635985165,
+            "reviewer": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "message": "Patch Set 5:\n\n> Patch Set 5:\n> \n> > Patch Set 5: Code-Review+1\n> > \n> > Can we +2 this change?\n> \n> Soon.  Considering this patch broke master last time, I want to give an opportunity for others to test if they choose to, and the newest patchset is <48 hours old (assuming PS5 is just a rebase).\n\nYes, PS5 is a rebase to fix merge conflicts."
+        },
+        {
+            "timestamp": 1636054500,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5: Code-Review+2"
+        },
+        {
+            "timestamp": 1636054528,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\nAs always, happy to discuss, but this patchset has been up for a week and is largely unchanged from the previous iteration, just with bugs fixed."
+        },
+        {
+            "timestamp": 1636054531,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully merged by Ed Tanous"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "24bb479309bbb9bc361437062f8c9f23fbb3b3f4",
+            "parents": [
+                "287ece64bf9a8ee0c42f77cefce559054b488ae7"
+            ],
+            "ref": "refs/changes/66/48266/1",
+            "uploader": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "createdOn": 1635235176,
+            "author": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "type": "ADDED",
+                    "insertions": 177,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 242,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 427,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "654dd2ed9f86be41108892383ebee8b867dd2638",
+            "parents": [
+                "287ece64bf9a8ee0c42f77cefce559054b488ae7"
+            ],
+            "ref": "refs/changes/66/48266/2",
+            "uploader": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "createdOn": 1635238271,
+            "author": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "should we only increase totalFilesSize here?\n\nIIUC, totalFilesSize should only apply to the entries that are actually stored in memory."
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Spencer Ku",
+                        "email": "Spencer.Ku@quantatw.com",
+                        "username": "SpencerKu"
+                    },
+                    "message": "Yes, I think it is more accurately of the memory what we actually use. Done."
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 154,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "nit: this can just be \"lastDelimiter = string(1, bufferStr.back())\""
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 154,
+                    "reviewer": {
+                        "name": "Spencer Ku",
+                        "email": "Spencer.Ku@quantatw.com",
+                        "username": "SpencerKu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 159,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "There is an edge case for paging: 5 zip files don't contain a single delimiter, this lastMessage becomes unnecessarily large.\n\nWhat we can we do is: only store lastMessage when `logCount > skip && logCount <= (skip + top)`"
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 159,
+                    "reviewer": {
+                        "name": "Spencer Ku",
+                        "email": "Spencer.Ku@quantatw.com",
+                        "username": "SpencerKu"
+                    },
+                    "message": "Done. Also add a checker for lastMessage size limit."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1836,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "what if hostLoggerFilePath doesn't exist? will `ec` be `true`?"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1836,
+                    "reviewer": {
+                        "name": "Spencer Ku",
+                        "email": "Spencer.Ku@quantatw.com",
+                        "username": "SpencerKu"
+                    },
+                    "message": "I think it will return false here. The reason please see below comment."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1960,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "wait: does this solve the issue when \"/var/log/console\" doesn't exist, it returns an empty list rather than internal errors? \n\nSee my comments above."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1960,
+                    "reviewer": {
+                        "name": "Spencer Ku",
+                        "email": "Spencer.Ku@quantatw.com",
+                        "username": "SpencerKu"
+                    },
+                    "message": "The internal errors happen because previous code we call \"messages::internalError\" here, like line 1973. Now it just print an error message and return an empty collection. Here is an sample result when file is not exist or file path(/var/log/console) is not exist:\n\n{\n  \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/HostLogger/Entries\",\n  \"@odata.type\": \"#LogEntryCollection.LogEntryCollection\",\n  \"Description\": \"Collection of HostLogger Entries\",\n  \"Members\": [],\n  \"Members@odata.count\": 0,\n  \"Name\": \"HostLogger Entries\"\n}"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "type": "ADDED",
+                    "insertions": 177,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 242,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 427,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "c159ab5e1348d4566bb6c55b80b5ff7b321e6603",
+            "parents": [
+                "287ece64bf9a8ee0c42f77cefce559054b488ae7"
+            ],
+            "ref": "refs/changes/66/48266/3",
+            "uploader": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "createdOn": 1635495762,
+            "author": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "this can be constexpr."
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "it's a nit."
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Spencer Ku",
+                        "email": "Spencer.Ku@quantatw.com",
+                        "username": "SpencerKu"
+                    },
+                    "message": "Done."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "type": "ADDED",
+                    "insertions": 210,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 242,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 460,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "b2e45b611e3f605dbdbacc6be1684ae613f93a04",
+            "parents": [
+                "287ece64bf9a8ee0c42f77cefce559054b488ae7"
+            ],
+            "ref": "refs/changes/66/48266/4",
+            "uploader": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "createdOn": 1635753431,
+            "author": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "type": "ADDED",
+                    "insertions": 210,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 242,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 460,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "b7028ebff16566762b71cdbc597c1244529d208a",
+            "parents": [
+                "c52ee72b01507e3ee1fca3fdf79c1d2748439357"
+            ],
+            "ref": "refs/changes/66/48266/5",
+            "uploader": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "createdOn": 1635984370,
+            "author": {
+                "name": "Spencer Ku",
+                "email": "Spencer.Ku@quantatw.com",
+                "username": "SpencerKu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/gzfile.hpp",
+                    "type": "ADDED",
+                    "insertions": 210,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 242,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 460,
+            "sizeDeletions": 0
+        }
+    ]
+}

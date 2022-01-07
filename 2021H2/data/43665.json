@@ -1,0 +1,1459 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "topic": "nvme-mi-basic",
+    "id": "I08cca4991a2ddea23fe8fcc1cf5365d4baded11c",
+    "number": 43665,
+    "subject": "nvmesensor: Support the NVMe MI basic management command",
+    "owner": {
+        "name": "Andrew Jeffery",
+        "email": "andrew@aj.id.au",
+        "username": "amboar"
+    },
+    "url": "https://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/43665",
+    "commitMessage": "nvmesensor: Support the NVMe MI basic management command\n\nThe NVMe MI basic management command is an optional extension to the\nNVMe specification that allows management controllers to query drive\nstate without needing an MCTP stack[1].\n\n[1] https://nvmexpress.org/wp-content/uploads/NVMe_Management_-_Technical_Note_on_Basic_Management_Command.pdf\n\nGiven the current lack of support for the SMBus MCTP binding in upstream\nOpenBMC, provide an NVMe MI basic management command implementation that\nallows nvmesensor to function without diving into a maze of out-of-tree\npatches.\n\nAs we're doing this in userspace we exploit Linux's I2C chardev\ninterface for talking to the drives. However, the interface is driven by\nioctl()s, which interacts poorly with the event-driven ASIO design.\n\nClick the lego together by using an IO thread to transform ioctl()s into\nread() and write() operations that we can handle asynchronously.\n\nChange-Id: I08cca4991a2ddea23fe8fcc1cf5365d4baded11c\nSigned-off-by: Andrew Jeffery <andrew@aj.id.au>\n",
+    "createdOn": 1622525454,
+    "lastUpdated": 1632436211,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1622525454,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1622525551,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622525936,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/18450/ : FAILURE"
+        },
+        {
+            "timestamp": 1622687218,
+            "reviewer": {
+                "name": "Sumanth Bhat",
+                "email": "sumanth.bhat@linux.intel.com",
+                "username": "sumbhat90"
+            },
+            "message": "Patch Set 1:\n\nHi Andrew, I have couple of questions on this.\n\n1. Community already has an implementation of NVMe MI basic: https://github.com/openbmc/phosphor-nvme ; Why is this being re-implemented? Are there any shortcomings in the existing repo?\n\n2. Also, the NVMe MI basic implementation warrants for a different repo than D-Bus sensors. The spec is huge and allows for total management of nvme drives - i.e. there are things like Admin command sets that really doesn't have anything to do with sensors. \nThe same argument goes for NVMe-MI over MCTP as well."
+        },
+        {
+            "timestamp": 1622687224,
+            "reviewer": {
+                "name": "Sumanth Bhat",
+                "email": "sumanth.bhat@linux.intel.com",
+                "username": "sumbhat90"
+            },
+            "message": "Patch Set 1: Code-Review-1"
+        },
+        {
+            "timestamp": 1622688944,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1622688999,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622689190,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/18600/ : FAILURE"
+        },
+        {
+            "timestamp": 1622689201,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 1:\n> \n> Hi Andrew, I have couple of questions on this.\n> \n> 1. Community already has an implementation of NVMe MI basic: https://github.com/openbmc/phosphor-nvme ; Why is this being re-implemented? Are there any shortcomings in the existing repo?\n\nFrom my poking around at phosphor-nvme a while back the fixed configuration file of phosphor-nvme didn't seem to suite the design of some of our systems. The integration of nvmesensor with entity-manager seemed like a much better match.\n\n> \n> 2. Also, the NVMe MI basic implementation warrants for a different repo than D-Bus sensors. The spec is huge and allows for total management of nvme drives - i.e. there are things like Admin command sets that really doesn't have anything to do with sensors. \n> The same argument goes for NVMe-MI over MCTP as well.\n\nI think this is a discussion that is much broader than the patch. If you want to drive that, then it's probably best to post to the mailing list and we can hash out the way forward there."
+        },
+        {
+            "timestamp": 1622689749,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> > Patch Set 1:\n> > \n> > Hi Andrew, I have couple of questions on this.\n> > \n> > 1. Community already has an implementation of NVMe MI basic: https://github.com/openbmc/phosphor-nvme ; Why is this being re-implemented? Are there any shortcomings in the existing repo?\n> \n> From my poking around at phosphor-nvme a while back the fixed configuration file of phosphor-nvme didn't seem to suite the design of some of our systems. The integration of nvmesensor with entity-manager seemed like a much better match.\n\nSee this thread: https://lore.kernel.org/openbmc/d10e39fa-b8e4-4517-9269-d67045912f54@www.fastmail.com/"
+        },
+        {
+            "timestamp": 1622690034,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1622690053,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622690245,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/18603/ : SUCCESS"
+        },
+        {
+            "timestamp": 1622780491,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1622780512,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1622780796,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/18687/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623081794,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 2:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 1:\n> > > \n> > > Hi Andrew, I have couple of questions on this.\n> > > \n> > > 1. Community already has an implementation of NVMe MI basic: https://github.com/openbmc/phosphor-nvme ; Why is this being re-implemented? Are there any shortcomings in the existing repo?\n> > \n> > From my poking around at phosphor-nvme a while back the fixed configuration file of phosphor-nvme didn't seem to suite the design of some of our systems. The integration of nvmesensor with entity-manager seemed like a much better match.\n> \n> See this thread: https://lore.kernel.org/openbmc/d10e39fa-b8e4-4517-9269-d67045912f54@www.fastmail.com/\n\nThank you for providing the email discussion link. My initial thoughts are that NVMe management commands is much more than just monitoring sensor values and would fit better with phosphor-nvme package. Maybe refactor phosphor-nvme to use entity manager to manage configuration would be a better approach in the long run."
+        },
+        {
+            "timestamp": 1623110614,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4:\n> \n> > Patch Set 2:\n> > \n> > > Patch Set 2:\n> > > \n> > > > Patch Set 1:\n> > > > \n> > > > Hi Andrew, I have couple of questions on this.\n> > > > \n> > > > 1. Community already has an implementation of NVMe MI basic: https://github.com/openbmc/phosphor-nvme ; Why is this being re-implemented? Are there any shortcomings in the existing repo?\n> > > \n> > > From my poking around at phosphor-nvme a while back the fixed configuration file of phosphor-nvme didn't seem to suite the design of some of our systems. The integration of nvmesensor with entity-manager seemed like a much better match.\n> > \n> > See this thread: https://lore.kernel.org/openbmc/d10e39fa-b8e4-4517-9269-d67045912f54@www.fastmail.com/\n> \n> Thank you for providing the email discussion link. My initial thoughts are that NVMe management commands is much more than just monitoring sensor values and would fit better with phosphor-nvme package.\n\nSure, but we don't have to have to deal with all the features a drive exposes in a single application, right?\n\n> Maybe refactor phosphor-nvme to use entity manager to manage configuration would be a better approach in the long run.\n\nOkay, but what impact does that have on this patch? Are you NACKing it? Or are you happy to take it with a view that we eventually move to phosphor-nvme?"
+        },
+        {
+            "timestamp": 1623116290,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 1:\n> \n> Hi Andrew, I have couple of questions on this.\n> \n> 1. Community already has an implementation of NVMe MI basic: https://github.com/openbmc/phosphor-nvme ; Why is this being re-implemented? Are there any shortcomings in the existing repo?\n> \n> 2. Also, the NVMe MI basic implementation warrants for a different repo than D-Bus sensors. The spec is huge and allows for total management of nvme drives - i.e. there are things like Admin command sets that really doesn't have anything to do with sensors. \n> The same argument goes for NVMe-MI over MCTP as well.\n\nFor what it's worth, I care a lot more about the code being well thought out and abstracted over what actual repo it needs to go into.  Now that we have the ability to hand out maintainership on a per-folder/per-file basis, the need to split everything into extra repos is IMO less necessary than it was in the past.\n\nAgree with Andrew that this is a much bigger discussion that's outside the scope of this patchset."
+        },
+        {
+            "timestamp": 1623116630,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4:\n> \n> > Patch Set 4:\n> > \n> > > Patch Set 2:\n> > > \n> > > > Patch Set 2:\n> > > > \n> > > > > Patch Set 1:\n> > > > > \n> > > > > Hi Andrew, I have couple of questions on this.\n> > > > > \n> > > > > 1. Community already has an implementation of NVMe MI basic: https://github.com/openbmc/phosphor-nvme ; Why is this being re-implemented? Are there any shortcomings in the existing repo?\n> > > > \n> > > > From my poking around at phosphor-nvme a while back the fixed configuration file of phosphor-nvme didn't seem to suite the design of some of our systems. The integration of nvmesensor with entity-manager seemed like a much better match.\n> > > \n> > > See this thread: https://lore.kernel.org/openbmc/d10e39fa-b8e4-4517-9269-d67045912f54@www.fastmail.com/\n> > \n> > Thank you for providing the email discussion link. My initial thoughts are that NVMe management commands is much more than just monitoring sensor values and would fit better with phosphor-nvme package.\n\nConsidering that today, the entity-manager reactors have a lot of boilerplate code that goes into making them work properly, and we already have an implementation of NVMe-MI-MCTP in this repo, I'm not sure I agree that phosphor-nvme is the right place for this in anything other than the repo name.  If you're interested in unifying the NVMe-MI implementations, I'm happy to discuss how to do it, but I suspect that's outside the scope of this patch.  FWIW, I'm fine with this being here.\n\nPS, in the future, it would be great if you could voice these concerns when they come up on the mailing list.\n\n> \n> Sure, but we don't have to have to deal with all the features a drive exposes in a single application, right?\n\n+1.\n\n> \n> > Maybe refactor phosphor-nvme to use entity manager to manage configuration would be a better approach in the long run.\n> \n> Okay, but what impact does that have on this patch? Are you NACKing it? Or are you happy to take it with a view that we eventually move to phosphor-nvme?"
+        },
+        {
+            "timestamp": 1623118753,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(12 comments)\n\nWell, I survived the first review.  I'm not sure what I was expecting, but it was less bad than I imagined;\n\nSome overall comments:\nWe seem to be constructing and destroying a lot of stuff (threads, pipes, ect) on every reading.  That seems like it would get expensive in a hurry, especially if you're on a system with 10+ drives.\n\nBecause in this model we have the single thread, and don't have to worry about muxes switching underneath us, should we avoid the whole drives.front() queue thing, and simply queue up all the work to be done on the thread pipe, then let the thread deal with doing one thing at a time?  There might even be an optimization here if we can submit multiple kernel requests into a single I2C_RDWR call in the future at some point, but that's for a future patchset.\n\nI also wonder if there's an in-process queue structure we could use instead of piping to ourselves;  I'm probably overthinking it."
+        },
+        {
+            "timestamp": 1623195325,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 4:\n\n(12 comments)\n\n> Patch Set 4:\n> \n> (12 comments)\n> \n> Well, I survived the first review.  I'm not sure what I was expecting, but it was less bad than I imagined;\n> \n> Some overall comments:\n> We seem to be constructing and destroying a lot of stuff (threads, pipes, ect) on every reading.  That seems like it would get expensive in a hurry, especially if you're on a system with 10+ drives.\n\nYep. I have comments in there about it being a terrible implementation of IO threads.\n\n> \n> Because in this model we have the single thread, and don't have to worry about muxes switching underneath us, should we avoid the whole drives.front() queue thing, and simply queue up all the work to be done on the thread pipe, then let the thread deal with doing one thing at a time?\n\nThis stretches my understanding of some of that queuing stuff, so I'll have to look at it in more depth.\n\n>  There might even be an optimization here if we can submit multiple kernel requests into a single I2C_RDWR call in the future at some point, but that's for a future patchset.\n> \n> I also wonder if there's an in-process queue structure we could use instead of piping to ourselves;  I'm probably overthinking it.\n\nRight; creating pipes is what gives us asynchronicity by assuming unbounded resources at the moment. We could shift that responsibility to a queue of tasks to run on a persistent thread but my lack of familiarity with the C++ ecosystem means I'm not aware of the idiomatic approaches here. We'd need a persistent output pipe to tie into ASIO, but with that comes the concerns around synchronization and robustness."
+        },
+        {
+            "timestamp": 1623208492,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1623217140,
+            "reviewer": {
+                "name": "Sumanth Bhat",
+                "email": "sumanth.bhat@linux.intel.com",
+                "username": "sumbhat90"
+            },
+            "message": "Patch Set 4:\n\nThank you Zhikui, Ed and Andrew. Not right away, but somewhere down the line we're looking to add support for non-sensor NVMe commands like Admin command set. Thus, the concern about extensibility if it gets implemented in D-Bus sensors.\n\nAlthough drive management can be disaggregated into different applications, the underlying protocol remains the same. It would be duplicate effort to implement same protocol in different applications. One way I can think of is- probably abstract the command formats into shared library and sensor application can reside in D-Bus sensors and other commands can reside in other applications.\n\nAgree- this is much more than the scope of this patch. Let me know if it has to be discussed over mails."
+        },
+        {
+            "timestamp": 1623222256,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 4:\n\n> Patch Set 4:\n> \n> Thank you Zhikui, Ed and Andrew. Not right away, but somewhere down the line we're looking to add support for non-sensor NVMe commands like Admin command set. Thus, the concern about extensibility if it gets implemented in D-Bus sensors.\n> \n> Although drive management can be disaggregated into different applications, the underlying protocol remains the same. It would be duplicate effort to implement same protocol in different applications. One way I can think of is- probably abstract the command formats into shared library and sensor application can reside in D-Bus sensors and other commands can reside in other applications.\n> \n> Agree- this is much more than the scope of this patch. Let me know if it has to be discussed over mails.\n\nCan we use one of the existing libnvme implementations? Maybe https://github.com/linux-nvme/libnvme ?"
+        },
+        {
+            "timestamp": 1623222465,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1623222479,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623222620,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19073/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623224367,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1623224399,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623224536,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19079/ : SUCCESS"
+        },
+        {
+            "timestamp": 1623300741,
+            "reviewer": {
+                "name": "Sumanth Bhat",
+                "email": "sumanth.bhat@linux.intel.com",
+                "username": "sumbhat90"
+            },
+            "message": "Patch Set 6:\n\n> Patch Set 4:\n> \n> > Patch Set 4:\n> > \n> > Thank you Zhikui, Ed and Andrew. Not right away, but somewhere down the line we're looking to add support for non-sensor NVMe commands like Admin command set. Thus, the concern about extensibility if it gets implemented in D-Bus sensors.\n> > \n> > Although drive management can be disaggregated into different applications, the underlying protocol remains the same. It would be duplicate effort to implement same protocol in different applications. One way I can think of is- probably abstract the command formats into shared library and sensor application can reside in D-Bus sensors and other commands can reside in other applications.\n> > \n> > Agree- this is much more than the scope of this patch. Let me know if it has to be discussed over mails.\n> \n> Can we use one of the existing libnvme implementations? Maybe https://github.com/linux-nvme/libnvme ?\n\nAt a high level, this looks like it uses the NVMe-PCIe driver and most likely helpful for the host CPUs than the BMC."
+        },
+        {
+            "timestamp": 1623968994,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n> Patch Set 4:\n> \n> Thank you Zhikui, Ed and Andrew. Not right away, but somewhere down the line we're looking to add support for non-sensor NVMe commands like Admin command set. Thus, the concern about extensibility if it gets implemented in D-Bus sensors.\n\ndbus-sensors is just a repo.  Can you elaborate on the extensibility concerns?  Because it's just a repo, I don't have a strong opinion on where this implementation goes (So long as someone steps up to maintain it), but I'd like to understand this, because I don't based on your comment.\n\n> \n> Although drive management can be disaggregated into different applications, the underlying protocol remains the same. It would be duplicate effort to implement same protocol in different applications. \n\nWhy would we have multiple applications that support the underlying protocol?  I had imagined we would have one application that supports the NVME-mi interfaces;  Today that's called nvme-sensor, but if we support more than just sensors, it's easy enough to rename to nvme-manager or something similar.\n\n> One way I can think of is- probably abstract the command formats into shared library and sensor application can reside in D-Bus sensors and other commands can reside in other applications.\n\nOne concern I have would be for firmware updates.  When updating a drive firmware, the BMC likely would need to cancel all other accesses to the drive while it's occuring.  If we separate everything into separate applications, that kind of interlocking becomes really difficult to do.\n\n> \n> Agree- this is much more than the scope of this patch. Let me know if it has to be discussed over mails."
+        },
+        {
+            "timestamp": 1624037180,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1624038317,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1624538363,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 6:\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1624540492,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1624540509,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624540873,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20595/ : SUCCESS"
+        },
+        {
+            "timestamp": 1626299795,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n@arj, any chance you want to maintain nvmeSensor?  You've dug into it deeper than I have, and I'm clearly not finding time to give you good code reviews.\n\nIt's still in my queue, but I'm happy to mess with the OWNERS files and give you control of the nvme stuff if you are willing."
+        },
+        {
+            "timestamp": 1626305131,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 7:\n\n> Patch Set 7:\n> \n> @arj, any chance you want to maintain nvmeSensor?  You've dug into it deeper than I have, and I'm clearly not finding time to give you good code reviews.\n> \n> It's still in my queue, but I'm happy to mess with the OWNERS files and give you control of the nvme stuff if you are willing.\n\nYeah I'm happy to maintain it. Thanks Ed."
+        },
+        {
+            "timestamp": 1627504776,
+            "reviewer": {
+                "name": "Ian Woloschin",
+                "email": "ian.woloschin@akamai.com",
+                "username": "iwoloschin"
+            },
+            "message": "Patch Set 7: Code-Review+1\n\nI cannot provide any comment on the code itself, but I finally got a chance to try this out on two NVMe drives (I'm not actually sure if I can report manufacturer names here) and both drives successfully report drive temperature.\n\nOne thing not covered specifically here, the dbus-sensors_git.bbappend file in the openbmc/openbmc tree should be updated as part of this to enable nvmesensor by default and install the service file. This caused a bit of confusion on my part as dbus-sensors itself does enable nvmesensor by default, but that is overwritten by bitbake.\n\nAdditionally, I have another NVMe drive with a VPD formatted FRU. I do not currently have a good way to create dbus entries for this, but I suspect this dbus-sensors code would also work for this NVMe drives, assuming I can create dbus entries for them."
+        },
+        {
+            "timestamp": 1632374036,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1632374069,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632374213,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/26807/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632434393,
+            "reviewer": {
+                "name": "Ian Woloschin",
+                "email": "ian.woloschin@akamai.com",
+                "username": "iwoloschin"
+            },
+            "message": "Patch Set 8: Code-Review+1\n\nAgain, cannot comment much on the code itself, but tested on several systems I have and worked as expected."
+        },
+        {
+            "timestamp": 1632436183,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 8: Code-Review+2"
+        },
+        {
+            "timestamp": 1632436211,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Change has been successfully rebased and submitted as e3e3c97af854f702523efef70c9bf6a660b2099f by Andrew Jeffery"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "a349e99203b55bb53e7fbcc37b02455c20dd6074",
+            "parents": [
+                "13e79f5349f460dc65ac0fce9cc3403d2d81ff4d"
+            ],
+            "ref": "refs/changes/65/43665/1",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1622525454,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 12,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 321,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 353,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "32cdb782dc354c5e26930eecaccb5aa4f0be6758",
+            "parents": [
+                "dc21439b847e79362b47a258c226b31534c3d7f3"
+            ],
+            "ref": "refs/changes/65/43665/2",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1622688944,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 326,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 355,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 3,
+            "revision": "de09ae76445744540ca4e07606ca7f2aad2444db",
+            "parents": [
+                "dc21439b847e79362b47a258c226b31534c3d7f3"
+            ],
+            "ref": "refs/changes/65/43665/3",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1622690034,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 327,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 356,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 4,
+            "revision": "1443672fe78cce2b1a3b63c2aaf0a69f2550c760",
+            "parents": [
+                "2f20c5ab30fcceb401be7a22b39a497eb7026670"
+            ],
+            "ref": "refs/changes/65/43665/4",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1622780491,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "meson.build",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I understand now why you thought I wouldn't like this......  I wonder if anyone has a std::executor that works with std::thread yet to avoid this dependency on boost::thread......\n\noh well, I guess I can just cry into my oatmeal later."
+                },
+                {
+                    "file": "meson.build",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Yeah, answering that is beyond my ability to C++ right now."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If we're not calculating PEC ourselves, are we still required to hold the PEC byte in the buffer?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit:  std::array?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Probably not, it was just a little forward-looking. Anyway, it's off by one as the maximum block length is 255, not 256 :)"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Could this be combined into a single read(in, ..., 3)?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Yeah, it could. This was the \"make it work\" version of the code :)"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 75,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "For better or worse, dbus-sensors currently uses std::cout/std::cerr for these (on my list to replace with fmt some day).  We should be consistent."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 75,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 161,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Rather than launching this per-request, should we just keep these two pipes open and reuse them between requests?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 161,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "There is that, but if we lose synchronization in some way then the behaviour is undefined until the application is restarted. By creating the pipes each time they are always in a known good state."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 161,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "How would we lose syncronization?  Wouldn't that imply that the pipe failed?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 162,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "command->size() please."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 162,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Yeah, I just ran out of C++ there :)"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 162,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": ":)"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Probably could use std::thread here, right?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "I'll look into it."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 167,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 182,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Doesn't this cause ownership issues on shutdown without doing a join?  Or because we're using pipes does it not matter?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 182,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "We terminate the thread on return from the lambda. What ownership issues are you concerned about specifically?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 182,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If we have a separate thread in the same address space, on shutdown, isn't is possible for it to continue running and using memory that the main thread has freed?\n\nOr am I overthinking it?  (multithreaded programming is not my strong suit)"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 188,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, use response->size()"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 188,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 272,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Comments to list what these are would help a lot."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 272,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Fair"
+                },
+                {
+                    "file": "src/meson.build",
+                    "line": 158,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, seems like we should prefer either one list with 4 members, or adding one member at a time, not adding 2 members, then 1, then 1."
+                },
+                {
+                    "file": "src/meson.build",
+                    "line": 158,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "It just made the diff for the patch that made MCTP support a build option a little less noisy. Also wasn't sure where we are line-wrapping meson files. 80 chars?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 327,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 361,
+            "sizeDeletions": 8
+        },
+        {
+            "number": 5,
+            "revision": "bb5bb9f798185e0488af5ce53c96de67ad6b950e",
+            "parents": [
+                "1263c3dad3a723f4ebbd05e4031e4d5ff45f349c"
+            ],
+            "ref": "refs/changes/65/43665/5",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1623222465,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 343,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 370,
+            "sizeDeletions": 8
+        },
+        {
+            "number": 6,
+            "revision": "72deeac166f2b8fcff6bee4c0674de7c9787b813",
+            "parents": [
+                "20558230c2818727e333247cbf9170a495ffcd7f"
+            ],
+            "ref": "refs/changes/65/43665/6",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1623224367,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 160,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I think it would make sense to wrap these in some raii objects so they get closed properly if we throw an exception, and to abstract out the idea of a \"pipe\" a little.\n\nWith that said, I haven't driven that idea in depth, so it's possible it makes it worse.  Feel free to tell me I'm wrong here if it does make the code messier."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 160,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "I've seen people try this in the past for file descriptors and I don't really like it. If there was something already in std to do the job I'd use it, but given people were writing these wrapper RAII classes I assume there isn't."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 171,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Handle your errors please, even if it's just printing that it happened."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 171,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 232,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Not needed in this patchset, but for nvme devices especially, this will need to be configurable."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 232,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 234,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Generally for these timer loops we capture weak_from_this(), and call lock() inside when we need the value.  This prevents memory leaks and shutdown issues where a sensor accidentally \"owns\" itself."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 234,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "I just copy/pasted this from the MCTP implementation."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 255,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please declare these where they're used (tc on line 264 and dev on line 272) so we know they're explicitly initialized in all cases where they're used."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 255,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 281,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This doesn't look like it needs shared ownership, and is relatively small in size (3 bytes).  This could probably just be passed by value?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 281,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "I've refactored all this a fair bit."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Is this something we could do inside nvmeMIBasicQuery to simplify the calling params a little?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 299,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can we deduplicate this with the one in NVMeMCTPContext.cpp?  They look like a copy/paste of eachother.  I suspect we can just throw this in a common namespace somewhere."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 299,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, probably doesn't need static here."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 299,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "We probably can, but I'm trying to minimise my fish frying for now. I'm going to push a new revision without resolving this."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 299,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Why?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 324,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Do we need a methanism to set quiet_nan when either of these conditions happen?"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 324,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "I'm not sure, this was just similar error handling to the MCTP implementation."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 343,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 370,
+            "sizeDeletions": 8
+        },
+        {
+            "number": 7,
+            "revision": "d43f3868a578a893d68ca421d1aedf7820b7749a",
+            "parents": [
+                "18fffd3d4d426ad84059a1e474665a0e31926f5f"
+            ],
+            "ref": "refs/changes/65/43665/7",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1624540492,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 436,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                }
+            ],
+            "sizeInsertions": 468,
+            "sizeDeletions": 8
+        },
+        {
+            "number": 8,
+            "revision": "2de0f113fb8c34e50c4e5bfd97918827bbdfdf53",
+            "parents": [
+                "33703af797949b47375086988daeac89b47b5db1"
+            ],
+            "ref": "refs/changes/65/43665/8",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1632374036,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 454,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 486,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 9,
+            "revision": "e3e3c97af854f702523efef70c9bf6a660b2099f",
+            "parents": [
+                "e3b23c06d4dd61ad29978f9abb719a7af0c84353"
+            ],
+            "ref": "refs/changes/65/43665/9",
+            "uploader": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "createdOn": 1632436211,
+            "author": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/NVMeBasicContext.hpp",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "ADDED",
+                    "insertions": 454,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 486,
+            "sizeDeletions": 10
+        }
+    ]
+}
