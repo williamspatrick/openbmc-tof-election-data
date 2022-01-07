@@ -1,0 +1,50 @@
+#!/usr/bin/env -S python3 -B
+
+import argparse
+import json
+from typing import Dict
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Create vote roll-call")
+    parser.add_argument(
+        "--previous",
+        help="Previous half active_members.json file",
+        required=True,
+    )
+    parser.add_argument(
+        "--current",
+        help="Current half active_members.json file",
+        required=True,
+    )
+    parser.add_argument(
+        "--points",
+        help="Points for 'highly-productive' members",
+        required=True,
+        type=int,
+    )
+
+    args = parser.parse_args()
+
+    with open(args.previous, "r") as prevfile:
+        previous = json.load(prevfile)
+
+    with open(args.current, "r") as currfile:
+        current = json.load(currfile)
+
+    results: Dict[str, str] = {}
+
+    for user in sorted(set(previous.keys()).union(current.keys())):
+        if user in current:
+            if current[user] > args.points:
+                results[user] = "highly-productive"
+            else:
+                results[user] = "active"
+        else:
+            results[user] = "emertius"
+
+    print(json.dumps(results, indent=4))
+
+
+if __name__ == "__main__":
+    main()
