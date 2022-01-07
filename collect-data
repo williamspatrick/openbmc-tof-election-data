@@ -1,0 +1,15 @@
+#!/bin/zsh
+set -e
+
+before=$1
+after=$2
+
+voterpath="$(dirname $(dirname $0:A))/openbmc-tools/tof-voters"
+
+$voterpath/voters dump-gerrit --after=$after
+$voterpath/voters analyze-commits --before=$before --after=$after > data/commits.txt
+$voterpath/voters analyze-reviews --before=$before --after=$after > data/reviews.txt
+$voterpath/voters report > /dev/null
+cat data/report.json | \
+    jq "with_entries(select(.value.qualified) | .value = .value.points)" > \
+    active_members.json
