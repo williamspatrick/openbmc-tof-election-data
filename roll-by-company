@@ -1,0 +1,38 @@
+#!/usr/bin/env -S python3 -B
+
+import argparse
+import json
+from collections import defaultdict
+from sh import ssh  # type: ignore
+from typing import Dict
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--file", required=True)
+
+args = parser.parse_args()
+
+with open(args.file, "r") as rollfile:
+    rollcall = json.load(rollfile)
+
+result: Dict[str, list[str]] = defaultdict(list)
+for [user, value] in rollcall.items():
+    groups = ssh("openbmc.gerrit", "gerrit", "ls-groups", "--user", user)
+    user_group = None
+    for g in groups:
+        key = "/ci-authorized\n"
+        if key not in g:
+            continue
+        g = g[0 : g.find(key)]
+
+        if g == "openbmc":
+            continue
+
+        if user_group == None or user_group == "individual":
+            user_group = g
+
+    if user_group == None:
+        user_group = "unknown"
+
+    result[user_group].append(user)
+
+print(json.dumps(result, indent=4))
