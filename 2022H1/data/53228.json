@@ -1,0 +1,1594 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I0e661db0263f56dd0cab66047a0a5d4fff31b69a",
+    "number": 53228,
+    "subject": "Expand query: reimplement the way to do subqueries",
+    "owner": {
+        "name": "Nan Zhou",
+        "email": "nanzhoumails@gmail.com",
+        "username": "FighterNan"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/53228",
+    "commitMessage": "Expand query: reimplement the way to do subqueries\n\nFor any expand query, the current implementation does all queries in a\nsingle MultiAsyncResp, where the code sends a bunch of requests without\nQuery parameters. This makes it impossible to invoke efficient expand\nhandlers, since efficent handlers will only be invoked when a query has\n$expand in its parameters. (Delegation only happens when the query\ncontains query parameters)\n\nTo solve it, in this commit, we proposed to send a bunch of requests\n**WITH** Query parameters in MultiAsyncResp. This makes\n\"/redfish/v1/Chassis/chassis?expand=.($levels=2)\" be able to invoke\nefficient expand handlers that we developed for sensors, which existing\nimplementation can't do. This decreases latency by nearly 100 times (the\nimprovement that efficient sensor expand handler provides) on real\nhardware which contains 5+ chassis and totally 220+ sensors.\n\nThis commit aligns with future $select support well, since the recursive\nqueries can add $select as part of the query parameters.\n\nWith this commit, though we create multiple MultiAsyncResp objects\nmemory doesn't increase significantly; part of the reason is that we are\nnot copying Query anymore in MultiAsyncResp.\nNo out-of-memory issues are found when 4 threads are querying\nexpand=levels=6 at the service root on a real large hardware which\ncontains 2+ sockets, 5+ chassis, 220+ sensors, 30+ DIMMs, etc.\n\nTested:\n1. On real hardware, /redfish/v1/Chassis?$expand=.(level=3) is giving\nthe correct result and invokes efficient sensor Expand handler\n2. stress test\n```\nfor i in {1..4};\ndo\n  echo \"thread $i\"\n  wget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=6)' > \"/tmp/$i.log\" &\ndone\n\nfor i in {1..1000};\ndo\n  top -b -n 1 | grep bmcweb >> /tmp/bmcweb_ori.log\n  sleep 1\ndone\n```\nResults\n```\n25878  2856 root     R     194m  20%   1  38% /tmp/bmcweb_after\n19005  2856 root     R     215m  22%   1  36% /tmp/bmcweb_ori\n```\n\nSigned-off-by: Nan Zhou <nanzhoumails@gmail.com>\nChange-Id: I0e661db0263f56dd0cab66047a0a5d4fff31b69a\n",
+    "createdOn": 1650674638,
+    "lastUpdated": 1654114662,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1650674638,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1650674653,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650674653,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650674714,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650674830,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650674876,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650675239,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41913/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651787032,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1651787061,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651787061,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651787731,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/42727/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651790832,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1651790874,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651790874,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651791471,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651791555,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/42729/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651879463,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1652115460,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652115863,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652121595,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652121633,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652128386,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652132919,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652200919,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652202162,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652202177,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 4: Patch Set 3 was rebased"
+        },
+        {
+            "timestamp": 1652202203,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1652202203,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1652203218,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/42958/ : SUCCESS"
+        },
+        {
+            "timestamp": 1652206835,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652212152,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652349077,
+            "reviewer": {
+                "name": "Manish Baing",
+                "email": "manish.baing@intel.com",
+                "username": "manishbaing"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1652375713,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5: Published edit on patch set 4."
+        },
+        {
+            "timestamp": 1652375728,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1652375728,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1652375798,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1652375814,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652376422,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/43151/ : SUCCESS"
+        },
+        {
+            "timestamp": 1652418257,
+            "reviewer": {
+                "name": "Manish Baing",
+                "email": "manish.baing@intel.com",
+                "username": "manishbaing"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652431370,
+            "reviewer": {
+                "name": "Krzysztof Grobelny",
+                "email": "krzysztof.grobelny@intel.com",
+                "username": "krzysztof-i"
+            },
+            "message": "Patch Set 5:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1652431761,
+            "reviewer": {
+                "name": "Krzysztof Grobelny",
+                "email": "krzysztof.grobelny@intel.com",
+                "username": "krzysztof-i"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652461335,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652461905,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652463014,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1652463022,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1652463029,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1652463029,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1652463078,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652463693,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/43235/ : SUCCESS"
+        },
+        {
+            "timestamp": 1652669544,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 6:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1652744070,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7: Commit message was updated."
+        },
+        {
+            "timestamp": 1652744103,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1652810049,
+            "reviewer": {
+                "name": "Brandon Kim",
+                "email": "brandonkim@google.com",
+                "username": "brandonkimbk"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652818506,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8: Commit message was updated."
+        },
+        {
+            "timestamp": 1652818561,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 9: Commit message was updated."
+        },
+        {
+            "timestamp": 1652818566,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653414284,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653553020,
+            "reviewer": {
+                "name": "Krzysztof Grobelny",
+                "email": "krzysztof.grobelny@intel.com",
+                "username": "krzysztof-i"
+            },
+            "message": "Patch Set 9: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1653585569,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653630432,
+            "reviewer": {
+                "name": "Manish Baing",
+                "email": "manish.baing@intel.com",
+                "username": "manishbaing"
+            },
+            "message": "Patch Set 9: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654114655,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654114662,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 72c3ae33bd127f8cd5887000a45adf13a56c7582"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "5641616cbda87cc244ba40f666946968aeb05d72",
+            "parents": [
+                "eb1c47d3d98a186164ffb90214037c6062da7937"
+            ],
+            "ref": "refs/changes/28/53228/1",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650674638,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 290,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This is a bug fix."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 389,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "In this way, we don't copy |query| across the subqueries anymore as well."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 230,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This is an example case that old code missed."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 230,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Split into https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/53540/1"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 230,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "\ud83d\udc4d"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -43
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 70,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 153,
+            "sizeDeletions": 78
+        },
+        {
+            "number": 2,
+            "revision": "a04d00bb1a1939b613ed422102e05af1504559dd",
+            "parents": [
+                "da8ba403e2ebebdfa952f4d1315262f9f275267b"
+            ],
+            "ref": "refs/changes/28/53228/2",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1651787032,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -43
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 70,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 153,
+            "sizeDeletions": 78
+        },
+        {
+            "number": 3,
+            "revision": "4aca086e69e214de467f5159a391669d7174e05d",
+            "parents": [
+                "e479ad5885a300fe6af862da819b25a0c74c9d9f"
+            ],
+            "ref": "refs/changes/28/53228/3",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1651790832,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm reading through this, and there's a pretty significant change being made to the memory usage here in that now we'll have AsyncMultiRequest objects for every node of every level of the tree that we're parsing, instead of just a single one at the top that manages all the outstanding requests.  That's a bit of a concern if we every want to dump the whole tree.  6 levels deep * number of leaf nodes is a bit big to be having an AsyncMultiRequest object for every level.  Maybe I'm wrong though.\n\nThe other concern is that we're constructing a query param string, just to immediately decode it, which the old code didn't do, given it operated on the Query objects directly.  That seems less efficient than what exists.  Did you look into seeing if the Query object could be used as is, instead of generating intermediate strings?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "> 6 levels deep * number of leaf nodes is a bit big to be having an AsyncMultiRequest object for every level.  Maybe I'm wrong though.\n\nThanks for the comment. That's a valid concern, but it's not very obvious to me whether this change introduces more memory usage. The existing algorithm captures a copy of the whole Query object, which as eliminated in this commit. This commits does create more AsyncMultiRequest objects but Given that AsyncMultiRequest only keeps two pointers as data members, it shouldn't be a big deal. Just for my knowledge, any other reasons why you are worried about it in the first place?\n\nI did a benchmark on real hardware.\n\n```\n  PID  PPID USER     STAT   VSZ %VSZ CPU %CPU COMMAND\n 5887  2856 root     S     104m  10%   1   9% /tmp/bmcweb_after\n 5953  2856 root     S     104m  10%   0   9% /tmp/bmcweb_ori\nwget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=2)'\n \n \n 5825  2856 root     S     108m  11%   1  29% /tmp/bmcweb_after\n 5955  2856 root     S     108m  11%   1  34% /tmp/bmcweb_ori\nwget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=3)'\n \n \n21747  2856 root     R     138m  14%   1  27% /tmp/bmcweb_after\n16519  2856 root     S     138m  14%   1  25% /tmp/bmcweb_ori\nwget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=4)'\n \n 2665  2856 root     S     178m  18%   0  19% /tmp/bmcweb_after\n29729  2856 root     S     181m  18%   1  20% /tmp/bmcweb_ori\nwget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=5)'\n \n 8044  2856 root     S     237m  23%   1  14% /tmp/bmcweb_after\n13301  2856 root     R     227m  23%   0  28% /tmp/bmcweb_ori\nwget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=6)'\n```\nI didn't see big difference on memory consumption between the two algorithms.\n\n\n> The other concern is that we're constructing a query param string, just to immediately decode it, which the old code didn't do, given it operated on the Query objects directly.  That seems less efficient than what exists.  Did you look into seeing if the Query object could be used as is, instead of generating intermediate strings?\n\nThis is also a valid concern. I thought about this when implementing the algorithm. One thought at that time is to keep values of expand string and select string in |Query|. And we use vector of string_view to store selected attributes. Does this help solve your concern?\n\nPlease resolve if the above looks good."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > 6 levels deep * number of leaf nodes is a bit big to be having an AsyncMultiRequest object for every level.  Maybe I'm wrong though.\n> \n> Thanks for the comment. That's a valid concern, but it's not very obvious to me whether this change introduces more memory usage. The existing algorithm captures a copy of the whole Query object, which as eliminated in this commit.\n\nBut it captures it once, not N times.\n\n> This commits does create more AsyncMultiRequest objects but Given that AsyncMultiRequest only keeps two pointers as data members, it shouldn't be a big deal.\n\nGiven that that the handler also has captures, it's larger than just two pointers.\n\n> Just for my knowledge, any other reasons why you are worried about it in the first place?\n\nBecause if I call $expand($levels=6) on service root, it will limit the size of the response that can be given.\n\n> \n> I did a benchmark on real hardware.\n> \n> ```\n>   PID  PPID USER     STAT   VSZ %VSZ CPU %CPU COMMAND\n>  5887  2856 root     S     104m  10%   1   9% /tmp/bmcweb_after\n>  5953  2856 root     S     104m  10%   0   9% /tmp/bmcweb_ori\n> wget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=2)'\n>  \n>  \n>  5825  2856 root     S     108m  11%   1  29% /tmp/bmcweb_after\n>  5955  2856 root     S     108m  11%   1  34% /tmp/bmcweb_ori\n> wget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=3)'\n>  \n>  \n> 21747  2856 root     R     138m  14%   1  27% /tmp/bmcweb_after\n> 16519  2856 root     S     138m  14%   1  25% /tmp/bmcweb_ori\n> wget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=4)'\n>  \n>  2665  2856 root     S     178m  18%   0  19% /tmp/bmcweb_after\n> 29729  2856 root     S     181m  18%   1  20% /tmp/bmcweb_ori\n> wget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=5)'\n>  \n>  8044  2856 root     S     237m  23%   1  14% /tmp/bmcweb_after\n> 13301  2856 root     R     227m  23%   0  28% /tmp/bmcweb_ori\n> wget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=6)'\n> ```\n> I didn't see big difference on memory consumption between the two algorithms.\n\nHow are you measuring memory usage with a single wget command?  Generally if you want to measure memory usage, you would run it in a loop from multiple threads, and see where you run out of resources.\n\n> \n> \n> > The other concern is that we're constructing a query param string, just to immediately decode it, which the old code didn't do, given it operated on the Query objects directly.  That seems less efficient than what exists.  Did you look into seeing if the Query object could be used as is, instead of generating intermediate strings?\n> \n> This is also a valid concern. I thought about this when implementing the algorithm. One thought at that time is to keep values of expand string and select string in |Query|. And we use vector of string_view to store selected attributes. Does this help solve your concern?\n\nI don't understand your proposed solution.  Can you either post a quick patch/snippet of what you're thinking?  In Query, there is no \"expand string\" it's only a structure with enum/int members, so I'm a little confused.\n\n> \n> Please resolve if the above looks good."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "> How are you measuring memory usage with a single wget command?  Generally if you want to measure memory usage, you would run it in a loop from multiple threads, and see where you run out of resources.\n\nWe are comparing whether this commit increases memory usage, right? From the benchmark of a single thread, we know it does make much difference. Do you expect parallel requests change it so this commits consumes more memory?\n\nRegarding whether $expand=*($levels=6) will cause out of memory errors. That's not what this commit tries to solve, right? But if you need a benchmark, I can do that.\n\n> I don't understand your proposed solution.  Can you either post a quick patch/snippet of what you're thinking?  In Query, there is no \"expand string\" it's only a structure with enum/int members, so I'm a little confused.\n\nSomething like this.\n\n```\n// The struct stores the parsed query parameters of the default Redfish route.\nstruct Query\n{\n    // Only\n    bool isOnly = false;\n    // Expand\n    uint8_t expandLevel = 0;\n    ExpandType expandType = ExpandType::None;\n    std::string expandStr;    \n\n    std::string selectedPropertiesStr;\n    std::vector<std::string_view> selectedProperties;\n}\n```\n\nPeople might argue that it introduces duplicate information. I don't know if there's other ways if we want to include query parameters into the queries that we created in |AsyncMultiRequest|.\n\nOr, any other ideas how to make $level=2 expand query invoke efficient $level=1 expand query, other than what this commit proposes?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "* From the benchmark of a single thread, we know it does \"not\" make much difference. \n\nMissed a not."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Keep in mind, you're benchmarking on a system that has 10-100X the memory bandwidth of other BMCs.  Your results might not be indicative of other bmcs, and your time is largely dominated by network, which isn't always the case.\n\n\n> Do you expect parallel requests change it so this commits consumes more memory?\n\nYes, because of the way you're measuring, you're measuring at a point in time, and it's unlikely you caught the peak memory usage with your call, that's generally why we run multiple in parallel, so we're guaranteed to measure the \"peak\" usage, which per the developing guide, is what we optimize for, because if we run the bmc out of memory, it's a bad thing.\n\n\n> Something like this.\n\nI'm not really following how that would work.  If you already have epandLevel and expandType, what does expandStr give you?\n\n\n> Or, any other ideas how to make $level=2 expand query invoke efficient $level=1 expand query, other than what this commit proposes?\n\nKeeping the existing \"parse the parameters once\" approach, then just make sure the delegate call can properly select sublevel handling instead of passing onto the existing handlers."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "> Your results might not be indicative of other bmcs, and your time is largely dominated by network, which isn't always the case. \nWhy is it dominated by network? \n\n> Yes, because of the way you're measuring, you're measuring at a point in time, and it's unlikely you caught the peak memory usage with your call, that's generally why we run multiple in parallel, so we're guaranteed to measure the \"peak\" usage, which per the developing guide, is what we optimize for, because if we run the bmc out of memory, it's a bad thing.\nI am capturing the memory usage continuously (in a certain interval) and chose the \"peak\" usage.\n\nI did another benchmark where 4 threads are requesting data in parallel. Peak Mem usage is mapped out below. \n\n```\n25878  2856 root     R     194m  20%   1  38% /tmp/bmcweb_after       \n19005  2856 root     R     215m  22%   1  36% /tmp/bmcweb_ori           \n```\n\n> I'm not really following how that would work.  If you already have epandLevel and expandType, what does expandStr give you?\n\nYou don't want to re-generate the string again, so I propose to store the original value of those query parameters if we are going to use them again. But true, for expand, the value has to change. For select, we can probably directly use the original string. \n\n> Keeping the existing \"parse the parameters once\" approach, then just make sure the delegate call can properly select sublevel handling instead of passing onto the existing handlers.\nHow do we \"make sure the delegate call can properly select sublevel handling\""
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > Your results might not be indicative of other bmcs, and your time is largely dominated by network, which isn't always the case. \n> Why is it dominated by network? \n\nBecause you have a much faster bmc processor.\n\n> \n> > Yes, because of the way you're measuring, you're measuring at a point in time, and it's unlikely you caught the peak memory usage with your call, that's generally why we run multiple in parallel, so we're guaranteed to measure the \"peak\" usage, which per the developing guide, is what we optimize for, because if we run the bmc out of memory, it's a bad thing.\n> I am capturing the memory usage continuously (in a certain interval) and chose the \"peak\" usage.\n> \n> I did another benchmark where 4 threads are requesting data in parallel. Peak Mem usage is mapped out below. \n> \n> ```\n> 25878  2856 root     R     194m  20%   1  38% /tmp/bmcweb_after       \n> 19005  2856 root     R     215m  22%   1  36% /tmp/bmcweb_ori           \n> ```\n> \n> > I'm not really following how that would work.  If you already have epandLevel and expandType, what does expandStr give you?\n> \n> You don't want to re-generate the string again, so I propose to store the original value of those query parameters if we are going to use them again. But true, for expand, the value has to change. For select, we can probably directly use the original string. \n\nFor select, wouldn't we use the parsed result?  and store as vector<string>?\n\n> \n> > Keeping the existing \"parse the parameters once\" approach, then just make sure the delegate call can properly select sublevel handling instead of passing onto the existing handlers.\n> How do we \"make sure the delegate call can properly select sublevel handling\"\n\nI don't think I understand the question;  It would select it the same way it does today?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "> For select, wouldn't we use the parsed result?  and store as vector<string>?\n\nYes, that's what I went with in https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/53245/11. But you have concerns on regenerating the query string from the vector, right? Thus, to reduce memory usage and not to regenerate strings, I proposed \n\n```\n    std::string selectedPropertiesStr;\n    std::vector<std::string_view> selectedProperties;\n```\n\nin the above comments.\n\n> I don't think I understand the question;  It would select it the same way it does today?\n\nMy question is that inside MultiAsyncResp, how we can invoke efficient expand handlers. I'm open to see other ideas other than what this commit proposes."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > For select, wouldn't we use the parsed result?  and store as vector<string>?\n> \n> Yes, that's what I went with in https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/53245/11. But you have concerns on regenerating the query string from the vector, right? Thus, to reduce memory usage and not to regenerate strings, I proposed \n\nThe key here is that I want to avoid parsing user strings more than once, or generating a string from a struct, just to parse it back to a struct again.\n\n> \n> ```\n>     std::string selectedPropertiesStr;\n>     std::vector<std::string_view> selectedProperties;\n> ```\n> \n> in the above comments.\n> \n> > I don't think I understand the question;  It would select it the same way it does today?\n> \n> My question is that inside MultiAsyncResp, how we can invoke efficient expand handlers. I'm open to see other ideas other than what this commit proposes.\n\nUse the output of the log to determine if the efficient handler has already been done?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Hmm, seems like I didn't make myself clear. Let me rephrase.\n\nFor any expand query, the current implementation does all queries in a single MultiAsyncResp, where the code sends a bunch of requests without Query parameters. This makes it impossible to invoke efficient expand handlers, since expand handlers will only be invoked when a query has $expand in its parameters. (Delegation only happens when the query contains query parameters)\n\nSo, to solve it, in this commit, I proposed to send a bunch of requests **WITH** Query parameters in MultiAsyncResp. This makes \"/redfish/v1/Chassis/chassis?expand=.($levels=2)\" be able to invoke efficient expand handlers that we developed for sensors, which existing implementation can't do.\n\nThe downside of it as you pointed out, we \"are parsing user strings more than once, or generating a string from a struct, just to parse it back to a struct again.\"\n\nIn my opinion, this downside is fine, as benchmarks show that \n\n1. memory doesn't increase significantly; part of the reason is that we are not copying Query anymore in MultiAsyncResp. No out-of-memory issues are found when 4 threads are querying expand=levels=6 at the service root\n2. latency is significantly reduced because efficient handlers are invoked\n\n> Use the output of the log to determine if the efficient handler has already been done?\n\nYes, I used this to verify this commit works during testing. But what I'm asking is that in existing codes, how do we invoke efficient expand handlers if we send a bunch of requests without Query parameters\n\nHope this time I made myself clear."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Do you have any more comments?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Can you post your script which measures memory usage? Maybe uploading your script will move this review forward. It would also allow others to perform same test on different HW."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Sure. It is something like this\n\n```\nfor i in {1..4};\ndo\n  echo \"thread $i\"\n  wget -qO- 'http://localhost:18080/redfish/v1?$expand=*($levels=6)' > \"/tmp/$i.log\" &\ndone\n \nfor i in {1..1000};\ndo\n  top -b -n 1 | grep bmcweb >> /tmp/bmcweb_ori.log\n  sleep 1\ndone\n```\n\nThen in the log of \"top\", I just picked the peak. Do you want this script go into the script directory?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Mark as resolved. Please reopen if you have more concerns."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 64,
+                    "deletions": -30
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 81
+        },
+        {
+            "number": 4,
+            "revision": "52096964097cec69d61aca05f478cead6c8c62e2",
+            "parents": [
+                "2a68dc80d62482bfa886e78e536e223b84094ad3"
+            ],
+            "ref": "refs/changes/28/53228/4",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1652202177,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Manish Baing",
+                        "email": "manish.baing@intel.com",
+                        "username": "manishbaing"
+                    },
+                    "message": "nit : you can use string.empty() instead \"\"."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "string::empty() returns a boolean. I might misunderstand your comment but empty() doesn't work IIUC.\n\nI did a bit of research and found that returning a c string is not as efficient as calling the constructor of std::string."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Manish Baing",
+                        "email": "manish.baing@intel.com",
+                        "username": "manishbaing"
+                    },
+                    "message": "ACK"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 441,
+                    "reviewer": {
+                        "name": "Manish Baing",
+                        "email": "manish.baing@intel.com",
+                        "username": "manishbaing"
+                    },
+                    "message": "same as line number 435"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 441,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 452,
+                    "reviewer": {
+                        "name": "Manish Baing",
+                        "email": "manish.baing@intel.com",
+                        "username": "manishbaing"
+                    },
+                    "message": "same as line number 435"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 452,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 64,
+                    "deletions": -30
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 81
+        },
+        {
+            "number": 5,
+            "revision": "c3ddf74aafea0b9be8667c0331e22b7583c500da",
+            "parents": [
+                "2a68dc80d62482bfa886e78e536e223b84094ad3"
+            ],
+            "ref": "refs/changes/28/53228/5",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1652375713,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 420,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Always prefer self commenting code over comments when possible. Comments are getting old quickly and often are not accurate.\n\nconst nlohmann::json::json_pointer root = nlohmann::json::json_pointer(\"\");\nfindNavigationReferencesRecursive(\n        eType, jsonResponse, root, false, ret);"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 420,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Manish Baing",
+                        "email": "manish.baing@intel.com",
+                        "username": "manishbaing"
+                    },
+                    "message": "Wanted to understand why you replace  \"\"  to { } here ?"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Sure. https://stackoverflow.com/questions/26587110/returning-an-empty-string-efficient-way-in-c"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 435,
+                    "reviewer": {
+                        "name": "Manish Baing",
+                        "email": "manish.baing@intel.com",
+                        "username": "manishbaing"
+                    },
+                    "message": "ACK"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 481,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Your comment is not accurate. Mentioned funtion just placesResult you can see it from the name and code. But there is comment that it places subQueries which sometimes is not true, because it can be used for other purposes as well.\n\nConsider removing this comment."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 481,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 496,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "const std::string queryStr = ...;"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 496,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 499,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "const std::string subQuery = node.uri = queryStr;"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 499,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done\n\nActually my understanding on this is that (node.uri + queryStr) in the Log print statement doesn't compile at all when we turn off logs, is that correct?"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 499,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Yes, it should be optimized out by compiler."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 614,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "You can delete this comment: multi->startQuest is quite obvious."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 614,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Use more descriptive name. I would like to know what kind of output emptyQueryString provides. For example NoSubQeuryWhenQueryIsEmpty"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 119,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Same here. Make your test name explain why there are no subQueries in cases bellow. When possible each test name should describe functionality of your function. After reading test name I would like to know when your function return no sub queries. Consider test names short form of documentation."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 119,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 132,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "If negative test cases are well named this one may be good enough. Still it would be nice to have well named tests which explains conditions that needs to be fulfilled to return output."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "line": 132,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 64,
+                    "deletions": -30
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 81
+        },
+        {
+            "number": 6,
+            "revision": "a839d6eed4aa7c2b3be4b98c8b33fc250192ff35",
+            "parents": [
+                "2a68dc80d62482bfa886e78e536e223b84094ad3"
+            ],
+            "ref": "refs/changes/28/53228/6",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1652463014,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Can we add a bit on the tradeoffs? \nI see a lot of great conservation in the review, can a little be mentioned here?\n\nE.g.This approach does have a trade off and that being memory usage. As mentioned below when tested ...."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Can we mention the memory consumption in the tested section? Can you mention a bit about the size of the Redfish tree tested? The BMC you tested on?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -28
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 79
+        },
+        {
+            "number": 7,
+            "revision": "a1435dd1fa93400841e1e4a0d2dc789bca94eb62",
+            "parents": [
+                "2a68dc80d62482bfa886e78e536e223b84094ad3"
+            ],
+            "ref": "refs/changes/28/53228/7",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1652744070,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 36,
+                    "reviewer": {
+                        "name": "Brandon Kim",
+                        "email": "brandonkim@google.com",
+                        "username": "brandonkimbk"
+                    },
+                    "message": "nit: 72 chars"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 36,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "PTAL. I moved some of the discussions to the commit message"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -28
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 79
+        },
+        {
+            "number": 8,
+            "revision": "d8c7b6507ca84b178d529466ecde648690acc1e4",
+            "parents": [
+                "2a68dc80d62482bfa886e78e536e223b84094ad3"
+            ],
+            "ref": "refs/changes/28/53228/8",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1652818506,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -28
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 79
+        },
+        {
+            "number": 9,
+            "revision": "139c3ccef3a6f90f3f99a8cbb078291f58058ec0",
+            "parents": [
+                "2a68dc80d62482bfa886e78e536e223b84094ad3"
+            ],
+            "ref": "refs/changes/28/53228/9",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1652818561,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Any more comments?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "I didn't some tests on my HW and I don't see any change in CPU or memory usage. I noticed that overall execution time for requests with expand with level > 3 there is significant improvement."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Thanks, Krzysztof!"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Not a lot of input remaining on this.  I'm ok with the behavior for now, and if we need to optimize it later, I don't think that having this patchset on master will prevent it."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 58,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -28
+                }
+            ],
+            "sizeInsertions": 172,
+            "sizeDeletions": 79
+        },
+        {
+            "number": 10,
+            "revision": "72c3ae33bd127f8cd5887000a45adf13a56c7582",
+            "parents": [
+                "de167a6f30c0f32683480e06c6e81cfc9d4eb37b"
+            ],
+            "ref": "refs/changes/28/53228/10",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1654114662,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 58,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -51
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -28
+                }
+            ],
+            "sizeInsertions": 172,
+            "sizeDeletions": 79
+        }
+    ]
+}

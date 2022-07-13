@@ -1,0 +1,660 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I15215e6e919fabc8b362016c9bb8a5bfaea842db",
+    "number": 54740,
+    "subject": "Make FanSensor work without gpioLine.event_read method",
+    "owner": {
+        "name": "Xiaochao Ma",
+        "email": "maxiaochao@inspur.com",
+        "username": "XiaochaoMa"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/dbus-sensors/+/54740",
+    "commitMessage": "Make FanSensor work without gpioLine.event_read method\n\nThe current presence function uses the gpioLine.event_read method\nto detect gpio signal changes, and then to determine the presence status.\n\nI have a board with this feature not working.\nThe reason is that this board uses PCA9555 to extend the gpio interface,\nand no interrupt is established between BMC and 9555,\nresulting in event_read never detecting signal changes.\n\nSo based on this board, I implemented an presence detection method that\ndoes not use the event_read method.\nThe presence status is detected by actively pulling the gpio signal\nregularly.\n\nPreconditions:\nAdd the configuration of the dual rotor fan in xxx_BaseBoard.json,\nfor example:\n```\n{\n\"Address\": \"0x20\",\n\"Bus\": 8,\n\"Index\": 0,\n\"MaxReading\": 30000,\n\"PowerState\": \"Always\",\n\"Presence\": {\n\"PinName\": \"FAN_PRSNT0_D_N\",\n\"Polarity\": \"Low\"\n},\n\"Name\": \"fan0_0\",\n\"Type\": \"I2CFan\"\n},\n{\n\"Address\": \"0x20\",\n\"Bus\": 8,\n\"Index\": 1,\n\"MaxReading\": 30000,\n\"PowerState\": \"Always\",\n\"Presence\": {\n\"PinName\": \"FAN_PRSNT0_D_N\",\n\"Polarity\": \"Low\"\n},\n\"Name\": \"fan0_1\",\n\"Type\": \"I2CFan\"\n},\n```\n\nTested\nroot@testmc:~# busctl introspect xyz.openbmc_project.FanSensor /xyz/openbmc_project/inventory/fan0_0 xyz.openbmc_project.Inventory.Item\nNAME                               TYPE      SIGNATURE RESULT/VALUE FLAGS\n.Present                           property  b         true         emits-change\n.PrettyName                        property  s         \"\"           emits-change\nroot@testmc:~# busctl introspect xyz.openbmc_project.FanSensor /xyz/openbmc_project/inventory/fan0_1 xyz.openbmc_project.Inventory.Item\nNAME                               TYPE      SIGNATURE RESULT/VALUE FLAGS\n.Present                           property  b         true         emits-change\n.PrettyName                        property  s         \"\"           emits-change\n\nunplug this fan\nroot@testmc:~# busctl introspect xyz.openbmc_project.FanSensor /xyz/openbmc_project/inventory/fan0_0 xyz.openbmc_project.Inventory.Item\nNAME                               TYPE      SIGNATURE RESULT/VALUE FLAGS\n.Present                           property  b         false        emits-change\n.PrettyName                        property  s         \"\"           emits-change\nroot@testmc:~# busctl introspect xyz.openbmc_project.FanSensor /xyz/openbmc_project/inventory/fan0_1 xyz.openbmc_project.Inventory.Item\nNAME                               TYPE      SIGNATURE RESULT/VALUE FLAGS\n.Present                           property  b         false        emits-change\n.PrettyName                        property  s         \"\"           emits-change\n\njournal log:\nroot@testmc:~# journalctl | grep fan\nJan 01 08:01:43 testmc .........\nJan 01 08:01:43 testmc fansensor[409]: Fan Removed\nJan 01 08:01:43 testmc fansensor[409]: Fan Insert\nJan 01 08:01:43 testmc .........\n\nSigned-off-by: Xiaochao Ma <maxiaochao@inspur.com>\nChange-Id: I15215e6e919fabc8b362016c9bb8a5bfaea842db\n",
+    "createdOn": 1655803371,
+    "lastUpdated": 1657266722,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1655803371,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1655803429,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655803429,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655803611,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45425/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655822263,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655861280,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Removed cc George Liu <liuxiwei@inspur.com>."
+        },
+        {
+            "timestamp": 1655883053,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1655883163,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655886381,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1655886478,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Uploaded patch set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1655930416,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1655956105,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1657264829,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1657264861,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1657264861,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1657265007,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/46658/ : FAILURE"
+        },
+        {
+            "timestamp": 1657265308,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Patch Set 5:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1657265356,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657266488,
+            "reviewer": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1657266556,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1657266556,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1657266722,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/46659/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "4e19072b401324345c26e8c1f298b1f67bfc8f03",
+            "parents": [
+                "75da515ea5e9227a9593519d1129aec76bc5f5a0"
+            ],
+            "ref": "refs/changes/40/54740/1",
+            "uploader": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "createdOn": 1655803371,
+            "author": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This isn't true, although it's possible it's a regression.  R1000_Chassis is an example of a chassis with dual rotor fans.  Can you please look at it and see if that mechanism works for you?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "Sorry I missed an important note.\nI have tried the 'BindConnector' you mentioned. It didn't work because:\nMy board uses the interrupt pin differently than the community when using the chip PCA9555 (it's not designed to use the interrupt pin). As a result, FanSensor cannot obtain gpiochip information normally.\nI modified the commit msg."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Does your dts enable https://www.kernel.org/doc/Documentation/devicetree/bindings/input/gpio-keys-polled.txt\n\nThat generally lets userspace receive an interrupt on something that the kernel handles polling for."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "This usage doesn't work either"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -50
+                },
+                {
+                    "file": "include/TachSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 137,
+            "sizeDeletions": 51
+        },
+        {
+            "number": 2,
+            "revision": "0a0077effbaba29a6ecd3c56621caf8676918d7d",
+            "parents": [
+                "75da515ea5e9227a9593519d1129aec76bc5f5a0"
+            ],
+            "ref": "refs/changes/40/54740/2",
+            "uploader": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "createdOn": 1655883053,
+            "author": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -50
+                },
+                {
+                    "file": "include/TachSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 137,
+            "sizeDeletions": 51
+        },
+        {
+            "number": 3,
+            "revision": "889b032ab43e1d41dcefdfeb7b13f61805a786e5",
+            "parents": [
+                "75da515ea5e9227a9593519d1129aec76bc5f5a0"
+            ],
+            "ref": "refs/changes/40/54740/3",
+            "uploader": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "createdOn": 1655886381,
+            "author": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -50
+                },
+                {
+                    "file": "include/TachSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 145,
+            "sizeDeletions": 51
+        },
+        {
+            "number": 4,
+            "revision": "0a0cba2381944481151f2fd7edc8b3c5188c0eea",
+            "parents": [
+                "75da515ea5e9227a9593519d1129aec76bc5f5a0"
+            ],
+            "ref": "refs/changes/40/54740/4",
+            "uploader": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "createdOn": 1655886478,
+            "author": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Did you delete the old method, so even if the HW supports interrupt, it only polls periodically? The old method needs to be preserved"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As written, this moves ALL systems to polling, regardless of whether they're capable of polling or not.  For this to make it on master, it needs to add some kind of detection logic to determine if the GPIO in question can be interrupred, and fall back to polling only in the case where the gpio didn't support interrupts."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 260,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "erase from staticGpioMap?"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 260,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 266,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This is used multiple places, consider add a member variable for it"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 266,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 271,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "use constexpr for magic number"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 271,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Use weak_ptr to prevent accessing invalid pointers"
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "Xiaochao Ma",
+                        "email": "maxiaochao@inspur.com",
+                        "username": "XiaochaoMa"
+                    },
+                    "message": "Could there be an invalid pointer here?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -50
+                },
+                {
+                    "file": "include/TachSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 145,
+            "sizeDeletions": 51
+        },
+        {
+            "number": 5,
+            "revision": "d83e32b4403b4b0d6ec21fac6f279386c438e52c",
+            "parents": [
+                "75da515ea5e9227a9593519d1129aec76bc5f5a0"
+            ],
+            "ref": "refs/changes/40/54740/5",
+            "uploader": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "createdOn": 1657264829,
+            "author": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/TachSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 201,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "b757d76568c2df427183eb1fb0080fa1390b1d47",
+            "parents": [
+                "b429f31da4a5260bc38b435cab3e9be69c88e7af"
+            ],
+            "ref": "refs/changes/40/54740/6",
+            "uploader": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "createdOn": 1657266488,
+            "author": {
+                "name": "Xiaochao Ma",
+                "email": "maxiaochao@inspur.com",
+                "username": "XiaochaoMa"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/TachSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/TachSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 201,
+            "sizeDeletions": 0
+        }
+    ]
+}

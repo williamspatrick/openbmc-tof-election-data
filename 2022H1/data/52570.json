@@ -1,0 +1,307 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I39aedcaafc281f2377115a08b0711cf62b57416f",
+    "number": 52570,
+    "subject": "WIP/RFC: Move HttpResponse to use nlohmann::json::object",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/52570",
+    "commitMessage": "WIP/RFC: Move HttpResponse to use nlohmann::json::object\n\nAs https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/52359 exposed,\nthere is a pretty big hole in our type safety net, in that it's possible\nto return non-object json responses.\n\nA brief explanation of nlohmann types:  object_t is used to represent a\ngiven json dictionary.  nlohmann::json is used to represent ANY json\nvalue, including dictionaries, floating point values, strings, and\narrays in a single value.  By design, a given rest endpoint should only\nbe ever returning objects at the top level response, even though it\nmight return individual keys that have other types in them.\n\nNote, in the default configuration, object_t is typedefed as a\nstd::map<key, nlohmann::json>.\n\nThis commit attempts to enforce that a little more rigorously, by\nchanging the jsonValue interface type to object_t instead of\nnlohmann::json.  Interestingly, in a lot of cases, we were implicitly\nrelying on nlohmann::json conversions of that structure into object_t,\nwhich, while fine, isn't the most \"correct\" at an interface, and would\nallow someone to write code that was woefully incorrect (ie, returned a\ndouble float from an object API).\n\nA majority of the changes are swapping APIs that previously took\nnlohmann::json& to now take object_t.  Interestingly, nlohmann does not\nappear to have a direct object_t -> decoded string API, so we do end up\nneeding to create one std::move temporary, but this is done in the\nconnection layer, once, explicitly, instead of implicitly all over.\n\nThere's two places in the code (one in LogService and one in Sensor)\nwhere we assume that the base object can be any type, and we end up\ntypechecking it in various fields so we can reuse the function.  I\nbelieve one can be fixed by using a json_pointer, and the second it's\nnot clear what's needed.\n\nTested: WIP\n\nThis also saves 6k on our compressed binary size...... Can't fully\nexplain why.  Maybe deleting all the implicit conversions helped?\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I39aedcaafc281f2377115a08b0711cf62b57416f\n",
+    "createdOn": 1648849363,
+    "lastUpdated": 1653584725,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1648849363,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1648849388,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648849388,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648849966,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40358/ : FAILURE"
+        },
+        {
+            "timestamp": 1648850351,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2: Commit message was updated."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "24b563517f0e7b4e4d7ac185747e9c3bf2f11bb2",
+            "parents": [
+                "456cd875f3c56b45605d8a017e91d810876a035c"
+            ],
+            "ref": "refs/changes/70/52570/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648849363,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/trigger.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/json_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -30
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 60
+        },
+        {
+            "number": 2,
+            "revision": "555d2eea64b4abcda59abaddc16775af61061ba2",
+            "parents": [
+                "456cd875f3c56b45605d8a017e91d810876a035c"
+            ],
+            "ref": "refs/changes/70/52570/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648850351,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/hypervisor_system.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                },
+                {
+                    "file": "http/http_connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "redfish-core/lib/trigger.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "include/openbmc_dbus_rest.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/json_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/metric_report.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -30
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 146,
+            "sizeDeletions": 60
+        }
+    ]
+}

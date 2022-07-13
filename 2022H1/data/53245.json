@@ -1,0 +1,1250 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "Ic7916fa193d88f1ed29a459eb4aaca365ec066b4",
+    "number": 53245,
+    "subject": "Select query: implement generic $select",
+    "owner": {
+        "name": "Nan Zhou",
+        "email": "nanzhoumails@gmail.com",
+        "username": "FighterNan"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/53245",
+    "commitMessage": "Select query: implement generic $select\n\nThis commit implements the $select query. One can achieve similar\nfeatures with nested query parameters in $expand (which is out of\nthe scope of the Redfish spec). This commit tries to aviod\novercomplicating the implementation, but still gets performance\nimprovement. With this commit, one can easily query all sensors across\nall chassis at the service root with\n\"/redfish/v1?$expand=.($levels=4)&$select=Chassis,Members,Sensors\"\n\nFor query with $select but no other parameters, this commit traverses\nthe JSON tree, collects JSON pointers of selects properties, and\nunflatten all the pointers. The complexity of this operation is linear\nto the size of the original JSON tree.\n\nFor query with $expand and $select, this commit does $select before\ntraverse nodes to expand. For subqueries created by $expand, this commit\nadds $select as part of the query URLs so that $select can be properly\nhandled by subqueries. This is where this commit avoids expanding\nuninterested hyperlinks.\n\nThis commit has some limitations:\n1. doesn't check if values of $select are valid; currently this commit\njust ignores invalid properties.\n2. can't distinguish the same properties in different level of $expand,\ne.g., /redfish/v1/Chassis?$expand=.($levels=3)&$select=Members,Sensors\nreturns all properties of sensors, even if clients add Members/Reading,\nthe full properties of sensors are still returned, since Members are\nalready selected at the Chassis level. This can be solved via delegating\n$select in end-resource's efficient handler (WIP in children commits).\n\nTested:\n1. On my development system,\n'/redfish/v1/Chassis/fake_chassis?$select=Sensors,Members&$expand=.($levels=2)'\ngives all the sensors with readings in a chassis,\n```\n{\n    \"@odata.id\": \"/redfish/v1/Chassis/fake_chassis\",\n    \"@odata.type\": \"#Chassis.v1_16_0.Chassis\",\n    \"Sensors\": {\n        \"@odata.id\": \"/redfish/v1/Chassis/fake_chassis/Sensors\",\n        \"@odata.type\": \"#SensorCollection.SensorCollection\",\n        \"Members\": [\n            {\n                \"@odata.id\": \"/redfish/v1/Chassis/fake_chassis/Sensors/sensor5\",\n                \"@odata.type\": \"#Sensor.v1_0_0.Sensor\",\n                \"Id\": \"sensor5\",\n                \"Name\": \"sensor5\",\n                \"Reading\": 0.0,\n                \"ReadingRangeMax\": null,\n                \"ReadingRangeMin\": null,\n                \"ReadingType\": \"Power\",\n                \"ReadingUnits\": \"W\",\n                \"Status\": {\n                    \"Health\": \"OK\",\n                    \"State\": \"Enabled\"\n                }\n            },\n            {\n                \"@odata.id\": \"/redfish/v1/Chassis/fake_chassis/Sensors/sensor6\",\n                \"@odata.type\": \"#Sensor.v1_0_0.Sensor\",\n                \"Id\": \"sensor6\",\n                \"Name\": \"sensor6\",\n                \"Reading\": 0.0,\n                \"ReadingRangeMax\": null,\n                \"ReadingRangeMin\": null,\n                \"ReadingType\": \"Power\",\n                \"ReadingUnits\": \"W\",\n                \"Status\": {\n                    \"Health\": \"OK\",\n                    \"State\": \"Enabled\"\n                }\n            },\n            {\n                \"@odata.id\": \"/redfish/v1/Chassis/fake_chassis/Sensors/sensor1\",\n                \"@odata.type\": \"#Sensor.v1_0_0.Sensor\",\n                \"Id\": \"sensor1\",\n                \"Name\": \"sensor1\",\n                \"Reading\": 0.0,\n                \"ReadingRangeMax\": null,\n                \"ReadingRangeMin\": null,\n                \"ReadingType\": \"Current\",\n                \"ReadingUnits\": \"A\",\n                \"Status\": {\n                    \"Health\": \"OK\",\n                    \"State\": \"Enabled\"\n                }\n            },\n            {\n                \"@odata.id\": \"/redfish/v1/Chassis/fake_chassis/Sensors/sensor0\",\n                \"@odata.type\": \"#Sensor.v1_0_0.Sensor\",\n                \"Id\": \"sensor0\",\n                \"Name\": \"sensor0\",\n                \"Reading\": 0.0,\n                \"ReadingRangeMax\": null,\n                \"ReadingRangeMin\": null,\n                \"ReadingType\": \"Current\",\n                \"ReadingUnits\": \"A\",\n                \"Status\": {\n                    \"Health\": \"OK\",\n                    \"State\": \"Enabled\"\n                }\n            }\n        ]\n    }\n}\n```\n2. Tested the above and queries without $select on real hardware, output\nis also expected.\n3. Performance Improvement (using the expand_performance.py script; the\nmachine have ~250 sensors):\na. Enumerate sensors in multiple requests:  8.161473824991845 seconds\nb. Enumerate sensors in a single request: 3.255531040020287 seconds\n\nSigned-off-by: Nan Zhou <nanzhoumails@gmail.com>\nChange-Id: Ic7916fa193d88f1ed29a459eb4aaca365ec066b4\n",
+    "createdOn": 1650905412,
+    "lastUpdated": 1654820601,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1650905412,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1650905445,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650905445,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650905473,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41935/ : FAILURE"
+        },
+        {
+            "timestamp": 1650908392,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1650908405,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650908405,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650908566,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41938/ : FAILURE"
+        },
+        {
+            "timestamp": 1650909200,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1650909220,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650909220,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650909645,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41939/ : FAILURE"
+        },
+        {
+            "timestamp": 1650910451,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1650910470,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650910470,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650910504,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41941/ : FAILURE"
+        },
+        {
+            "timestamp": 1650910736,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1650910750,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650910750,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650911169,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41942/ : FAILURE"
+        },
+        {
+            "timestamp": 1650912032,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1650912045,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650912045,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650912078,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41944/ : FAILURE"
+        },
+        {
+            "timestamp": 1650912416,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1650912430,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650912430,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650913031,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41945/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651598691,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651787032,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1651787051,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651787055,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651787056,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651787085,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42726/ : FAILURE"
+        },
+        {
+            "timestamp": 1651790934,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1651790950,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651790950,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651791039,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42730/ : FAILURE"
+        },
+        {
+            "timestamp": 1651791432,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1651791455,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651791456,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651791553,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42732/ : FAILURE"
+        },
+        {
+            "timestamp": 1651796873,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1651796890,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651796890,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651797660,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/42734/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654186269,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654195039,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654195238,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654820601,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 11:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "79f6d64c8971472749a4be6b06ce98b066f04638",
+            "parents": [
+                "5641616cbda87cc244ba40f666946968aeb05d72"
+            ],
+            "ref": "refs/changes/45/53245/1",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650905412,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 155,
+                    "deletions": -25
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 352,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 2,
+            "revision": "e0709acdce18bf9153fe28ee113dd0813ce4d522",
+            "parents": [
+                "5641616cbda87cc244ba40f666946968aeb05d72"
+            ],
+            "ref": "refs/changes/45/53245/2",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650908392,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 155,
+                    "deletions": -25
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/event_listener.py",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 410,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 3,
+            "revision": "95f89efbcfb3b1d8d588366afd5329fec159413a",
+            "parents": [
+                "5641616cbda87cc244ba40f666946968aeb05d72"
+            ],
+            "ref": "refs/changes/45/53245/3",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650909200,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 155,
+                    "deletions": -25
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/event_listener.py",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 410,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 4,
+            "revision": "90ed846b28d23eb8086771e4f186d2fcf2b8263b",
+            "parents": [
+                "5641616cbda87cc244ba40f666946968aeb05d72"
+            ],
+            "ref": "refs/changes/45/53245/4",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650910451,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 74,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 153,
+                    "deletions": -25
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/event_listener.py",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 423,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 5,
+            "revision": "e88785321b4e329d1bb757956564a3bbeb0bc27e",
+            "parents": [
+                "5641616cbda87cc244ba40f666946968aeb05d72"
+            ],
+            "ref": "refs/changes/45/53245/5",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650910736,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 122,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 153,
+                    "deletions": -25
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/event_listener.py",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 460,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 6,
+            "revision": "7ecd24485f57d16b0223297b70e25a74132b47ec",
+            "parents": [
+                "5641616cbda87cc244ba40f666946968aeb05d72"
+            ],
+            "ref": "refs/changes/45/53245/6",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650912032,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 122,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 158,
+                    "deletions": -25
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/event_listener.py",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 465,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 7,
+            "revision": "31aa3d36e0cd6d6ce7053213c61cb0be32fdf5db",
+            "parents": [
+                "5641616cbda87cc244ba40f666946968aeb05d72"
+            ],
+            "ref": "refs/changes/45/53245/7",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1650912416,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Will find a time and rebase the change"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. PTAL"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 122,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 159,
+                    "deletions": -25
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/event_listener.py",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 466,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 8,
+            "revision": "ac9c2193b5fa544695fa1185cec72b4da97f0072",
+            "parents": [
+                "a04d00bb1a1939b613ed422102e05af1504559dd"
+            ],
+            "ref": "refs/changes/45/53245/8",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1651787032,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 122,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 158,
+                    "deletions": -29
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 415,
+            "sizeDeletions": 32
+        },
+        {
+            "number": 9,
+            "revision": "5d5227598a24f3a51e8045be862338270bdc0d1d",
+            "parents": [
+                "4aca086e69e214de467f5159a391669d7174e05d"
+            ],
+            "ref": "refs/changes/45/53245/9",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1651790934,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 122,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/expand_performance.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 448,
+                    "deletions": -308
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 705,
+            "sizeDeletions": 311
+        },
+        {
+            "number": 10,
+            "revision": "075734ec59ec7f736cdf718dfdbf5c4e5b65b773",
+            "parents": [
+                "4aca086e69e214de467f5159a391669d7174e05d"
+            ],
+            "ref": "refs/changes/45/53245/10",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1651791432,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 122,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 448,
+                    "deletions": -308
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 648,
+            "sizeDeletions": 311
+        },
+        {
+            "number": 11,
+            "revision": "60b3c4fddef515bb883a188af42fdc17b10c801b",
+            "parents": [
+                "4aca086e69e214de467f5159a391669d7174e05d"
+            ],
+            "ref": "refs/changes/45/53245/11",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1651796873,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Haven't reviewed the full patchset yet, but can we start with a patchset that implements the non-recursive portions of the select specification, that are clear and well defined first?  I think that would be a good way to break this up, and given that the recursive select stuff is still under discussion in DMTF, it doesn't seem like something we should check into master until that discussion concluses.\n\nSound reasonable?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Sure.\n\nAre we okay with return errors (e.g., not supported) first if $select are combined with $expand?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Sure, that seems like a reasonable first step."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Split part of the codes into https://gerrit.openbmc.org/c/openbmc/bmcweb/+/54457"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 264,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "is that required in the spec?"
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 264,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "No. I didn't find it in the Spec. Here I am worrying about clients send weird header values, e.g., extremely large strings."
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "line": 264,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Ah, that's a good point, we probably should impose some limits on it in terms of number of keys.\n\nThis is parsing the uri, which is already enforced by the connection to be no larger than 8k, so in theory that's the longest string we'll have here, but if it's 8k worth of \",,,,,,,,,,,,,,,\" then that might be an issue we should handle?  Worth thinking about at the very least."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 122,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/ut/service_root_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/utils/query_param.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 169,
+                    "deletions": -38
+                },
+                {
+                    "file": "redfish-core/lib/service_root.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 369,
+            "sizeDeletions": 41
+        }
+    ]
+}

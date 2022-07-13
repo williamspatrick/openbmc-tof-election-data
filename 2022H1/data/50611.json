@@ -1,0 +1,247 @@
+{
+    "project": "openbmc/phosphor-net-ipmid",
+    "branch": "master",
+    "id": "I521521ab415ca47ca865e2fc26ddf333f087c352",
+    "number": 50611,
+    "subject": "Fixed Cipher Suite RMCP+ Privileges",
+    "owner": {
+        "email": "shamima@ami.com",
+        "username": "shamim-ali"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-net-ipmid/+/50611",
+    "commitMessage": "Fixed Cipher Suite RMCP+ Privileges\n\nRelated link:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/50610\n\nIPMI is communicating even when RMCP+ Messaging Cipher Suite Privilege Levels is set to operator, user, call back and unspecified.\n\nError Test Cases:\n-----------------\n\nUnspecified:\n------------\nroot@dgx:~# ipmitool raw 0x0c 0x01 0x01 0x18 0x0 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 00 00 00 00 00 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~#\n\ncallback:\n--------\n\nroot@dgx:~# ipmitool raw 0x0c 0x01 0x01 0x18 0x0 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 11 11 11 11 11 11 11 11\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\n\nuser:\n-----\n\nroot@dgx:~# ipmitool raw 0x0c 0x01 0x01 0x18 0x0 0x22 0x22 0x22 0x22 0x22 0x22 0x22 0x22\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 22 22 22 22 22 22 22 22\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\n\nOEM:\n----\n\nroot@dgx:~# ipmitool raw 0x0c 0x01 0x01 0x18 0x0 0x55 0x55 0x55 0x55 0x55 0x55 0x55 0x55\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 55 55 55 55 55 55 55 55\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\n\nTest cases After fix:\n---------------------\n\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 44 44 44 44 44 44 44 44\nroot@dgx:~# ipmitool lan print\nSet in Progress         : Set Complete\nAuth Type Support       :\nAuth Type Enable\n                        : Callback :\n                        : User     :\n                        : Operator :\n                        : Admin    :\n                        : OEM      :\nIP Address Source       : DHCP Address\nIP Address              : 10.19.102.17\nSubnet Mask             : 255.0.0.0\nMAC Address             : 7a:78:0c:9c:0d:8f\nDefault Gateway IP      : 0.0.0.0\nDefault Gateway MAC     : 00:00:00:00:00:00\n802.1q VLAN ID          : Disabled\nRMCP+ Cipher Suites     : 17\nCipher Suite Priv Max   : aaaaaaaaaaaaaaa\n                        :     X=Cipher Suite Unused\n                        :     c=CALLBACK\n                        :     u=USER\n                        :     o=OPERATOR\n                        :     a=ADMIN\n                        :     O=OEM\nBad Password Threshold  : Not Available\nroot@dgx:~#\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 44 44 44 44 44 44 44 44\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\n\nUnspecified:\n-----------\n\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 0x0c 0x01 0x01 0x18 0x0 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 00 00 00 00 00 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\n\nCallback :\n---------\nroot@dgx:~# ipmitool raw 0x0c 0x01 0x01 0x18 0x0 0x11 0x11 0x11 0x11 0x11 0x11 0x11 0x11\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 11 11 11 11 11 11 11 11\nroot@dgx:~#\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\n\nuser:\n----\nipmitool raw 0x0c 0x01 0x01 0x18 0x0 0x22 0x22 0x22 0x22 0x22 0x22 0x22 0x22\n\nipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 22 22 22 22 22 22 22 22\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\n 00 65 02 09 02 8d 47 16 00 00 00 15 00 00 00\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\n\nOEM:\n---------\n\nroot@dgx:~# ipmitool raw 0x0c 0x01 0x01 0x18 0x0 0x55 0x55 0x55 0x55 0x55 0x55 0x55 0x55\n\nroot@dgx:~# ipmitool raw 0x0c 0x02 0x01 0x18 0 0\n 11 00 55 55 55 55 55 55 55 55\nroot@dgx:~#\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L user raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L operator raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\nroot@dgx:~# ipmitool -H 10.19.102.17 -I lanplus -U root -P Nvidia_123 -C 17 -L callback raw 6 1\nError: Unable to establish IPMI v2 / RMCP+ session\n\nSigned-off-by: shamim ali <shamima@ami.com>\nChange-Id: I521521ab415ca47ca865e2fc26ddf333f087c352\n",
+    "createdOn": 1643024124,
+    "lastUpdated": 1643723398,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1643024124,
+            "reviewer": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1643024133,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643024133,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643024341,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35966/ : FAILURE"
+        },
+        {
+            "timestamp": 1643325601,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1643723177,
+            "reviewer": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1643723202,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643723203,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643723323,
+            "reviewer": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1643723398,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/36429/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "2f4cb8338a39f6fab8f511ffdef8cc7d45288855",
+            "parents": [
+                "af23add2a2cf73226cdc72af4793fde6357e8932"
+            ],
+            "ref": "refs/changes/11/50611/1",
+            "uploader": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "createdOn": 1643024124,
+            "author": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "command/rakp12.cpp",
+                    "line": 155,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "this line should be directly before getCSPrivilegeLevels()"
+                },
+                {
+                    "file": "command/rakp12.cpp",
+                    "line": 155,
+                    "reviewer": {
+                        "email": "shamima@ami.com",
+                        "username": "shamim-ali"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "command/rakp12.cpp",
+                    "line": 156,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "this line should be directly after cipherConfig() line."
+                },
+                {
+                    "file": "command/rakp12.cpp",
+                    "line": 156,
+                    "reviewer": {
+                        "email": "shamima@ami.com",
+                        "username": "shamim-ali"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "command/rakp12.cpp",
+                    "line": 168,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "why are you comparing to DefaultCipherIndex (0) here? Cipher suite 0 is not implemented so this might be problematic. Also, I think it should be comparing to the actual cipher suite that is being requested by the OpenSession packet. This we will need to convert from the triplet of authentication, integrity, confidentiality numbers to a cipher suite number."
+                },
+                {
+                    "file": "command/rakp12.cpp",
+                    "line": 168,
+                    "reviewer": {
+                        "email": "shamima@ami.com",
+                        "username": "shamim-ali"
+                    },
+                    "message": "Currently we are only supporting cipher id 17 which is available at index 0 by default. we are having cipher suite number already available in cipher_list.json file, I think no need to convert from authentication, integrity and confidentiality."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 173,
+                    "deletions": 0
+                },
+                {
+                    "file": "command/rakp12.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "command/rakp12.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "79cdafaf9c452bff2db465b08704d1702ac2ffcd",
+            "parents": [
+                "af23add2a2cf73226cdc72af4793fde6357e8932"
+            ],
+            "ref": "refs/changes/11/50611/2",
+            "uploader": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "createdOn": 1643723177,
+            "author": {
+                "email": "shamima@ami.com",
+                "username": "shamim-ali"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 173,
+                    "deletions": 0
+                },
+                {
+                    "file": "command/rakp12.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "command/rakp12.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 188,
+            "sizeDeletions": 3
+        }
+    ]
+}

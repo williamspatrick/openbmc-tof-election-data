@@ -1,0 +1,4403 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I9f512816607d5c21a8ea63d91d4f22bc11844b91",
+    "number": 45396,
+    "subject": "chassis: Set Chassis.Reset to support only RackMount and StandAlone type",
+    "owner": {
+        "name": "Willy Tu",
+        "email": "wltu@google.com",
+        "username": "wltu"
+    },
+    "assignee": {
+        "name": "Nan Zhou",
+        "email": "nanzhoumails@gmail.com",
+        "username": "FighterNan"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/45396",
+    "commitMessage": "chassis: Set Chassis.Reset to support only RackMount and StandAlone type\n\nAll the chassis are hardcoded to have Chassis.Reset action that can\nreset the whole Chassis. Some chassis may not want to expose that action\nwhen it is not affect by the system chassis reset.\n\nAdd support for Chassis Types and only use Reset Action for RackMount\nand StandAlone.\n\nTested:\nPassed Redfish Validator\n```\n*** /redfish/v1/Chassis\n         Type (#ChassisCollection.ChassisCollection), GET SUCCESS (time: 0.292263)\n         PASS\n\n*** /redfish/v1/Chassis/main\n         Type (#Chassis.v1_14_0.Chassis), GET SUCCESS (time: 0.340276)\nThermal: The given property is deprecated by revision: This link has been deprecated in favor of the ThermalSubsystem link property.\nPower: The given property is deprecated by revision: This link has been deprecated in favor of the PowerSubsystem link property.\n         PASS\n*** /redfish/v1/Chassis/chassis1\n         Type (#Chassis.v1_14_0.Chassis), GET SUCCESS (time: 0.340276)\nThermal: The given property is deprecated by revision: This link has been deprecated in favor of the ThermalSubsystem link property.\nPower: The given property is deprecated by revision: This link has been deprecated in favor of the PowerSubsystem link property.\n         PASS\n```\n\nRackMount Chassis:\n```\n{\n  \"@odata.id\": \"/redfish/v1/Chassis/main\",\n  \"@odata.type\": \"#Chassis.v1_14_0.Chassis\",\n  \"Actions\": {\n    \"#Chassis.Reset\": {\n      \"@Redfish.ActionInfo\": \"/redfish/v1/Chassis/main/ResetActionInfo\",\n      \"target\": \"/redfish/v1/Chassis/main/Actions/Chassis.Reset\"\n    }\n  },\n  \"ChassisType\": \"RackMount\",\n  \"Id\": \"main\",\n  \"Links\": {\n    \"ComputerSystems\": [\n      {\n        \"@odata.id\": \"/redfish/v1/Systems/system\"\n      }\n    ],\n    \"ManagedBy\": [\n      {\n        \"@odata.id\": \"/redfish/v1/Managers/bmc\"\n      }\n    ],\n  },\n  ...\n}\n```\n\nOther Chassis:\n```\n{\n  \"@odata.id\": \"/redfish/v1/Chassis/chassis1\",\n  \"@odata.type\": \"#Chassis.v1_14_0.Chassis\",\n  \"ChassisType\": \"Module\",\n  \"Id\": \"chassis1\",\n  \"Links\": {\n    \"ComputerSystems\": [\n      {\n        \"@odata.id\": \"/redfish/v1/Systems/system\"\n      }\n    ],\n    \"ManagedBy\": [\n      {\n        \"@odata.id\": \"/redfish/v1/Managers/bmc\"\n      }\n    ],\n    ...\n  }\n}\n```\n\nChange-Id: I9f512816607d5c21a8ea63d91d4f22bc11844b91\nSigned-off-by: Willy Tu <wltu@google.com>\n",
+    "hashtags": [
+        "bmcweb-drive-wltu"
+    ],
+    "createdOn": 1627583571,
+    "lastUpdated": 1650649860,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1627583571,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1627583590,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627583693,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23235/ : FAILURE"
+        },
+        {
+            "timestamp": 1627585118,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1627585145,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627585559,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23236/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627591718,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 2:\n\nI am wondering why we add this Chassis reset for all Chassis resource. Should all the chassis chassis resources be linked to reset function for the whole chassis system?\n\nThis is probably not the right way to do this... I am not sure if we want to have Chassis reset when the Chassis is created based off Item.Board."
+        },
+        {
+            "timestamp": 1627670000,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1627670030,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627670047,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 2:\n> \n> I am wondering why we add this Chassis reset for all Chassis resource. Should all the chassis chassis resources be linked to reset function for the whole chassis system?\n> \n> This is probably not the right way to do this... I am not sure if we want to have Chassis reset when the Chassis is created based off Item.Board.\n\nmoved it to under the main chassis only for now. Maybe that is more reasonable?"
+        },
+        {
+            "timestamp": 1627670544,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23375/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627671966,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627673914,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627674030,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627674527,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627683531,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1627683551,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627684542,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23418/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627891929,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1627891939,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 6: Patch Set 5 was rebased"
+        },
+        {
+            "timestamp": 1627891954,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627892002,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 7: Commit message was updated."
+        },
+        {
+            "timestamp": 1627892190,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1627892204,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627892208,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23490/ : ABORTED"
+        },
+        {
+            "timestamp": 1627892316,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23491/ : FAILURE"
+        },
+        {
+            "timestamp": 1627917932,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1627917951,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627918368,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23550/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627928299,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1627936857,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1627936872,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627937205,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23586/ : FAILURE"
+        },
+        {
+            "timestamp": 1627937613,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 11: Commit message was updated."
+        },
+        {
+            "timestamp": 1627937674,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1627937707,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627938159,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23589/ : SUCCESS"
+        },
+        {
+            "timestamp": 1627938470,
+            "reviewer": {
+                "name": "Abhishek Patel",
+                "email": "Abhishek.Patel@ibm.com",
+                "username": "patelabhishek9893"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627938931,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1627938947,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627938969,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 13:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1627939308,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23591/ : FAILURE"
+        },
+        {
+            "timestamp": 1627940042,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1627940053,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 14:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1627940057,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1627940504,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23596/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628021408,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1628021680,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Assignee added: Nan Zhou <nanzhoumails@gmail.com>"
+        },
+        {
+            "timestamp": 1628023157,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 14:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1628027903,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1628027920,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628028144,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 15:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1628028353,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23716/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628092550,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 15:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1628102603,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1628102618,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628102696,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 16:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1628103074,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/23808/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628546386,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 17: Patch Set 16 was rebased"
+        },
+        {
+            "timestamp": 1628546406,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628546822,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24091/ : SUCCESS"
+        },
+        {
+            "timestamp": 1628551467,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1628551690,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17: Code-Review+2\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1628551695,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17: -Code-Review"
+        },
+        {
+            "timestamp": 1628707035,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1628707055,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628707072,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1628707085,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/24231/ : FAILURE"
+        },
+        {
+            "timestamp": 1628707095,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628707231,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 19:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1628707420,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/24232/ : FAILURE"
+        },
+        {
+            "timestamp": 1628707513,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 20."
+        },
+        {
+            "timestamp": 1628707535,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628707951,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24233/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629184821,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 21: Patch Set 20 was rebased"
+        },
+        {
+            "timestamp": 1629184839,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629185350,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24440/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629216521,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 21:\n\n(2 comments)\n\nBackend changes for this? Something to the mailing list? \nI feel we need to announce this so companies can add this ChassisType, otherwise we might end up with bugs/discord questions."
+        },
+        {
+            "timestamp": 1629495186,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Hashtag added: bmcweb-drive-wltu"
+        },
+        {
+            "timestamp": 1629838064,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 22: Patch Set 21 was rebased"
+        },
+        {
+            "timestamp": 1629838088,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629838508,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24944/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629839190,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 23."
+        },
+        {
+            "timestamp": 1629839214,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629839292,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 23:\n\n(2 comments)\n\n> Patch Set 21:\n> \n> (2 comments)\n> \n> Backend changes for this? Something to the mailing list? \n> I feel we need to announce this so companies can add this ChassisType, otherwise we might end up with bugs/discord questions.\n\nNo backend change needed for this. I am looking at this more at EntityManager's side. It is just entity manager config, but I am not sure about other services.\n\nSent out an announcement in\nhttps://lore.kernel.org/openbmc/CAHwn2XmX=03J9jCgdV+xGV2qN+HmT0tDbZtKc0mk90fH3Y0VGA@mail.gmail.com/"
+        },
+        {
+            "timestamp": 1629839633,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24945/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629854989,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 23:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1630593710,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 23:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1631597134,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 24."
+        },
+        {
+            "timestamp": 1631597149,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 24: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1631597180,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 24: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/26273/ : FAILURE"
+        },
+        {
+            "timestamp": 1632845635,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 25: Patch Set 24 was rebased."
+        },
+        {
+            "timestamp": 1632845656,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 25: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632846091,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 25: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27092/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632886713,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 26."
+        },
+        {
+            "timestamp": 1632886728,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 26: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632887166,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 26: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27128/ : SUCCESS"
+        },
+        {
+            "timestamp": 1632928222,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 27."
+        },
+        {
+            "timestamp": 1632928241,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 27: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1632928657,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 27: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27162/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633558161,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 27:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1634096811,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 28."
+        },
+        {
+            "timestamp": 1634096828,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 28: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634096831,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 29: Patch Set 28 was rebased"
+        },
+        {
+            "timestamp": 1634096848,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 29: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634096853,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 28: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/28183/ : ABORTED"
+        },
+        {
+            "timestamp": 1634096892,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 29:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1634097350,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 29: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28184/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634149106,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 30: Patch Set 29 was rebased"
+        },
+        {
+            "timestamp": 1634149120,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 30: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634149154,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 30: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/28225/ : FAILURE"
+        },
+        {
+            "timestamp": 1634149642,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 31: Patch Set 30 was rebased"
+        },
+        {
+            "timestamp": 1634149659,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 31: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634150235,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 31: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28227/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637169254,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 32."
+        },
+        {
+            "timestamp": 1637169272,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 32: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637169355,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 33."
+        },
+        {
+            "timestamp": 1637169372,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 33: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637169377,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 32: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30431/ : ABORTED"
+        },
+        {
+            "timestamp": 1637169408,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 33: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30432/ : FAILURE"
+        },
+        {
+            "timestamp": 1637172741,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 34."
+        },
+        {
+            "timestamp": 1637172757,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 34: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637173212,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 34: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30437/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637185325,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 34:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1637199511,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 35."
+        },
+        {
+            "timestamp": 1637199549,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 35: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637199995,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 35: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30455/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637201654,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 35:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1637618382,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 36: Patch Set 35 was rebased"
+        },
+        {
+            "timestamp": 1637618398,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 36: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637618875,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 36: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30688/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637656242,
+            "reviewer": {
+                "name": "Krzysztof Grobelny",
+                "email": "krzysztof.grobelny@intel.com",
+                "username": "krzysztof-i"
+            },
+            "message": "Patch Set 36:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1638173832,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 37: Patch Set 36 was rebased"
+        },
+        {
+            "timestamp": 1638173848,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 37: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638174757,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 37: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30840/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638212647,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 37:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1638262197,
+            "reviewer": {
+                "name": "Krzysztof Grobelny",
+                "email": "krzysztof.grobelny@intel.com",
+                "username": "krzysztof-i"
+            },
+            "message": "Patch Set 37:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639616703,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 38: Patch Set 37 was rebased"
+        },
+        {
+            "timestamp": 1639616719,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 38: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639616806,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 38: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/32120/ : FAILURE"
+        },
+        {
+            "timestamp": 1639619524,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 39: Published edit on patch set 38."
+        },
+        {
+            "timestamp": 1639619560,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 39: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639620023,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 39: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32121/ : SUCCESS"
+        },
+        {
+            "timestamp": 1640767550,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 40."
+        },
+        {
+            "timestamp": 1640767554,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 39:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1640767561,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 40: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1640768018,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 40: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32885/ : SUCCESS"
+        },
+        {
+            "timestamp": 1640882392,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 40:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646125834,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 41."
+        },
+        {
+            "timestamp": 1646125847,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 41: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1646125847,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 41: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1646126316,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 41: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/38217/ : FAILURE"
+        },
+        {
+            "timestamp": 1646148092,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 41:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646180181,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 41:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1646873667,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 42."
+        },
+        {
+            "timestamp": 1646873678,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 42:\n\n(11 comments)"
+        },
+        {
+            "timestamp": 1646873684,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 42: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1646873684,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 42: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1646874276,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 42: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38738/ : SUCCESS"
+        },
+        {
+            "timestamp": 1646909247,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 43: Published edit on patch set 42."
+        },
+        {
+            "timestamp": 1646909265,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 43: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1646909266,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 43: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1646909307,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 43:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1646909846,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 43: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38758/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649723253,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 44."
+        },
+        {
+            "timestamp": 1649723268,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 44: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649723268,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 44: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649723349,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 44: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40951/ : FAILURE"
+        },
+        {
+            "timestamp": 1649728390,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 45: Published edit on patch set 44."
+        },
+        {
+            "timestamp": 1649728418,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 45: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649728418,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 45: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649729016,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 45: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40990/ : SUCCESS"
+        },
+        {
+            "timestamp": 1650574145,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Uploaded patch set 46."
+        },
+        {
+            "timestamp": 1650574162,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 46: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650574163,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 46: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650574760,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 46: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41867/ : SUCCESS"
+        },
+        {
+            "timestamp": 1650575528,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 47: Published edit on patch set 46."
+        },
+        {
+            "timestamp": 1650575542,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 47: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650575543,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 47: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650576152,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 47: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41870/ : SUCCESS"
+        },
+        {
+            "timestamp": 1650649860,
+            "reviewer": {
+                "name": "Manish Baing",
+                "email": "manish.baing@intel.com",
+                "username": "manishbaing"
+            },
+            "message": "Patch Set 47:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "06c3f62f85e8c97da4c69edff99d9b0873654efe",
+            "parents": [
+                "42cbb517ffc573e9ec39077f5a59c1443e0ef9ea"
+            ],
+            "ref": "refs/changes/96/45396/1",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627583571,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -11
+                }
+            ],
+            "sizeInsertions": 39,
+            "sizeDeletions": 11
+        },
+        {
+            "number": 2,
+            "revision": "023e163e463626861dcc1100bf16b86909249896",
+            "parents": [
+                "42cbb517ffc573e9ec39077f5a59c1443e0ef9ea"
+            ],
+            "ref": "refs/changes/96/45396/2",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627585118,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -11
+                }
+            ],
+            "sizeInsertions": 39,
+            "sizeDeletions": 11
+        },
+        {
+            "number": 3,
+            "revision": "b515887645bdf368a441f2153a49f35a0e7ca8c6",
+            "parents": [
+                "42cbb517ffc573e9ec39077f5a59c1443e0ef9ea"
+            ],
+            "ref": "refs/changes/96/45396/3",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627670000,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 209,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I don't think this makes sense. \nI don't think the \"MainChassis\" should be the first one. \nCan we look for Chassis of a certain type? E.g. RackMount \nhttps://github.com/openbmc/phosphor-dbus-interfaces/blob/master/yaml/xyz/openbmc_project/Inventory/Item/Chassis.interface.yaml#L12"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 209,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "oh yes, that makes a lot more sense.\n\nI also need to add Chassid Type support for this first. Since it hardcore to RackMount right now."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 209,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "oh also, I guess the implementation in https://github.com/openbmc/bmcweb/blob/master/redfish-core/lib/redfish_util.hpp#L51 is wrong then?\n\nIt uses the first one to act as the main chassis."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 209,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Ug... yeah.  I think that code was right at one point in time (when i think we were only searching for Item.Chassis), but looking at it, it looks wrong.  I wonder how many systems that's broken on.  Right now it only drives the chassis links which aren't used that often, so it's not that surprising nobody noticed."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 80,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -25
+                }
+            ],
+            "sizeInsertions": 139,
+            "sizeDeletions": 25
+        },
+        {
+            "number": 4,
+            "revision": "1e93c441183400eae4fd815f47f8adf06b5f40bc",
+            "parents": [
+                "42cbb517ffc573e9ec39077f5a59c1443e0ef9ea"
+            ],
+            "ref": "refs/changes/96/45396/4",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627683531,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 80,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 181,
+                    "deletions": -95
+                }
+            ],
+            "sizeInsertions": 261,
+            "sizeDeletions": 95
+        },
+        {
+            "number": 5,
+            "revision": "9d03ada1753d8452da6b2b29881cb3d8bef03c8f",
+            "parents": [
+                "42cbb517ffc573e9ec39077f5a59c1443e0ef9ea"
+            ],
+            "ref": "refs/changes/96/45396/5",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627891929,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 85,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 259,
+                    "deletions": -101
+                }
+            ],
+            "sizeInsertions": 344,
+            "sizeDeletions": 101
+        },
+        {
+            "number": 6,
+            "revision": "a37f21cc81f0586e80065b971e5a0820f36f3865",
+            "parents": [
+                "8b6a35f0f99ed38293f7d134511d6181c88c5a59"
+            ],
+            "ref": "refs/changes/96/45396/6",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627891939,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 85,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 259,
+                    "deletions": -101
+                }
+            ],
+            "sizeInsertions": 344,
+            "sizeDeletions": 101
+        },
+        {
+            "number": 7,
+            "revision": "1782b6aff393aee52d973bab868f2a5471355fa6",
+            "parents": [
+                "8b6a35f0f99ed38293f7d134511d6181c88c5a59"
+            ],
+            "ref": "refs/changes/96/45396/7",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627892002,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 259,
+                    "deletions": -101
+                }
+            ],
+            "sizeInsertions": 346,
+            "sizeDeletions": 101
+        },
+        {
+            "number": 8,
+            "revision": "a228f578cbbb295c2b4b6ae5954f9f3d9d293909",
+            "parents": [
+                "8b6a35f0f99ed38293f7d134511d6181c88c5a59"
+            ],
+            "ref": "refs/changes/96/45396/8",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627892190,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 249,
+                    "deletions": -100
+                }
+            ],
+            "sizeInsertions": 336,
+            "sizeDeletions": 100
+        },
+        {
+            "number": 9,
+            "revision": "18c9fb1af7b6d2c79ecc28f02aeee0bd653a5a0c",
+            "parents": [
+                "8b6a35f0f99ed38293f7d134511d6181c88c5a59"
+            ],
+            "ref": "refs/changes/96/45396/9",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627917932,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please talk a little more about what the expected user change will be.  Presumably the Chassis.Reset actions are going to disappear on anything except for the main chassis.  This has some client impact that we should discuss in the commit message.\n\nWith that said, considering that this could've never given the appropriate response (ie resetting a single component) I can't imagine anyone was relying on that behavior, although lets sort through that."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I have added more detail on how this change will affect existing systems and what are the expectation of this change."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This patchset also changes the behavior such that Chassis are no longer hardcoded to RackMount.  This is probably fine, but definitely needs accounted for in your commit message."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "The type will still be defaulted to RackMount on resources that did not specifically update the Type.\n\n`Unknown` is the default for the interface and will also default to `RackMount` in the output."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 263,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You seem to be overriding this parameter down below, but you didn't remove it from the initial fill in."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 263,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "yeah, I did it on purpose to have the default behavior list this and erase it. But I will do it the other way to follow how it is done generally."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 192,
+                    "reviewer": {
+                        "name": "Abhishek Patel",
+                        "email": "Abhishek.Patel@ibm.com",
+                        "username": "patelabhishek9893"
+                    },
+                    "message": "move will be good here. callback{std::move{callback}}"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 192,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done.\n\n\nThanks."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 192,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "```\nstd::move of the const variable 'callback' has no effect; remove std::move() or make the variable non-const [performance-move-const-arg,-warnings-as-errors]\n```\n\nI guess we don't need it."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 494,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please avoid this pattern of filling in the json, then erasing it later.  It's difficult to track as a reader.  Generally we would defer filling in the property until we knew that it was ok to do so."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 494,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "done. I have flipped the logic to add the ActionInfo if it is RackMount or no property found. The default Type is RackMount"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 777,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can't this whole method be replaced with \"getChassisType\" and moving line 753 into the handler?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 777,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "getChassisType has the assumption that we already found the chassis object path.\n\nThis function just help find the Chassis and just call getChassisType once it find the Chassis in question."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 247,
+                    "deletions": -98
+                }
+            ],
+            "sizeInsertions": 334,
+            "sizeDeletions": 98
+        },
+        {
+            "number": 10,
+            "revision": "83dc5e38c2e884a831985d732a6b92bf59d0b876",
+            "parents": [
+                "c21865c469cfc9dffdc15d87710293115cf6d9e4"
+            ],
+            "ref": "refs/changes/96/45396/10",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627936857,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 253,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 340,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 11,
+            "revision": "048bffd360589a8fe2e82159e9b25a43c2d93dfc",
+            "parents": [
+                "c21865c469cfc9dffdc15d87710293115cf6d9e4"
+            ],
+            "ref": "refs/changes/96/45396/11",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627937613,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 105,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 253,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 358,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 12,
+            "revision": "f7c10203fef7debbc7aede0df85344dcd61ff850",
+            "parents": [
+                "c21865c469cfc9dffdc15d87710293115cf6d9e4"
+            ],
+            "ref": "refs/changes/96/45396/12",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627937674,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 253,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 340,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 13,
+            "revision": "ef68b51b0679c377f637aacb84e40a8c3047f82b",
+            "parents": [
+                "c21865c469cfc9dffdc15d87710293115cf6d9e4"
+            ],
+            "ref": "refs/changes/96/45396/13",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627938931,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 254,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 341,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 14,
+            "revision": "7a9b2ac8e54786d782c02f79c78828d5adf585e6",
+            "parents": [
+                "c21865c469cfc9dffdc15d87710293115cf6d9e4"
+            ],
+            "ref": "refs/changes/96/45396/14",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1627940042,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 197,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As a general rule, objects that call callbacks should ALWAYS call the callback, forwarding a return code when needed."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 197,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "something like this?\n\n```\nstd::get_if<std::string>(&property);\n```\n\nshould fail and call the default callback(\"\") instead of passing a valid argument into it."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 197,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "yep.  although generally callback would accept an error code type, so you'd forward on the ec in case there was more specific handling needed\n\nsomething like callback(ec, \"\")"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 197,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This isn't something we generally check.  value != \"xyz...\" effectively is already checking for not empty."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Checking value != \"xyz...\" does not guarantee that it is not empty.\n\nIn this case, I wanted to make sure that use the default value if it is empty or it is equal to Unknown.\n\nBut since it should never be empty. I guess its fine not to check it."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 203,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "generally if it's empty, that case gets covered when you convert to a Redfish enum, because empty string won't match any redfish type."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 205,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "if unknown is a legal value, we shouldn't be filtering it here, we should be filtering it when we do the conversion to Redfish Enum."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 205,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done. I have handled it in the callback"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 207,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "`size_t`?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 207,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I think I like auto a bit too much \ud83d\ude0a.\n\nthanks."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 207,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Auto is great..... for code writers.  We optimize for readers in this codebase."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 207,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 208,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "consider `index + 1 != size()`? size_t is unsigned integer so it might underflow (though the previous condition seems to have avoided it)"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 208,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I am fine either way, I will just change it.\n\nThanks."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 210,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "first off, you should just call the callback and return here, no need to process further if you've found the entry.  Also, this should be returning the openbmc value."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 210,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I have cleaned it up a bit.\n\n-----\n\nnot sure what you meant by the openbmc value?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 210,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "doing rfind(\".\") then substr just gives you everything past the .\n\ntechnically dbus could reply with xyz.openbmc_project.Item.Foobar, and you would then forward Foobar to Redfish, which is illegal.  One could argue that the dbus contract got broken there, but in practice, people break the dbus apis a lot, and new enums get added.  Not doing substr lets us gracefully handle new enums."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 210,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 227,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "seems redundant?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 227,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "this was there before. I didn't want to change anything on those codes. Just factoring it there."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 227,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Yeah, this is an old pattern we used to have because we didn't understand the reference to value promotion rules on lambdas.  Because we're changing this code around, lets just fix it while we're here."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 227,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 253,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 340,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 15,
+            "revision": "4f6b70fab43e5e3ddd3c060d8c44816b9caa12a0",
+            "parents": [
+                "c21865c469cfc9dffdc15d87710293115cf6d9e4"
+            ],
+            "ref": "refs/changes/96/45396/15",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1628027903,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 467,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I am not sure which is better.\n\nif else? or individual if statements. Since no two statements will be true at the same time.\n\nI think if else might be a bit slower due to the processor having to backtrack if it takes the wrong path. Not sure if it matters at all here or if there are any preference on this."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 467,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 248,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 335,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 16,
+            "revision": "42ee3706cfc9d985ee663a5fb09eb8bfd5892364",
+            "parents": [
+                "c21865c469cfc9dffdc15d87710293115cf6d9e4"
+            ],
+            "ref": "refs/changes/96/45396/16",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1628102603,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 255,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 342,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 17,
+            "revision": "aa82f3aa0c539fbd36284b588676247e74071826",
+            "parents": [
+                "885bbf1c82ea9f9cbfbe0065ee46adc8e398c868"
+            ],
+            "ref": "refs/changes/96/45396/17",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1628546386,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Call callback with error?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 196,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 206,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "like I mentioned in the other comment, don't do it this way, write a method with exact string matches.  Otherwise if a daemon sends us\n\nFoo.Bar.Baz, we end up sending out Baz, which is a redfish spec violation."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 206,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done.\n\nI have listed the different ChassisType supported."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 468,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "chassisType.empty() is being overloaded two mean:\n\n1. the dbus call failed.\nAND \n2. we couldn't find the chassis type.\n\nYou likely need to pass through an error code in here."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 468,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I was thinking that eitherway it will have the same result. Default to `RackMount`.\n\n\nOr do we watnt to log it to make it easier to tell what failed/caused the output?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 468,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 490,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Lets break this out to a method.  We're too many scopes deep here."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 490,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 255,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 342,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 18,
+            "revision": "aa7bb5ea83927af983e9965e12d0d55bab485837",
+            "parents": [
+                "885bbf1c82ea9f9cbfbe0065ee46adc8e398c868"
+            ],
+            "ref": "refs/changes/96/45396/18",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1628707035,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 293,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 381,
+            "sizeDeletions": 105
+        },
+        {
+            "number": 19,
+            "revision": "49742397e553079fa5312e9b007833842bfabc82",
+            "parents": [
+                "885bbf1c82ea9f9cbfbe0065ee46adc8e398c868"
+            ],
+            "ref": "refs/changes/96/45396/19",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1628707072,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 293,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 380,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 20,
+            "revision": "5ead75e41d61e98c55a960b2c053bed8422da61e",
+            "parents": [
+                "885bbf1c82ea9f9cbfbe0065ee46adc8e398c868"
+            ],
+            "ref": "refs/changes/96/45396/20",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1628707513,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 292,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 379,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 21,
+            "revision": "dbb93d40fa5c4fc10f2475d4400d80fcbbae8047",
+            "parents": [
+                "d699cf969aea5a059b95151f58e054c928f076cc"
+            ],
+            "ref": "refs/changes/96/45396/21",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1629184821,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 820,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "ActionNotSupported ?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 820,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 871,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "should this be a ActionNotSupported or something else ? Resource not found?\nhttps://redfish.dmtf.org/registries/Base.1.10.0.json"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 871,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 292,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 379,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 22,
+            "revision": "b0109e1144a266732e7be99bee4d5c9d1c28d4d7",
+            "parents": [
+                "9301e9113f98db6700bf1f87c9834d0cf8b844cd"
+            ],
+            "ref": "refs/changes/96/45396/22",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1629838064,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 292,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 379,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 23,
+            "revision": "71855b778e067bffe67ece04ccd1160ebeea6e13",
+            "parents": [
+                "9301e9113f98db6700bf1f87c9834d0cf8b844cd"
+            ],
+            "ref": "refs/changes/96/45396/23",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1629839190,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Why not StandAlone also?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "no particular reason.\n\nI'll also add it."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 784,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "There are some error here that we found in our testing system.\n\nAdding this to block this while fixing it.\n\nBasically, this fail all Chassis Resources that does not have `Item.Chassis` interface."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 784,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 87,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 292,
+                    "deletions": -104
+                }
+            ],
+            "sizeInsertions": 379,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 24,
+            "revision": "299d6e9709b9ca3ea1b71240b36663ac869e3013",
+            "parents": [
+                "e62afa5995822679c0ca0ceaf7e4784e46f0b9c3"
+            ],
+            "ref": "refs/changes/96/45396/24",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1631597134,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 305,
+                    "deletions": -105
+                }
+            ],
+            "sizeInsertions": 393,
+            "sizeDeletions": 105
+        },
+        {
+            "number": 25,
+            "revision": "371e0ad00e32c9cb2fc1beb845b08a0b1790b927",
+            "parents": [
+                "3e8c7dfce4869711e22ccc76c90cebb55984d36c"
+            ],
+            "ref": "refs/changes/96/45396/25",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1632845635,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 305,
+                    "deletions": -105
+                }
+            ],
+            "sizeInsertions": 393,
+            "sizeDeletions": 105
+        },
+        {
+            "number": 26,
+            "revision": "79c1f6591300fdf0df38eb0c9c9c47db5e507e4b",
+            "parents": [
+                "0df642197d0b2d278ce6fb7ccd4eaf3db015105d"
+            ],
+            "ref": "refs/changes/96/45396/26",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1632886713,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 254,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 342,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 27,
+            "revision": "3860c6b6b568f68e1c6ff8a97345a674ed69508b",
+            "parents": [
+                "9ae426d77a0bb43cd58d21668b915e2badd77cbe"
+            ],
+            "ref": "refs/changes/96/45396/27",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1632928222,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 255,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 343,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 28,
+            "revision": "68d0fbd2fe1721dee4d968060e818979d92001da",
+            "parents": [
+                "1248fd6545027952eb40c7e0d17d04ab3bc7c938"
+            ],
+            "ref": "refs/changes/96/45396/28",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1634096811,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 277,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 365,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 29,
+            "revision": "4363801e5b4216bd069a84cea5a39af672d2c0a4",
+            "parents": [
+                "8b3ab6256548968d2a8ec21732adef459bc19778"
+            ],
+            "ref": "refs/changes/96/45396/29",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1634096831,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 277,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 365,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 30,
+            "revision": "b2ab76bde0adb9388bf98620bfab184c43605085",
+            "parents": [
+                "57e25ad8556b1fb0e71486a4a892450cd59feed6"
+            ],
+            "ref": "refs/changes/96/45396/30",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1634149106,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 277,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 365,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 31,
+            "revision": "03a3148a2ccc65e52748c06e24a60c584c2e3216",
+            "parents": [
+                "34867791292106b71465ea870d9baabd0d7a1f8e"
+            ],
+            "ref": "refs/changes/96/45396/31",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1634149642,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 277,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 365,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 32,
+            "revision": "ecdea34deb442f3a0047c8d2834377c896c01c6e",
+            "parents": [
+                "308f70c77194b891c97e6f56c50adee4f39f0de7"
+            ],
+            "ref": "refs/changes/96/45396/32",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1637169254,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 293,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 381,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 33,
+            "revision": "4d91047b0e33c21c05d1e9646b5ddb1feb8a2892",
+            "parents": [
+                "308f70c77194b891c97e6f56c50adee4f39f0de7"
+            ],
+            "ref": "refs/changes/96/45396/33",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1637169355,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 294,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 382,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 34,
+            "revision": "6146c14bca31e779efc43978e443ebbac03e64c6",
+            "parents": [
+                "308f70c77194b891c97e6f56c50adee4f39f0de7"
+            ],
+            "ref": "refs/changes/96/45396/34",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1637172741,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 139,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Why was this changed to ERROR trace? General rule I've been pushing for is if we're not returning an error to the client, lets not trace to the ERROR buffer. This may just be a rebase issue."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 139,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "oh. I thought I changed it on accident after rebase and changed it manually. Apparently it was good before.\n\nI have reverted it."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 237,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "If we go with the default \"RackMount\" then don't we need to add the Actions?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 237,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "this is actually wrong. I was debugging it and it should be also add the action.\n\nIt is indicated by chassisType == nullopt"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 237,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "This one check if chassisType == nullopt or if is equals to RackMount/StandAlone, then it will add the Action. Otherwise, no action.\n\nSo the default RckMount will also add the Action."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 237,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 267,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "ERROR? This will trigger an error response to the client so be good to have this log when error traces are enabled."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 267,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 798,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Is all this code really needed? The code above ensures we don't return this action unless it's supported. If we do need a check, can't we just reuse the logic above vs. writing all this new code?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 798,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Do you mean the one in `requestRoutesChassis()`?\n\nThis function is used in requestRoutesChassisResetActionInfo and requestRoutesChassisResetAction. I'll see if I can clean this up more."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 798,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 295,
+                    "deletions": -36
+                }
+            ],
+            "sizeInsertions": 383,
+            "sizeDeletions": 36
+        },
+        {
+            "number": 35,
+            "revision": "628c8bc75e4ea1cc2f8fd1ea517a0248f31f2c7d",
+            "parents": [
+                "308f70c77194b891c97e6f56c50adee4f39f0de7"
+            ],
+            "ref": "refs/changes/96/45396/35",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1637199511,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 279,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 367,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 36,
+            "revision": "30f72e76e79e952018014974d6352f5c5d3884fa",
+            "parents": [
+                "0fda0f12bb9ae0604a083dfae419be38a1418913"
+            ],
+            "ref": "refs/changes/96/45396/36",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1637618382,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 230,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: this should be \"addChassisReset\""
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 230,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 240,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This doesn't seem right.  Shouldn't we be checking for which chassis dbus interfaces actually implement reset?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 240,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Right now it is assuming that RackMount and StandAlone does reset. Also default which is Rackmount."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 240,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "the only chassis reset that we do is with `xyz.openbmc_project.State.Chassis` and\n`/xyz/openbmc_project/state/chassis_system0` or `/xyz/openbmc_project/state/chassis0`.\n\nSO right now it is just saying that which Chassis is allowed to call that method. The Chassis resource itself does not link to the that dbus interface directly (or maybe it should).\n\nBasically, there are no reset method per Chassis and I am not sure if that's an issue."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 790,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "This Api seems inconvenient. Let's say I want to check if my cassis support rest instead of true/false I get \"RackMount\", \"StandAlone\" or nullopt and all of them means true.\n\nWhy not just use std::function<boost::system::error_code ec, bool> as a callback type?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 790,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I have updated it so that it still support other chassis and just return empty reset list."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 790,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Example of chassis with empty allowable values. Need to check if it should be null on empty.\n\n```\n{\n  \"@odata.id\": \"/redfish/v1/Chassis/chassis_0/ResetActionInfo\",\n  \"@odata.type\": \"#ActionInfo.v1_1_2.ActionInfo\",\n  \"Id\": \"ResetActionInfo\",\n  \"Name\": \"Reset Action Info\",\n  \"Parameters\": [\n    {\n      \"AllowableValues\": [\n        \"PowerCycle\"\n      ],\n      \"DataType\": \"String\",\n      \"Name\": \"ResetType\",\n      \"Required\": true\n    }\n  ]\n}\n\n{\n  \"@odata.id\": \"/redfish/v1/Chassis/chassis_1/ResetActionInfo\",\n  \"@odata.type\": \"#ActionInfo.v1_1_2.ActionInfo\",\n  \"Id\": \"ResetActionInfo\",\n  \"Name\": \"Reset Action Info\",\n  \"Parameters\": [\n    {\n      \"AllowableValues\": null,\n      \"DataType\": \"String\",\n      \"Name\": \"ResetType\",\n      \"Required\": true\n    }\n  ]\n}\n```"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 795,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This general pattern of \"check interfaces, then call set\" is generally not how we do things like this.  Generally we take a pattern of attempting to do the set directly, and returning the correct errors.  I think some of the conflict is that you're making a distinction based on type in bmcweb code, which is kind of business logic.  bmcweb should be as close to a dumb dbus->redfish converter as is possible, so we should be relying on whether or not the objects implement the interfaces we need."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 795,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "ok, let me clean this up a bit more."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 795,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "I have removed anything unnecessary and use the error to catch everything else."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 806,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Why is this comment useful?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 806,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Krzysztof, it would help a lot to prefix these types of comments with \"nit\" because removing this would definitely not hold up this patchset."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 806,
+                    "reviewer": {
+                        "name": "Krzysztof Grobelny",
+                        "email": "krzysztof.grobelny@intel.com",
+                        "username": "krzysztof-i"
+                    },
+                    "message": "Ok, I will keep it in mind."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 806,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 883,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't make copies of crow::request.  They are generally not needed."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 883,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 279,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 367,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 37,
+            "revision": "48c3b71e45a9f2659216b21c876f322f87333306",
+            "parents": [
+                "0fd03ad472d42eb35c15147e4c678d28b7f70c4a"
+            ],
+            "ref": "refs/changes/96/45396/37",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1638173832,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 279,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 367,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 38,
+            "revision": "a4faabb17705427700d76dfc9defc692c0e183d7",
+            "parents": [
+                "6fbdbcabc3ae43dc372459c6c5ae4d53657267f5"
+            ],
+            "ref": "refs/changes/96/45396/38",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1639616703,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 279,
+                    "deletions": -34
+                }
+            ],
+            "sizeInsertions": 367,
+            "sizeDeletions": 34
+        },
+        {
+            "number": 39,
+            "revision": "bccd9e2a400aac04ddd841f8b8c8da593eaca71f",
+            "parents": [
+                "6fbdbcabc3ae43dc372459c6c5ae4d53657267f5"
+            ],
+            "ref": "refs/changes/96/45396/39",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1639619524,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 278,
+                    "deletions": -33
+                }
+            ],
+            "sizeInsertions": 366,
+            "sizeDeletions": 33
+        },
+        {
+            "number": 40,
+            "revision": "7772571b1cfa9ed128729cc8e510f237c0e324f3",
+            "parents": [
+                "638e239e85cdb906b9949758647fc16843415ba9"
+            ],
+            "ref": "refs/changes/96/45396/40",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1640767550,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "This comment doesn't seem accurate."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done. Thanks."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 279,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 367,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 41,
+            "revision": "26e970981be78c5ce0d78715a92aaa36dfbaac00",
+            "parents": [
+                "ea2e6eeca15f4019923466f7c8ccc52c53a5ea94"
+            ],
+            "ref": "refs/changes/96/45396/41",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1646125834,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Willy, can you please go through all the unresolved comments and mark them as resolved.  I believe there are still some unresolved."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 264,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If ec is being handled here, does ec need to be given to the lambda at all?\n\nCould we do a simple:\n\n crow::connections::systemBus->async_method_call(\n        std::bind_front(callback, asyncResp, chassisId),\n        connectionName, path, \"org.freedesktop.DBus.Properties\", \"Get\",\n        \"xyz.openbmc_project.Inventory.Item.Chassis\", \"Type\");\n\n\n\n(yes, this is using bind_front, which I'm pretty sure I\"m going to start transitioning to.  Please help to review https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/51655)"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 264,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "um. Yeah, I think we can do that and just handle it at the callback side.\n\nThanks for the reference. Let me take a look at the change.\n\nI have cleaned it up a bit based on that."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 266,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please do this directly in the callback.  The less information we have in the lambda, the better."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 266,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "done."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 543,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Pretty sure you meant to return from this?"
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 543,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "yes, thanks."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 548,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "variable needs a better name, this is \"add chassis reset action\", and should have a name to match."
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 548,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 275,
+                    "deletions": -35
+                }
+            ],
+            "sizeInsertions": 363,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 42,
+            "revision": "05c452c68d139d30c85f1c2cb72d78553b061d93",
+            "parents": [
+                "5f2b84ee090bb9d361de9c294aa85cecf3962c11"
+            ],
+            "ref": "refs/changes/96/45396/42",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1646873667,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 908,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "This didn't work.\n\nI think it need to be res.jsonValue[\"Parameters\"][0][\"AllowableValues\"]"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 257,
+                    "deletions": -37
+                }
+            ],
+            "sizeInsertions": 345,
+            "sizeDeletions": 37
+        },
+        {
+            "number": 43,
+            "revision": "a6fcfaba8cb0e6a40d1da9d0dd8596679919223c",
+            "parents": [
+                "5f2b84ee090bb9d361de9c294aa85cecf3962c11"
+            ],
+            "ref": "refs/changes/96/45396/43",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1646909247,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 260,
+                    "deletions": -37
+                }
+            ],
+            "sizeInsertions": 348,
+            "sizeDeletions": 37
+        },
+        {
+            "number": 44,
+            "revision": "71b22f33e272ff7945f097544b7c49a14f393b71",
+            "parents": [
+                "bacb216228c45ca715163f4c81717b1af39889ab"
+            ],
+            "ref": "refs/changes/96/45396/44",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1649723253,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 260,
+                    "deletions": -37
+                }
+            ],
+            "sizeInsertions": 348,
+            "sizeDeletions": 37
+        },
+        {
+            "number": 45,
+            "revision": "6968a6c247a341bc70dee8eca78b8b15b9af1780",
+            "parents": [
+                "bacb216228c45ca715163f4c81717b1af39889ab"
+            ],
+            "ref": "refs/changes/96/45396/45",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1649728390,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 260,
+                    "deletions": -37
+                }
+            ],
+            "sizeInsertions": 348,
+            "sizeDeletions": 37
+        },
+        {
+            "number": 46,
+            "revision": "214aa6735e5cd00f5e585047a5e49ea638ea776c",
+            "parents": [
+                "eb1c47d3d98a186164ffb90214037c6062da7937"
+            ],
+            "ref": "refs/changes/96/45396/46",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1650574145,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 273,
+                    "deletions": -37
+                }
+            ],
+            "sizeInsertions": 361,
+            "sizeDeletions": 37
+        },
+        {
+            "number": 47,
+            "revision": "383b429668113d7fdca5489b3ae38f8a5fcf29e0",
+            "parents": [
+                "eb1c47d3d98a186164ffb90214037c6062da7937"
+            ],
+            "ref": "refs/changes/96/45396/47",
+            "uploader": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "createdOn": 1650575528,
+            "author": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "line": 179,
+                    "reviewer": {
+                        "name": "Manish Baing",
+                        "email": "manish.baing@intel.com",
+                        "username": "manishbaing"
+                    },
+                    "message": "Have you thought about if ... else if ...else if ladder here .?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 88,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/chassis.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 272,
+                    "deletions": -38
+                }
+            ],
+            "sizeInsertions": 360,
+            "sizeDeletions": 38
+        }
+    ]
+}

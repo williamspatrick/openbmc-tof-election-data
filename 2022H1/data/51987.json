@@ -1,0 +1,193 @@
+{
+    "project": "openbmc/phosphor-state-manager",
+    "branch": "master",
+    "id": "I882c056881bf6abde36bb11d3ae840c9b19d096a",
+    "number": 51987,
+    "subject": "only run power restore on AC losses",
+    "owner": {
+        "name": "Andrew Geissler",
+        "email": "andrew@geissonator.com",
+        "username": "geissonator"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-state-manager/+/51987",
+    "commitMessage": "only run power restore on AC losses\n\nAn internal defect was opened recently where it was noted that power\nrestore functionality should only be run in situations where the chassis\npower was on prior to the BMC being reset and off when the BMC comes\nback up.\n\nThis doesn't really align with the Redfish or PDI API we've defined\nthough. Why would there be an option to \"AlwaysOn\" if the expected\nbehavior was to not always execute the automatic power restore policy?\n\nPushing this up for discussion but I doubt it will be something we merge\nas-is.\n\nNote that the one-time aspect of the power restore policy is always\nlooked at. This is used for scenarios like inband code update where an\nautomatic power on is always needed after the BMC reboot.\n\nTested:\n- Verify no restore policy when not a power loss\n<6> One time not set, check user setting of power policy\n<6> Chassis power was not on prior to BMC reboot so do not run any power policy\n\n- Verify file is created on a blackout detection\nMar 14 20:27:46 p10bmc phosphor-chassis-state-manager[3450]: The system suffered a power blackout.\nroot@p10bmc:/lib/systemd/system# ls /run/openbmc/\nchassis@0-lost-power\n\n- Verify power restore is run when blackout occurs\n<6> One time not set, check user setting of power policy\n<6> Host power is off, processing power policy xyz.openbmc_project.Control.Power.RestorePolicy.Policy.AlwaysOff\n<6> power_policy=ALWAYS_POWER_OFF, set requested state to off\n\nSigned-off-by: Andrew Geissler <geissonator@yahoo.com>\nChange-Id: I882c056881bf6abde36bb11d3ae840c9b19d096a\n",
+    "createdOn": 1647292189,
+    "lastUpdated": 1654701719,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1647292189,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1647292201,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647292201,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647292510,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38973/ : SUCCESS"
+        },
+        {
+            "timestamp": 1647293433,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647379172,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 1: Code-Review+1"
+        },
+        {
+            "timestamp": 1647379233,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647379802,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654701719,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Abandoned\n\nDone over under https://gerrit.openbmc.org/c/openbmc/phosphor-state-manager/+/54091"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "09e88b481abc5518809f909bf3f379153fd01b5e",
+            "parents": [
+                "1ab2b6cea615419da0cb3e1900297ab694dc45ae"
+            ],
+            "ref": "refs/changes/87/51987/1",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1647292189,
+            "author": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Maybe I'm confusing myself a bit but when I look at https://redfish.dmtf.org/schemas/v1/ComputerSystem.v1_17_0.json, it says:\n\"description\": \"The desired power state of the system when power is restored after a power loss.\"\n\nSo maybe what we really are supposed to do here is only apply the policy when the entire system loses power (vs. when chassis power was on prior). I don't think we have a way to determine if the reason for a BMC reboot was a power loss or not though?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "Per our discussion we need to determine if \"AlwaysOn\" takes precedence over the IBM APR rules, but at any rate this is fine from an APR perspective, thanks."
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "can you refresh my memory why you get the filename this way and not just use a std::string?"
+                },
+                {
+                    "file": "discover_system_state.cpp",
+                    "line": 133,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "does the file need to be removed after you read it here, or maybe at some other point?  or does it stay until the next reboot?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "discover_system_state.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 69,
+            "sizeDeletions": 1
+        }
+    ]
+}

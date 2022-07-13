@@ -1,0 +1,630 @@
+{
+    "project": "openbmc/openpower-vpd-parser",
+    "branch": "master",
+    "id": "I27cba8bf4aa594ed21140fb1c58fe186b8dc048e",
+    "number": 52744,
+    "subject": "Backup the update vpd data",
+    "owner": {
+        "email": "alpu8007@gmail.com",
+        "username": "Alpana07"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/openpower-vpd-parser/+/52744",
+    "commitMessage": "Backup the update vpd data\n\nThis commit will handle the case of any AC intruption in the\nmiddle of update vpd data. It will have a backup data in a file,\nwhich will be deleted on a success write done.\nOtherwise that file will stay there and will be checked and executed\nnext time whenever vpd manager starts again.\n\nTest: tested on a rainier system-\n\nDefault data-\nroot@rain135bmc:/tmp# busctl introspect xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/tpm_wilson |grep \"PN\"\n.PN                                                   property  ay        7 48 50 87 70 51 51 56                   emits-change writable\n\nCASE1: Trigger write manually-\n\nroot@rain135bmc:/tmp# busctl call com.ibm.VPD.Manager /com/ibm/VPD/Manager com.ibm.VPD.Manager WriteKeyword ossay  \"/system/chassis/motherboard/tpm_wilson\" \"VINI\" \"PN\" 1 70\nroot@rain135bmc:/tmp#\n\nBy that time we have a backup-\nroot@rain135bmc:/tmp# ls vpdBackup/\nupdateVpdDataBackup.txt\n\nroot@rain135bmc:/tmp# cat vpdBackup/updateVpdDataBackup.txt\n/sys/bus/i2c/drivers/at24/0-0051/eeprom\n/system/chassis/motherboard/tpm_wilson\nVINI\nPN\nF\n\nCASE2: If backup file exists at the time of vpd-manager starts,\n       then it will take action and delete it.\n\nroot@rain135bmc:/tmp# cat /var/lib/vpdBackup/updateVpdDataBackup.txt\n/sys/bus/i2c/drivers/at24/0-0051/eeprom\n/system/chassis/motherboard/tpm_wilson\nVINI\nPN\nF\n\nroot@rain135bmc:/tmp# ./vpd-manager\nFile /var/lib/vpdBackup/updateVpdDataBackup.txt Exists, contains-\n : /sys/bus/i2c/drivers/at24/0-0051/eeprom\n : /system/chassis/motherboard/tpm_wilson\n : VINI\n : PN\n : F\n\nCalling writeKeyword with these datas:\n- /system/chassis/motherboard/tpm_wilson\n- VINI\n- PN\n- F\n\nupdateVpdDataBackup file deleted successfully\nVPD manager event loop started\n\nResults as modified PN value-\nroot@rain135bmc:/tmp# busctl introspect xyz.openbmc_project.Inventory.Manager /xyz/openbmc_project/inventory/system/chassis/motherboard/tpm_wilson |grep \"PN\"\n.PN                                                   property  ay        7 70 50 87 70 51 51 56                   emits-change writable\n\nSigned-off-by: Alpana Kumari <alpankum@in.ibm.com>\nChange-Id: I27cba8bf4aa594ed21140fb1c58fe186b8dc048e\n",
+    "createdOn": 1649397537,
+    "lastUpdated": 1653629180,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1649397537,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1649397546,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649397546,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649397577,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40802/ : FAILURE"
+        },
+        {
+            "timestamp": 1649398492,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1649399192,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 1:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1649399286,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1649399295,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649399295,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649399450,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40805/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649741244,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1649741255,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649741255,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649741268,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 2:\n\n(4 comments)\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1649741268,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Set Ready For Review"
+        },
+        {
+            "timestamp": 1649741293,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40998/ : FAILURE"
+        },
+        {
+            "timestamp": 1649757726,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1649757738,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649757738,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649757758,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649757777,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41018/ : FAILURE"
+        },
+        {
+            "timestamp": 1649757998,
+            "reviewer": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1649758022,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649758022,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649758167,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41019/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "255ff76ccefc8da3803ea34ac895841de4d33c99",
+            "parents": [
+                "0e34d3574cc2512b8ac465913eb988a95c1cf808"
+            ],
+            "ref": "refs/changes/44/52744/1",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1649397537,
+            "author": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 80,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "don't use tmp path. use /var/lib"
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 80,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 127,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "don't use tmp path. use /var/lib"
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 127,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 166,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "delete backup after eprom update done"
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 166,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "bus call not required, update the hardware if file found here"
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "line": 39,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "move it to at last. just before event loop triggered."
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "line": 39,
+                    "reviewer": {
+                        "email": "alpu8007@gmail.com",
+                        "username": "Alpana07"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": -3
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 100,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "6c66483eb2dff1d3414edec1ae24162b1f5721cb",
+            "parents": [
+                "0e34d3574cc2512b8ac465913eb988a95c1cf808"
+            ],
+            "ref": "refs/changes/44/52744/2",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1649399286,
+            "author": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": -3
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 100,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 3,
+            "revision": "61da7b9ca6d098d641b070b4faa90d508ce0b0a6",
+            "parents": [
+                "0e34d3574cc2512b8ac465913eb988a95c1cf808"
+            ],
+            "ref": "refs/changes/44/52744/3",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1649741244,
+            "author": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 69,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 58,
+                    "deletions": -3
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 194,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 4,
+            "revision": "287f9c5c5eb58b6a4e436dbf61f0f9e58dfe5995",
+            "parents": [
+                "0e34d3574cc2512b8ac465913eb988a95c1cf808"
+            ],
+            "ref": "refs/changes/44/52744/4",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1649757726,
+            "author": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 69,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -3
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 196,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 5,
+            "revision": "eaa92e7f92c2bd023d2448daf41e9e628aa985a2",
+            "parents": [
+                "0e34d3574cc2512b8ac465913eb988a95c1cf808"
+            ],
+            "ref": "refs/changes/44/52744/5",
+            "uploader": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "createdOn": 1649757998,
+            "author": {
+                "email": "alpu8007@gmail.com",
+                "username": "Alpana07"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 69,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -3
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 196,
+            "sizeDeletions": 18
+        }
+    ]
+}

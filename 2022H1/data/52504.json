@@ -1,0 +1,404 @@
+{
+    "project": "openbmc/openbmc-tools",
+    "branch": "master",
+    "id": "I27f1560ba13492ccff6a01013c3a1d5ee210cef0",
+    "number": 52504,
+    "subject": "Implement a performance testing tool for sensors",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/openbmc-tools/+/52504",
+    "commitMessage": "Implement a performance testing tool for sensors\n\nThere are a lot of hypothesis being made about how to improve the\nperformance of the sensor subsystem within OpenBMC.  There are a number\nof statements being made about dbus performance that actually seem\nlikely to be related to the efficiency of specific implementations of\ncertain sensors within OpenBMC.  Blocking calls, non blocking calls,\nasio, bulk collection, eventing, threads and other design decisions all\ncan have an effect on the performance of a sensor application.\n\nThis commit attempts to write a small, portable daemon that publishes\nsensor interfaces read from memory in a relatively simple and\ncontrollable manner.  This allows running it on a bmc (with services\nunloaded) to determine some theoretical \"max\" performance\ncharacteristics, assuming 0 cost for grabbing actual values.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I27f1560ba13492ccff6a01013c3a1d5ee210cef0\n",
+    "createdOn": 1648677869,
+    "lastUpdated": 1650996089,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1648677869,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1648732427,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1648837655,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2: Published edit on patch set 1."
+        },
+        {
+            "timestamp": 1648837764,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1648837788,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649291596,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1649702005,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649702020,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 2: Verified+1"
+        },
+        {
+            "timestamp": 1650996084,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as b3ef7f2b4419d818427612584c579e7534ceb460"
+        },
+        {
+            "timestamp": 1650996089,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3658fc9a41d66e19e1cf2cf8e7a3ee3d1527554f",
+            "parents": [
+                "385fd079135d3a7857150ebd759c99d59538b7d1"
+            ],
+            "ref": "refs/changes/04/52504/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648677869,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Any example output of running the tool?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The help text is pretty good, and I lost my zsh history from when I did it, but it should be something like\n\n// Repeat this for as many sensor daemons you want to create, each hosting 10 sensors.  Keep in mind, after 500 or so per instance, I was hitting arbitrary dbus limits, so that seems to be the top end at least in my setup.  Not sure which limit I hit or if it could be increased.\n./dbus-sensor-tester -n 10\n\n// Then repeat this for as many \"watchers\" you'd like to simulate.  I generally simulate 1 or 2, because in the ideal case, there's only the fan control loop watching most of these things on every value.  I realize there's other systems that have more.\n./dbus-sensors-tester -w"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Looks like it could be interesting to run on some of our larger config systems."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "In theory the system size shouldn't matter.   Ideally you'd shut down everything doing \"stuff\" on dbus to get real results.  Someone suggested to me that you might want to then start up one service at a time, and measure your performance at each step to see which one was consuming most of the time."
+                },
+                {
+                    "file": "dbus_sensor_tester/meson.build",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I see some copy/paste bmcweb references in here"
+                },
+                {
+                    "file": "dbus_sensor_tester/meson.build",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Pretty sure I just fixed them (didn't rerun the meson file though, so apologies if I made a typo somewhere)."
+                },
+                {
+                    "file": "dbus_sensor_tester/meson.build",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/boost.wrap",
+                    "type": "ADDED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/cli11.wrap",
+                    "type": "ADDED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/meson.build",
+                    "type": "ADDED",
+                    "insertions": 141,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/main.cpp",
+                    "type": "ADDED",
+                    "insertions": 128,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/sdbusplus.wrap",
+                    "type": "ADDED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/dbus_sensor_tester.bb",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 325,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "90a4e33bc8dc496caf124a198529b254539493e3",
+            "parents": [
+                "385fd079135d3a7857150ebd759c99d59538b7d1"
+            ],
+            "ref": "refs/changes/04/52504/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648837655,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I tend to let AndrewJ approve/merge this repo but this one has been around for long enough I think."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/boost.wrap",
+                    "type": "ADDED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/cli11.wrap",
+                    "type": "ADDED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/meson.build",
+                    "type": "ADDED",
+                    "insertions": 138,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/main.cpp",
+                    "type": "ADDED",
+                    "insertions": 128,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/sdbusplus.wrap",
+                    "type": "ADDED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/dbus_sensor_tester.bb",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 322,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "b3ef7f2b4419d818427612584c579e7534ceb460",
+            "parents": [
+                "c49e2c5cabe5401de5931fe470096800e0aa1bf9"
+            ],
+            "ref": "refs/changes/04/52504/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1650996084,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/boost.wrap",
+                    "type": "ADDED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/cli11.wrap",
+                    "type": "ADDED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/meson.build",
+                    "type": "ADDED",
+                    "insertions": 138,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/main.cpp",
+                    "type": "ADDED",
+                    "insertions": 128,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/subprojects/sdbusplus.wrap",
+                    "type": "ADDED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus_sensor_tester/dbus_sensor_tester.bb",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 322,
+            "sizeDeletions": 0
+        }
+    ]
+}

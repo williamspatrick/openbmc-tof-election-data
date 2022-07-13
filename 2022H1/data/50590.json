@@ -1,0 +1,399 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I17e5aa6ca7825fcffbec3939d572bc7ccc01405b",
+    "number": 50590,
+    "subject": "Allow setting MinPasswordLength in AccountService",
+    "owner": {
+        "name": "Paul Fertser",
+        "email": "fercerpav@gmail.com",
+        "username": "paulfertser"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/50590",
+    "commitMessage": "Allow setting MinPasswordLength in AccountService\n\nThe MinPasswordLength property is writable according to the Redfish\nschema and phosphor-user-manager allows setting it, so implement the\ncorresponding call.\n\nTested:\n\n$ curl -k 'https://root:0penBmc@[fe80::5054:ff:fe12:3402%tap0]/redfish/v1/AccountService' -X PATCH -d '{\"MinPasswordLength\": 12}'\n{\n  \"@Message.ExtendedInfo\": [\n    {\n      \"@odata.type\": \"#Message.v1_1_1.Message\",\n      \"Message\": \"Successfully Completed Request\",\n      \"MessageArgs\": [],\n      \"MessageId\": \"Base.1.8.1.Success\",\n      \"MessageSeverity\": \"OK\",\n      \"Resolution\": \"None\"\n    }\n  ]\n}\n\n$ curl -s -k 'https://root:0penBmc@[fe80::5054:ff:fe12:3402%tap0]/redfish/v1/AccountService' | jq .MinPasswordLength\n12\n\nroot@qemuarm:~# grep cracklib /etc/pam.d/common-password\npassword        [success=ok default=die]        pam_cracklib.so debug enforce_for_root reject_username minlen=12 difok=0 lcredit=0 ocredit=0 dcredit=0 ucredit=0\n\n$ curl -k 'https://root:0penBmc@[fe80::5054:ff:fe12:3402%tap0]/redfish/v1/AccountService' -X PATCH -d '{\"MinPasswordLength\": 8}'\n{\n  \"@Message.ExtendedInfo\": [\n    {\n      \"@odata.type\": \"#Message.v1_1_1.Message\",\n      \"Message\": \"Successfully Completed Request\",\n      \"MessageArgs\": [],\n      \"MessageId\": \"Base.1.8.1.Success\",\n      \"MessageSeverity\": \"OK\",\n      \"Resolution\": \"None\"\n    }\n  ]\n}\n\n$ curl -s -k 'https://root:0penBmc@[fe80::5054:ff:fe12:3402%tap0]/redfish/v1/AccountService' | jq .MinPasswordLength\n8\n\nroot@qemuarm:~# grep cracklib /etc/pam.d/common-password\npassword        [success=ok default=die]        pam_cracklib.so debug enforce_for_root reject_username minlen=8 difok=0 lcredit=0 ocredit=0 dcredit=0 ucredit=0\n\nWith https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-user-manager/+/50589\napplied this doesn't silently ignore the value that is less than the lower\nlimit and produces an error, the old value is preserved:\n\n$ curl -k 'https://root:0penBmc@[fe80::5054:ff:fe12:3402%tap0]/redfish/v1/AccountService' -X PATCH -d '{\"MinPasswordLength\": 7}'\n{\n  \"error\": {\n    \"@Message.ExtendedInfo\": [\n      {\n        \"@odata.type\": \"#Message.v1_1_1.Message\",\n        \"Message\": \"The request failed due to an internal service error.  The service is still operational.\",\n        \"MessageArgs\": [],\n        \"MessageId\": \"Base.1.8.1.InternalError\",\n        \"MessageSeverity\": \"Critical\",\n        \"Resolution\": \"Resubmit the request.  If the problem persists, consider resetting the service.\"\n      }\n    ],\n    \"code\": \"Base.1.8.1.InternalError\",\n    \"message\": \"The request failed due to an internal service error.  The service is still operational.\"\n  }\n\n$ curl -s -k 'https://root:0penBmc@[fe80::5054:ff:fe12:3402%tap0]/redfish/v1/AccountService' | jq .MinPasswordLength\n8\n\nSigned-off-by: Paul Fertser <fercerpav@gmail.com>\nChange-Id: I17e5aa6ca7825fcffbec3939d572bc7ccc01405b\n",
+    "createdOn": 1642794842,
+    "lastUpdated": 1644436279,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1642794842,
+            "reviewer": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1642794868,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642794868,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642795379,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35924/ : SUCCESS"
+        },
+        {
+            "timestamp": 1642796601,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1642797805,
+            "reviewer": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1642798114,
+            "reviewer": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642805240,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1642858792,
+            "reviewer": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1642861898,
+            "reviewer": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643052146,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644319241,
+            "reviewer": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644388976,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644389026,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2: Code-Review+2"
+        },
+        {
+            "timestamp": 1644389046,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as ef73ad0d99623c67679008728daa578098c54a40"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "30895bb38144e453755a244a0a303e1fc1769d3d",
+            "parents": [
+                "35fb5311303730c90395d1a7fb34bc710dfa5421"
+            ],
+            "ref": "refs/changes/90/50590/1",
+            "uploader": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "createdOn": 1642794842,
+            "author": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Redfish must also allow setting this, which it does. Please add that to the commit msg."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Paul Fertser",
+                        "email": "fercerpav@gmail.com",
+                        "username": "paulfertser"
+                    },
+                    "message": "OK, I'll mention that it's not readonly in the official schema in the next version."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Testing? \nIs there some limit to how low this can be set?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Paul Fertser",
+                        "email": "fercerpav@gmail.com",
+                        "username": "paulfertser"
+                    },
+                    "message": "Please tell me what kind of testing results you want from me. Am I supposed to run Validator for a change like that? Or would showing a curl command and saying \"it worked\" be good enough?\n\nThe limit is enforced by phosphor-user-manager (hardcoded to 8), and I've just sent a patch so that it wouldn't silently ignore the requests to set it too low: https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-user-manager/+/50589 , with that I'm getting InternalError if I go below 8."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Paul Fertser",
+                        "email": "fercerpav@gmail.com",
+                        "username": "paulfertser"
+                    },
+                    "message": "Guess I should change the phosphor-user-manager patch to emit InvalidArgument for that case?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Please tell me what kind of testing results you want from me.\n\nI will answer your question with another question.  How do you know that this code works and is bug free?  That question should be answered by your commit message in the Tested section.  Generally, yes, it involves some amount of playing with the API to ensure that it functions as designed.\n\n> I've just sent a patch so that it wouldn't silently ignore the requests to set it too low: https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-user-manager/+/50589 ,\n\nYou should mention this in your commit message."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Paul Fertser",
+                        "email": "fercerpav@gmail.com",
+                        "username": "paulfertser"
+                    },
+                    "message": "> > Please tell me what kind of testing results you want from me.\n> \n> I will answer your question with another question.  How do you know that this code works and is bug free?\n\nNow this brings an interesting twist to the topic because /my/ answer would indeed differ fundamentally.\n\nWhen seeing a patch like that I would assume (as that is /usually/ the case) that the contributor has performed at least basic smoke testing confirming the code works as intended, so that goes without saying. An exception to that would be noted by commit message having something like \"RFC only: this breaks this and that for reasons unknown, please help me figure it out\" or \"Compile-tested only\" or \"Tested on X; should work the same on Y and Z for /reasons/\".\n\nI can also imagine how adding basic testing results not only clutters the commit log with trivialities but might lure the reviewers onto the wrong thought train (following the potentially erroneous author's logic) and I guess you know how hard it is to stop and look around properly when you're already going via a bad path.\n\nI understand you have good reasons to roll it differently, just wanted to note that it's not necessarily based on assumptions valid and natural for all free software developers."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > > Please tell me what kind of testing results you want from me.\n> > \n> > I will answer your question with another question.  How do you know that this code works and is bug free?\n> \n> Now this brings an interesting twist to the topic because /my/ answer would indeed differ fundamentally.\n> \n> When seeing a patch like that I would assume (as that is /usually/ the case) that the contributor has performed at least basic smoke testing confirming the code works as intended, so that goes without saying.\n\nRelying on assumptions is error prone.  Explicitly stating things saves time in the long run, and helps other people to replicate your results.  They should be seen as a form of documentation.\n\n> An exception to that would be noted by commit message having something like \"RFC only: this breaks this and that for reasons unknown, please help me figure it out\" or \"Compile-tested only\" or \"Tested on X; should work the same on Y and Z for /reasons/\".\n\nIt would be nice if we could make that assumption on OpenBMC, and maybe that's how it works on other projects, but a significant portion of committers don't appropriately test their patches, and lead to regressions as a result, which takes away maintainer time from reviewing patches and getting them on master, which hurts the projects velocity overall.  This is why the tested statement rule exists, and helps to spread the testing load out.  If bmcweb/redfish had a more extensively used testing harness, and code was required to come with unit tests, this rule would likely be moot, but as it stands today, it saves time for the overall project in not chasing down regressions.\n\n> \n> I can also imagine how adding basic testing results not only clutters the commit log with trivialities but might lure the reviewers onto the wrong thought train (following the potentially erroneous author's logic) and I guess you know how hard it is to stop and look around properly when you're already going via a bad path.\n\nOn the opposite note from this, it's quite useful at times, as it can make very apparent that the level of testing wasn't quite enough, or needs to run other things.  For example, on this commit, running the service validator is kind of useless, because it only does GETs and you've made modifications to PATCH, so if that was the only thing listed as being tested, it's relatively easy to ask for more.  Those kind of things are much easier to point out in a tested statement than in code.\n\n> \n> I understand you have good reasons to roll it differently, just wanted to note that it's not necessarily based on assumptions valid and natural for all free software developers.\n\n\nI'm happy to continue to have this discussion, but not in the context of this patchset.  It looks like you've added a tested statement, so that's good.  I will try to re-review this patchset soon."
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1392,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "https://github.com/openbmc/phosphor-dbus-interfaces/blob/08baf48ad5f15774d393fbbf4e9479a0ef3e82d0/yaml/xyz/openbmc_project/User/AccountPolicy.interface.yaml#L24 \nI guess that is why this changed"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1392,
+                    "reviewer": {
+                        "name": "Paul Fertser",
+                        "email": "fercerpav@gmail.com",
+                        "username": "paulfertser"
+                    },
+                    "message": "Yes. Do I need to send this as a separate commit with an explanatory commit message?"
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "line": 1392,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "No, considering this is just taking it back to the documented interface, I think a comment on the review is fine."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 29,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "43d656da547232ea7457c196f8eb3e982f3d7fb2",
+            "parents": [
+                "35fb5311303730c90395d1a7fb34bc710dfa5421"
+            ],
+            "ref": "refs/changes/90/50590/2",
+            "uploader": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "createdOn": 1642858792,
+            "author": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Paul Fertser",
+                        "email": "fercerpav@gmail.com",
+                        "username": "paulfertser"
+                    },
+                    "message": "By the way, I see this patch is mentioned in \"Your Turn\" section in the list of my changes. I guess it's because it has comments not marked as \"resolved\".\nSo what is the usual course of actions the OpenBMC maintainers expect from the contributors? Who is supposed to mark a comment as \"resolved\", the one who made the comment after verifying it's taken care of or the one who commits a new changeset that is /supposed/ to account whatever the comment was made for?\nI'd be willing to add a clear note regarding this to ``openbmc-docs`` but for that I need to understand what the maintainers' expectations currently are."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> By the way, I see this patch is mentioned in \"Your Turn\" section in the list of my changes. I guess it's because it has comments not marked as \"resolved\".\n\nPer gerrit process, you're right;  In practice, most maintainers (myself included) aren't sticklers for it.\n\n> So what is the usual course of actions the OpenBMC maintainers expect from the contributors? Who is supposed to mark a comment as \"resolved\", the one who made the comment after verifying it's taken care of or the one who commits a new changeset that is /supposed/ to account whatever the comment was made for?\n\nIn theory, you if you implemented a change to fix this, or me if we discussed and I now believe that comment to be a non issue.  Again, this is all in theory.\n\n> I'd be willing to add a clear note regarding this to ``openbmc-docs`` but for that I need to understand what the maintainers' expectations currently are.\n\nFWIW, this whole \"your turn\" and tracking individual comments in the UI is relatively new in the last gerrit update.  I don't think we have official policy on it yet, or enough seat time with it to come up with one."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 80,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 96,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 3,
+            "revision": "ef73ad0d99623c67679008728daa578098c54a40",
+            "parents": [
+                "6ba8c82ef6e67486b251cdc8c75e5a65a419a0ab"
+            ],
+            "ref": "refs/changes/90/50590/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1644389046,
+            "author": {
+                "name": "Paul Fertser",
+                "email": "fercerpav@gmail.com",
+                "username": "paulfertser"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 80,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/account_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 96,
+            "sizeDeletions": 3
+        }
+    ]
+}

@@ -1,0 +1,673 @@
+{
+    "project": "openbmc/openbmc-build-scripts",
+    "branch": "master",
+    "id": "I7730cc69ad1817cb7d75c04be3b7d1da6c1030d4",
+    "number": 55072,
+    "subject": "Improve cppcheck results and calling code",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/openbmc-build-scripts/+/55072",
+    "commitMessage": "Improve cppcheck results and calling code\n\nIn the ideal case, cppcheck would have an option where it could be\nenforcing in the future.  This commit works toward that goal, but\ndoesn't quite get there.\n\nFirst, it updates cppcheck to the latest copy from github, instead of\npulling through apt sources.  This is done because the current cppcheck\nhas an issue with std::string_view, and erroneously believes that it\nshould be passed by reference.  The master branch has a fix for this.\n\nNext, it modifies the call of cppcheck in a couple ways, first, to rely\non compile_commands.json from the build step, rather than attempting to\nbuild a list of files itself.  This is less error prone, and allows\n\"whole binary\" scans with cppcheck, which leads to fewer false\npositives.  On the negative side, this means that non-meson/non-cmake\nprojects will no longer get scanned, which, considering that meson is\nwhat we're converging on, and for any given project a meson port should\nprobably take priority over cppcheck improvements, this seems\nreasonable.\n\nBecause of the previous change, the use of popen and communicate() can\nbe replaced with our more normal methods for calling commands, which\ncleans up the code quite a bit.\n\nAdds a cppcheck-temp folder as recommended by the cppcheck docs for\nstoring intermediate results.  This decreases the amount of time\ncppcheck takes to run when scanning the same code multiple times.\n\nAfter that, some argument changes are done to suppress checks that are\nnoisy, and the project doesn't currently have a way to make pass.\n\nuseStlAlgorithm this is just a suggestion, and not always correct, so\nit's difficult to make it enforcing.  Also, as a project, we tend to not\noptimize for std::algorithms as much as we could.  At some point in the\nfuture we could turn this back on and make the project have a stronger\nopinion on this style, but for the moment, this seems like something to\ntackle later.\nunusedStructMember this appears to either have bugs, or not understand\nwhen a public struct member is used outside of the compile unit.  It\nleads to significant noise for things that are actually used, but get\nmarked unused because they're not used in every compile unit.\npostfixOperator use of prefix increment indead of postfix on iterators\nis not generally something we enforce on the project, and doesn't seem\nlike it improves in either the readability or the code, as well as leads\nto a lot of noise.  Disable for the moment.\nunreadVariable Similar to unusedStructMember, this check seems to not be\nable to see all possible ifdefs in a section of code, and leads to many\nfalse positives.\nknownConditionTrueFalse is supressed because apparently cppcheck isn't\nable to read macros, so this flags significant portions of code behind\nifdefs.  More investigation is warranted here, but for the moment,\ndisabling the check gets us closer to the goal\n\nA patch series getting bmcweb code to the point where it's 100% passing\nis here, if you want to see the types of changes that cppcheck proposes.\nFor all the non-disabled checks, cppcheck seems accurate, with no false\npositives that I could find, although some slightly pedantic\nsuggestions.\n\nhttps://gerrit.openbmc.org/c/openbmc/bmcweb/+/55001\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I7730cc69ad1817cb7d75c04be3b7d1da6c1030d4\n",
+    "createdOn": 1656689603,
+    "lastUpdated": 1657546360,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1656689603,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1656689652,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1656689657,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1656689657,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/526/"
+        },
+        {
+            "timestamp": 1656689717,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/526/ : FAILURE"
+        },
+        {
+            "timestamp": 1656689770,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Verified\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/527/"
+        },
+        {
+            "timestamp": 1656690401,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/527/ : FAILURE"
+        },
+        {
+            "timestamp": 1656698024,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1656698090,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1656698095,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1656698095,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/528/"
+        },
+        {
+            "timestamp": 1656698960,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/528/ : FAILURE"
+        },
+        {
+            "timestamp": 1656699781,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1656699810,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1656699810,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1656699817,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/529/"
+        },
+        {
+            "timestamp": 1656700928,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/CI-MISC/job/ci-openbmc-build-scripts/529/ : SUCCESS"
+        },
+        {
+            "timestamp": 1657025095,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1657041605,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1657059994,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657060076,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657125448,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657138400,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1657140225,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657197071,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657328387,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657330455,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657387440,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1657387449,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1657546357,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 4: Code-Review+2"
+        },
+        {
+            "timestamp": 1657546360,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Change has been successfully rebased and submitted as c719855806a9170608d2e374cc5c48b1ff661ece"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "5b7d3c7621afcb7d477b94cd88b2e9c9b06ffc4b",
+            "parents": [
+                "86ae13580ff49351c43b67fdba1f483435d462aa"
+            ],
+            "ref": "refs/changes/72/55072/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1656689603,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 100,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 2,
+            "revision": "fccf39b73b21718e94a2e7712f64941bc69904bf",
+            "parents": [
+                "86ae13580ff49351c43b67fdba1f483435d462aa"
+            ],
+            "ref": "refs/changes/72/55072/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1656698024,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 100,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 3,
+            "revision": "cdd789eaa403102d4401419e1f277db5fe2719b0",
+            "parents": [
+                "86ae13580ff49351c43b67fdba1f483435d462aa"
+            ],
+            "ref": "refs/changes/72/55072/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1656699781,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "So we'd probably need to do the trick where we run this patch against all the repos and see what fails (vs. merging and telling maintainers to figure it out quickly)?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Considering that cppcheck isn't enforcing today, do we need to do that?  Happy to see it done, but I don't think we're going to fail anything additional here until we start making this enforcing (I think?).\n\nWith that said, if it's just a matter of spinning up the job I'm game to look at the results."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 61,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Ahh good point, I was thinking it caused fails. Makes sense to me to just put it in."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "This is fine with me unless you were looking to get the cppcheck package in quicker."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Nope;  Just double checking if you wanted it that way."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Probably just a quick removal of these questions from the commit message and good to go."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I was waiting on the answer to the TemporaryDirectory thing before I pushed a new patch, then yes, I'll take out the questions at the same time."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 69,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "A quick grok (looking for configure.ac) shows a few repos of concern. libmctp, phophor-net-ipmid, phosphor-user-manager, phosphor-pid-control, phosphor-fan-presence, phosphor-dbus-monitor. But, it's not like this is a required piece of CI, so be ok with me."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "\ud83d\udc4d"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 71,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I'm completely fine with us starting to drop support for non-meson repositories in the complex CI paths.  This is the direction we've been discussion with OTP-4 anyhow (and one major purpose of OTP-4 is to allow us exactly this kind of simplification)."
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "line": 377,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "This is minor but why not use tempfile.TemporaryDirectory for this call?\n\n```\nwith tempfile.TemporaryDirectory() as cpp_directory:\n   ...\n   f'--cppcheck-build-dir={cpp_directory.name}',\n```"
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "line": 377,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "My thinking was that we didn't use TemporaryDirectory for the existing build folders, and the temp directory is pretty analogous to the meson/cmake build directories (can be reused, detects underlying changes automatically, etc), so this would be the same?  Happy to do either.  Geissler, any strong preference?"
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "line": 377,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "line": 377,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "I have no preference, go with what's easiest (which is probably just what you have)"
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "line": 377,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "\ud83d\udc4d"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 100,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 4,
+            "revision": "a84596e452ecb439eeb2f9eb90282eada846db42",
+            "parents": [
+                "86ae13580ff49351c43b67fdba1f483435d462aa"
+            ],
+            "ref": "refs/changes/72/55072/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1657387440,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 70,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 96,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 5,
+            "revision": "c719855806a9170608d2e374cc5c48b1ff661ece",
+            "parents": [
+                "6c55c580c9ab634e46ff6ab6732e06ad6a87e103"
+            ],
+            "ref": "refs/changes/72/55072/5",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1657546360,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 70,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/build-unit-test-docker",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/unit-test.py",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -27
+                }
+            ],
+            "sizeInsertions": 96,
+            "sizeDeletions": 28
+        }
+    ]
+}

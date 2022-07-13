@@ -1,0 +1,1700 @@
+{
+    "project": "openbmc/phosphor-host-ipmid",
+    "branch": "master",
+    "id": "If5ede3b0f97a2ba2b33cf358a9aaaf93d765d359",
+    "number": 47382,
+    "subject": "user_mgmt: Fix for user privilege race condition",
+    "owner": {
+        "name": "Jayaprakash Mutyala",
+        "email": "mutyalax.jayaprakash@intel.com",
+        "username": "jayaprakashmutyala"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-host-ipmid/+/47382",
+    "commitMessage": "user_mgmt: Fix for user privilege race condition\n\nThe ipmid and netipmid processes cache IPMI user data in a shared file.\nThe current implementation has coherency and consistency problems:\n\nCoherence: If a user account is created and immediately enabled with\nIPMI commands, the updated data may not be propagated to netipmid. This\ncondition can last indefinitely, so the cache is not coherent. The\nproblem is caused by a lock that doesn't work and allows both processes\nto register signal handlers that write to the file.\n\nConsistency: This cache scheme does not have a strict (or linearizable)\nconsistency model. The ipmid and netipmid processes have an inconsistent\nview of the user database until changes propagate to netipmid. Cache\nfile reads are controlled by mtime comparisons with a one-second\ngranularity.\n\nSo mitigated the second problem by using the full 10ms resolution of\nmtime. Now a new user is ready to use much faster than a client can\nsubmit two commands.\n\nMitigating the second (consistency) problem does not fix the first\nproblem. It might hide it, but the result will still depend on\nnon-deterministic timing of DBus signals and mtime granularity.\n\nTo fix the coherency problem, changed sigHndlrLock to use a different\nfile that isn't closed after each operation. Closing a POSIX file lock\nreleases the lock.\n\nTested:\n1. Verified using IPMI commands by creating multiple users continuously.\nSuccessfully created all users and able to perform RMCPP with that user.\n\nCommand: ipmitool user set name <used id> <username>\nResponse:               //User created successfully\nCommand: ipmitool user set password <used id> <password>\nResponse: Set User Password command successful <user name>\nCommand: ipmitool channel setaccess <channel#> <user id> link=on ipmi=on\n         callin=on privilege=4\nResponse: Set User Access (channel<number > id <user id>) successful.\nCommand: ipmitool raw 0x6 0x43 0x9<channel #> <user id> 0x4 0x0\n                                      // Set User Access Command\nResponse:                //Success\nCommand: ipmitool user enable <user id>\nResponse:                //Success\nCommand: ipmitool -H <BMC IP> -U <user name> -P <password> -C 17 -I\n         lanplus raw 0x06 0x01\nResponse: <device ID>           //Success\n\nSigned-off-by: Luke Phillips <lucas.phillips@intel.com>\nSigned-off-by: Jayaprakash Mutyala <mutyalax.jayaprakash@intel.com>\nChange-Id: If5ede3b0f97a2ba2b33cf358a9aaaf93d765d359\n",
+    "createdOn": 1633089574,
+    "lastUpdated": 1642549346,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1633089574,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1633089584,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633089731,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27295/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633116254,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1633334560,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1633507123,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1633543054,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1633543066,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633543214,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/27607/ : SUCCESS"
+        },
+        {
+            "timestamp": 1633543548,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1634015945,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 3: Commit message was updated."
+        },
+        {
+            "timestamp": 1634020040,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 3: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634021009,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)\n\nChanges LGTM. \nSome suggestions in commit message to make it more informative."
+        },
+        {
+            "timestamp": 1634024201,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1634029883,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1634075374,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634804070,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1634804082,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1634804232,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/28706/ : SUCCESS"
+        },
+        {
+            "timestamp": 1634804334,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1635443817,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1635443831,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635443985,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29249/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635529234,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 6:\n\n(5 comments)\n\nLogic LGTM.\nSome commit message improvements."
+        },
+        {
+            "timestamp": 1635542598,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1635846462,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1635846484,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635846633,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29495/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635846992,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 7:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1635899937,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1635938830,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1635938849,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1635939098,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29716/ : SUCCESS"
+        },
+        {
+            "timestamp": 1635939126,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1636392546,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636452269,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1636452301,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636452456,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29939/ : SUCCESS"
+        },
+        {
+            "timestamp": 1636452959,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636497607,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636525322,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636971379,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1636971405,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636971555,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30257/ : SUCCESS"
+        },
+        {
+            "timestamp": 1636971767,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 10:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636979879,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1636983805,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1637016962,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)\n\nUnfortunately, I think there's a lot more needed to do the inotify approach. As Saravanan commented, the call to `inotify_init` and `inotify_add_watch` need to be moved somewhere else so they're only called once. It could be in main or postponed until this user data is needed for the first time. We need to watch for MODIFY events at the minimum, and probably also DELETE_SELF to handle the case where the file is overwritten by a mv/rename operation (and then call `inotify_add_watch` again to watch the new inode).\n\nThen you also need to add some kind of async read operation on the inotify instance to read out the events and handle it by setting a flag indicating our cached data is stale. Then in `checkAndReloadUserData` just check that flag and reload the data if stale, instead of the old approach to check the modification timestamp."
+        },
+        {
+            "timestamp": 1640245843,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1640245858,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1640246009,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32406/ : SUCCESS"
+        },
+        {
+            "timestamp": 1640246234,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 11:\n\n(4 comments)\n\nWe tried to fix with inotify_init() and inotify_add_watch() which is causing other issue and taking more time to fix. Please take this as temporary solution and review. Later we will try to work on inotify_add_watch()."
+        },
+        {
+            "timestamp": 1640788479,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 11: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1641208024,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Patch Set 11:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641232035,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1641232090,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641232090,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641232235,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/34827/ : SUCCESS"
+        },
+        {
+            "timestamp": 1641232985,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641238158,
+            "reviewer": {
+                "name": "AppaRao Puli",
+                "email": "apparao.puli@intel.com",
+                "username": "apuli1"
+            },
+            "message": "Patch Set 12: Code-Review+1"
+        },
+        {
+            "timestamp": 1641406715,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641423769,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 12: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641460115,
+            "reviewer": {
+                "name": "Saravanan Palanisamy",
+                "email": "saravanan.palanisamy@linux.intel.com",
+                "username": "saravanan-palanisamy"
+            },
+            "message": "Patch Set 12: Code-Review+1"
+        },
+        {
+            "timestamp": 1641941612,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 12: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642533195,
+            "reviewer": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1642533208,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642533209,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642533375,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35670/ : SUCCESS"
+        },
+        {
+            "timestamp": 1642549341,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 13: Code-Review+2"
+        },
+        {
+            "timestamp": 1642549346,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Change has been successfully merged"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "b0019ebe9bc14fa25fea6d3ec7048f2e365566f5",
+            "parents": [
+                "29b9f31d55cff3cebd7f95ab05dc8fc8acfb2828"
+            ],
+            "ref": "refs/changes/82/47382/1",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1633089574,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1503,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "If file modification time stamp granularity (in seconds) is not sufficient, Can you try stat() with milliseconds granularity using stat64() API ?"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1504,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "I discussed this with Richard and others.\n\nCurrently we are stating the file for last modification time(updateTime) and checking it against fileLastUpdatedTime member variable for equality. \nInstead you can check for fileLastUpdatedTime <= updateTime."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1504,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Fixed. Thanks"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1501,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Keep the API name consistent with functionality. \nAPI name says check the cache before reading file, whereas new code unconditionally reads the file."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 35,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 38,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 2,
+            "revision": "eccfa85c7b4d9f2730332a64a9b3c2db4e4d6dc2",
+            "parents": [
+                "29b9f31d55cff3cebd7f95ab05dc8fc8acfb2828"
+            ],
+            "ref": "refs/changes/82/47382/2",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1633543054,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 35,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 36,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "6dd38a17b31f346e474dd685152ddaf25ac8885b",
+            "parents": [
+                "29b9f31d55cff3cebd7f95ab05dc8fc8acfb2828"
+            ],
+            "ref": "refs/changes/82/47382/3",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1634015945,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Change it as :\nmissing => not happening"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Updated"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Insert below lines here:\n\n\"\nipmi_user.json information is cached in 'usersTbl' which is currently updated only when file modification time is not same as cache last updated time.  Since modification time is in 'seconds' granularity, there exists a race condition in updating the cache if \n multiple updates happen to a file with in a second. \""
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Added. thanks"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1504,
+                    "reviewer": {
+                        "name": "AppaRao Puli",
+                        "email": "apparao.puli@intel.com",
+                        "username": "apuli1"
+                    },
+                    "message": "This check will have worse effects in some cases.\n\nExample: If BMC system time is updated to new value which is less, Then we will miss all user updates. that is BMC time is x and later BMC time synced and updated to x-y, Then till all update time reached to x, All user data will not get updated."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1504,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Not sure in real time this can be reproducible. In that case better we can remove this condition. But it may lead performance issues. If you have better solution please suggest."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1504,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "+1. If there will be any performance issue, it's already introduced with \">=\" logic because now the user data will be reloaded even when the file was not updated (\">=\" includes \"==\" which is the typical case that was previously being optimized for).\nIf the new time is less than the previous time, that means the file was updated (after a time change) and needs to be reloaded, but the new \">=\" logic will break that. We should either figure out a way to read a more granular update time if possible, or remove the time check altogether."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1504,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Fixed now in simple way. Thanks."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 36,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 37,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "c81596d214408c60f9d6f81d52be6b045aaf61c8",
+            "parents": [
+                "29b9f31d55cff3cebd7f95ab05dc8fc8acfb2828"
+            ],
+            "ref": "refs/changes/82/47382/4",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1634024201,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 42,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 5,
+            "revision": "24f60b958a969345fec6d2dc8347d5aa5ab74e5f",
+            "parents": [
+                "bf47a916bce97ad927d3f6104d070e7eaae2ae8d"
+            ],
+            "ref": "refs/changes/82/47382/5",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1634804070,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 43,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 6,
+            "revision": "572f4dcd3d334102b89a1733f4bd6b9f681f5b83",
+            "parents": [
+                "bf47a916bce97ad927d3f6104d070e7eaae2ae8d"
+            ],
+            "ref": "refs/changes/82/47382/6",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1635443817,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Please change as:\n...reading of ipmi_user.json file is missing when 'updateTime = fileLastUpdatedTime' and an user trying to ....."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Please change as:\nfile last modification time (updateTime)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "cache last updated time(fileLastUpdatedTime)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Please change as:\n\nFix: \nIn addition to existing conditions for using the cache data, added a condition for avoiding 1-second granularity limitation.  i.e.) Cache last updated time is at least 2-seconds less than current time (though 1-second less is sufficient, 2-seconds cover any marginal errors in seconds calculation).  Since, steady_time a.k.a. system_uptime value will always increment, this new condition uses steady_time. \nIt is also foolproof against existing absolute time comparsions 'fileLastModificationTime', 'updateTime' which may go backward/forward in race conditions according to PCH time configuration."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Please add:\nVerified cached data is used when last cached time is at least 2-seconds less than current time AND file was not modified in that duration."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Added. Thanks"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1510,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "Please add a comment or commit message about how this fixes the bug. It's really not clear to me what's going on.\nAlso, is the duration_cast from chrono::seconds to chrono::seconds necessary?"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1510,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Added in commit message.\nOtherwise getting compilation issue. \nno matching function for call to 'duration_cast<std::chrono::seconds>(int)'"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1515,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "Would this be better at the end of readUserData?"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1515,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Moved to above line. Thanks"
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "line": 383,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "can you give this a more descriptive name? userDataFileLastReloadTime?"
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "line": 383,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Replaced. Thanks"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 50,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 7,
+            "revision": "f1ceb436e380b61b67c326157d9c101ce021db5c",
+            "parents": [
+                "bf47a916bce97ad927d3f6104d070e7eaae2ae8d"
+            ],
+            "ref": "refs/changes/82/47382/7",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1635846462,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1510,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "just replace this with seconds(2). It compiles fine for me."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1510,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Yes its compiled. Thanks."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1514,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "sorry, I meant that this should go at line 1343, so any possible callers of readUserData() will have it updated the same way. You can't put it here because readUserData() may throw an exception."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1514,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Moved as suggested. Working fine. Thanks"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 65,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 8,
+            "revision": "24a5025021ad9dbf9f1df0acd4489a709dee44f0",
+            "parents": [
+                "bf47a916bce97ad927d3f6104d070e7eaae2ae8d"
+            ],
+            "ref": "refs/changes/82/47382/8",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1635938830,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This is not needed because the first test updateTime != fileLastUpdatedTime"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Fixed. Working fine. Thanks"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 9,
+            "revision": "556c0b121a7a9e82eb8f145afde8e029a3eb78a1",
+            "parents": [
+                "bf47a916bce97ad927d3f6104d070e7eaae2ae8d"
+            ],
+            "ref": "refs/changes/82/47382/9",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1636452269,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "If this function is called every 2seconds, then we stuck with always call readUserData() even when the file never changes.\nQuestion: is this a realistic use case that can happen? Will always call readUserData() a problem."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "+1. This change is actually turning the optimization on its head, by only using the cached table data when it's infrequently used. Perhaps the caching should just be removed altogether to simplify things.\nDid we explore the \"correct\" solution of using inotify to monitor for file changes?"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Thanks for comments. Now updated with different logic with inotify_init() API. Please review latest patch changes and provide me the comments if any."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "Agreeing with Jonathan. inotify is better idea to try."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "We tried to fix with inotify_init() and inotify_add_watch() which is causing other issue and taking more time to fix. Please take this as temporary solution and review. Later we will try to work on inotify_add_watch()."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 56,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 10,
+            "revision": "32a78cbad6ffee1c305f5f53c745fa16056ff85c",
+            "parents": [
+                "78fe1b14f60d55ae335369fb2c6e81ed9ac6d865"
+            ],
+            "ref": "refs/changes/82/47382/10",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1636971379,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "As we discussed, this should be called only once during main(), not every time when this function is called."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "I don't think MOVED_TO or DELETE are useful to watch for, since they are for directories only."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "We tried to fix with inotify_init() and inotify_add_watch() which is causing other issue and taking more time to fix. Please take this as temporary solution and review. Later we will try to work on inotify_add_watch()."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "We tried to fix with inotify_init() and inotify_add_watch() which is causing other issue and taking more time to fix. Please take this as temporary solution and review. Later we will try to work on inotify_add_watch()."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1509,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "@Jayaprakash:\ninotify_watch() is a way to find file modified or not.\nLatest patchset (11) simply already achieves it with existing logic, by taking file modification time in milli-seconds.  \nEarlier also you tried to bring milliseconds granularity with stat64() which was not approved.  I am ok with stat() based milliseconds granularity and it can be a final fix."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1516,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "The old updatedTime tracking would be totally replaced by inotify."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1516,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "We tried to fix with inotify_init() and inotify_add_watch() which is causing other issue and taking more time to fix. Please take this as temporary solution and review. Later we will try to work on inotify_add_watch()."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 61,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 11,
+            "revision": "76b145c931481c078721484030141eb36f9f32f6",
+            "parents": [
+                "e39ba9930b66ed46b15147f4f12dd7f92b63da32"
+            ],
+            "ref": "refs/changes/82/47382/11",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1640245843,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Saravanan Palanisamy",
+                        "email": "saravanan.palanisamy@linux.intel.com",
+                        "username": "saravanan-palanisamy"
+                    },
+                    "message": "LGTM"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1565,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "Please use C++ coding style. May be modificationMs."
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1565,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Sorry Updated now. Thanks"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 54,
+            "sizeDeletions": 6
+        },
+        {
+            "number": 12,
+            "revision": "1292d371954163842e0c1cbe5518c79b06dc4ab1",
+            "parents": [
+                "e39ba9930b66ed46b15147f4f12dd7f92b63da32"
+            ],
+            "ref": "refs/changes/82/47382/12",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1641232035,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jayaprakash Mutyala",
+                        "email": "mutyalax.jayaprakash@intel.com",
+                        "username": "jayaprakashmutyala"
+                    },
+                    "message": "Hi Vernon/Tom/Ratan/Deepak/Adriana, please provide +1/+2 if no comments. "
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "This works for Intel's platforms, but it does depend on the underlying filesystem, many of which don't store times in nanosecond granularity (including jffs2 I think). It does work for overlayfs though. How does ubifs behave?"
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "line": 1567,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "while this does reduce the window for the race condition, it does not remove it. Ideally, we would have some sort of actual locking on the file access."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 54,
+            "sizeDeletions": 6
+        },
+        {
+            "number": 13,
+            "revision": "08d3d06cf6291a7ea7218a45f3a1ae996541ca53",
+            "parents": [
+                "d3d2fe29d550e2557704444267881b842573f450"
+            ],
+            "ref": "refs/changes/82/47382/13",
+            "uploader": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "createdOn": 1642533195,
+            "author": {
+                "name": "Jayaprakash Mutyala",
+                "email": "mutyalax.jayaprakash@intel.com",
+                "username": "jayaprakashmutyala"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 58,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_channel/user_mgmt.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "user_channel/user_mgmt.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -6
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 8
+        }
+    ]
+}

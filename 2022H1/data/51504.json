@@ -1,0 +1,305 @@
+{
+    "project": "openbmc/openpower-proc-control",
+    "branch": "master",
+    "topic": "resource-recovery",
+    "id": "I6422a8fb68559d7b02677a2f018f0d726ddd8952",
+    "number": 51504,
+    "subject": "PHAL: Add new service file to indicate guard actions.",
+    "owner": {
+        "name": "Ramesh Iyyar",
+        "email": "rameshi1@in.ibm.com",
+        "username": "RameshIyyar"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/openpower-proc-control/+/51504",
+    "commitMessage": "PHAL: Add new service file to indicate guard actions.\n\n- Currently, the host is in the infinite loop to boot if the host\n  firmware trying to recover resources and informs that to the BMC by\n  the graceful boot request.\n\n  - The PHAL will try to apply guard records in all types of boots.\n\n  - The host firmware will try to recover resources if that's are\n    guarded and did not meet the minimum hardware check to boot\n    the host and initiate a graceful boot to adjust boot params\n    (HWAS_STATE).\n\n  - When the BMC handles the host graceful boot request, PHAL will\n    apply the guard records and informs self boot engine about\n    the bad resources but, the host firmware did not apply the guard\n    records in the previous boot so when comparing the resources\n    state that's informed by the self boot engine are mismatching\n    and entering into an infinite loop to boot.\n\n- So, the guard records actions changed in the BMC to supports\n  resource recovery feature.\n\n  - PowerOn / TI (terminate immediately) / Checkstop / Watchdog timeout:\n\n    - Clear ephemeral type records.\n    - Apply persistent type records.\n\n  - MPIPL:\n\n    - Apply persistent type records of the Core and FC.\n\n  - Graceful reboot from hostboot / Reboot from UI user or PHYP:\n\n    - No guard actions in the PHAL.\n\n- To support the above guard actions in the BMC for the different boots,\n  BMC will create the \"/tmp/phal/boottime_guard_indicator\" file by using\n  the added service file that will get triggered as part the\n  obmc-host-start@0.target (PowerOn) and obmc-host-quiesce@0.target (TI,\n  Checkstop, and Watchdog timeout), PHAL need to take appropriate guard\n  actions for the same types of boot and remove that indication so that\n  no guard action can be handled during graceful reboot request from\n  hostboot and Reboot from UI or PHYP as well. MPIPL can be handled by\n  the existing IPL_TYPE value provided by the BMC to PHAL as part of\n  the MPIPL boot request.\n\n- Added the above support in this patch for PHAL.\n\nTested:\n\n- Pre-request: Created the \"MC\" of guard records to hit the minimum\n               hardware check.\n\n- Verified by PowerOn (aka cold boot).\n\n- Verified TI and Checkstop by injecting clock error at the runtime.\n  (i2cset -y 8 0x6a 0xb6 0x1a)\n\n- Verified TI and Checkstop by injecting runtime \"Fata\" guard.\n  (putscom pu.c 20028440 0000000000000800 -n0 -p00 -c1)\n\n- Verified MPIPL by using the PHYP macro.\n  (altermem c00 -t p 00000000)\n\n- Verified Graceful request from hostboot as part boot param adjust\n  and SBE image update request.\n\n- Verified Reboot, GracefulWarmReboot, ForceWarmReboot from the BMC.\n\nSigned-off-by: Ramesh Iyyar <rameshi1@in.ibm.com>\nChange-Id: I6422a8fb68559d7b02677a2f018f0d726ddd8952\n",
+    "createdOn": 1645689902,
+    "lastUpdated": 1645802703,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1645689902,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1645689914,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645689914,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645689978,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37949/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645690426,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1645690445,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Patch Set 2:\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1645691339,
+            "reviewer": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1645691349,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645691349,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645691415,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37951/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645692948,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1645694081,
+            "reviewer": {
+                "name": "Dhruvaraj S",
+                "email": "dhruvaraj@gmail.com",
+                "username": "dhruvibm"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1645694171,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 3: Code-Review+2"
+        },
+        {
+            "timestamp": 1645694187,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Change has been successfully rebased and submitted as 482a887804fe61a1868000bd2d1b18cacff77533"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "6f294e42554a6d5965ef2d7378797a45207ffcde",
+            "parents": [
+                "e5ba5fd00ab54cba255825248a2819c79f38d32d"
+            ],
+            "ref": "refs/changes/04/51504/1",
+            "uploader": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "createdOn": 1645689902,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/phal-create-boottime-guard-indicator.service.in",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 91,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "8cb866581263d112aec92a0d498f9aac7f5ed8c1",
+            "parents": [
+                "e5ba5fd00ab54cba255825248a2819c79f38d32d"
+            ],
+            "ref": "refs/changes/04/51504/2",
+            "uploader": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "createdOn": 1645690426,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/phal-create-boottime-guard-indicator.service.in",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 94,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "eddbd4d2e6c0c9b9bf5328176753395390b16a30",
+            "parents": [
+                "e5ba5fd00ab54cba255825248a2819c79f38d32d"
+            ],
+            "ref": "refs/changes/04/51504/3",
+            "uploader": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "createdOn": 1645691339,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/phal-create-boottime-guard-indicator.service.in",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 95,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "482a887804fe61a1868000bd2d1b18cacff77533",
+            "parents": [
+                "bbb53393c5e2eb2ad4d3ef8401f8481732b84ed0"
+            ],
+            "ref": "refs/changes/04/51504/4",
+            "uploader": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "createdOn": 1645694187,
+            "author": {
+                "name": "Ramesh Iyyar",
+                "email": "rameshi1@in.ibm.com",
+                "username": "RameshIyyar"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "service_files/phal-create-boottime-guard-indicator.service.in",
+                    "type": "ADDED",
+                    "insertions": 16,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 95,
+            "sizeDeletions": 0
+        }
+    ]
+}

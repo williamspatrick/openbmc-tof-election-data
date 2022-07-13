@@ -1,0 +1,743 @@
+{
+    "project": "openbmc/phosphor-bmc-code-mgmt",
+    "branch": "master",
+    "topic": "bmc-dual-image",
+    "id": "Ia622771c0ebf8daee3d29d16dc473dc7d9b79603",
+    "number": 50283,
+    "subject": "dual-image: Implement UpdateTarget logic",
+    "owner": {
+        "name": "Lei YU",
+        "email": "yulei.sh@bytedance.com",
+        "username": "mine260309"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-bmc-code-mgmt/+/50283",
+    "commitMessage": "dual-image: Implement UpdateTarget logic\n\nImplement the code update depend on the UpdateTarget interface.\nWhen the BMC is running on primary chip:\n* Primary: update primary chip as before by shutdown script.\n* Secondary: update secondary chip by service.\n* Both: update secondary chip by service and then primary chip by\n  shutdown script.\nWhen the BMC is running on secondary chip:\n* Primary: update the primary chip by service.\n* Secondary: update the secondary chip by shutdown script.\n* Both: update the primary chip by service and then secondary chip by\n  shutdown script.\n\nImplement the UpdateTarget interface in Activation object so the user\ncould specify the target slot of the activation.\nWhen the update is done, the interface is removed from the object.\n\nAlso set the priority of the updated image according to the slot to make\nsure it is 0 for primary and 1 for secondary.\n\nTested: Verify in QEMU that when BMC is running in primary chip:\n        * Primary: it updates the primary chip as before, and the DBus\n          objects show the primary object is replaced with priority 0.\n        * Secondary: it updates the secondary chip by service, and the\n          DBus objects show the primary object and the secondary object\n          with expected priority.\n        * Both: it updates the secondary flash as above, and then copy the\n          image-bmc to /run/initramfs.\n        Verify on real g220a machine running on secondary chip:\n        * Primary: it updates the primary chip by service, and DBus\n          objects show the primary object is replaced with priority 0,\n          and the rwfs is not synced. (This primary is a fresh BMC\n          image).\n        * Secondary: it updates the secondary chip by copying image-bmc\n          to /run/initramfs and wait for reboot, and the DBus objects\n          show the primary object and the secondary object with\n          expected priority.\n        * Both: it updates primary as above, and then copy the\n          image-bmc to /run/initramfs.\n\nSigned-off-by: Lei YU <yulei.sh@bytedance.com>\nChange-Id: Ia622771c0ebf8daee3d29d16dc473dc7d9b79603\n",
+    "createdOn": 1641880083,
+    "lastUpdated": 1647323960,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1641880083,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1641880126,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641880127,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641880167,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35251/ : FAILURE"
+        },
+        {
+            "timestamp": 1644233587,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1644233626,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644233626,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644233664,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/36693/ : FAILURE"
+        },
+        {
+            "timestamp": 1644303181,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 3: Patch Set 2 was rebased."
+        },
+        {
+            "timestamp": 1644303233,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644303234,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644303270,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/36801/ : FAILURE"
+        },
+        {
+            "timestamp": 1645603140,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 4: Patch Set 3 was rebased."
+        },
+        {
+            "timestamp": 1645603185,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645603185,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645603221,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37866/ : FAILURE"
+        },
+        {
+            "timestamp": 1646044946,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 5: Patch Set 4 was rebased."
+        },
+        {
+            "timestamp": 1646044989,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1646044989,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1646045025,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/38141/ : FAILURE"
+        },
+        {
+            "timestamp": 1646215326,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1646215373,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1646215373,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1646215411,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/38339/ : FAILURE"
+        },
+        {
+            "timestamp": 1647243718,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 7: Patch Set 6 was rebased."
+        },
+        {
+            "timestamp": 1647243763,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647243763,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647243805,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/38914/ : FAILURE"
+        },
+        {
+            "timestamp": 1647323641,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Uploaded patch set 8: Patch Set 7 was rebased."
+        },
+        {
+            "timestamp": 1647323661,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647323661,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647323960,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39004/ : FAILURE"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "10d59e7771ec6d6d1cf65a9ae29594dcf154a08f",
+            "parents": [
+                "ecb804a453773a27933db382b8ae44ebd4d6ce86"
+            ],
+            "ref": "refs/changes/83/50283/1",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1641880083,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 2,
+            "revision": "6009e7d5770d5877689a0671cb1fc66e7af789fb",
+            "parents": [
+                "fd3d6564cee37938ca05f3cf9839ecdfb16cd83b"
+            ],
+            "ref": "refs/changes/83/50283/2",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1644233587,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 3,
+            "revision": "2fa7f94a0bb2d0b0b52646f5fd3ff8723085371b",
+            "parents": [
+                "507fd15d6e2ea2d200c361b90fbaecacb0912111"
+            ],
+            "ref": "refs/changes/83/50283/3",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1644303181,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 4,
+            "revision": "6de13b53d9a558953c591413971b89fca4db4e88",
+            "parents": [
+                "59e1ff033860d78841ad014cd9cdb0b2c70ca82d"
+            ],
+            "ref": "refs/changes/83/50283/4",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1645603140,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 5,
+            "revision": "a1489a62b4f097a046a852ac65fd2e3ab2fe021a",
+            "parents": [
+                "949d885fb8693ca0721904c5f37ded74b4b57fd9"
+            ],
+            "ref": "refs/changes/83/50283/5",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1646044946,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 6,
+            "revision": "3ff2b533da3d56e4a47592282acc24ec385575e8",
+            "parents": [
+                "c37244fa13b42dcd735d28ef4d9b29b2745c2392"
+            ],
+            "ref": "refs/changes/83/50283/6",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1646215326,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 7,
+            "revision": "516f3d38c0d14f9ee02f1cb9d373210f8a66f3f9",
+            "parents": [
+                "21b4e569dd338c778a351dab40cae9dec0d9900b"
+            ],
+            "ref": "refs/changes/83/50283/7",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1647243718,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 8,
+            "revision": "d1cfdd8b2645ace57561a00326e628b71f0f35f1",
+            "parents": [
+                "a3795396d1a4d78d165db11679c071405d1caba0"
+            ],
+            "ref": "refs/changes/83/50283/8",
+            "uploader": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "createdOn": 1647323641,
+            "author": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": "activation.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": -5
+                },
+                {
+                    "file": "item_updater.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -3
+                },
+                {
+                    "file": "static/flash.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 50,
+                    "deletions": -18
+                },
+                {
+                    "file": "activation.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 26
+        }
+    ]
+}

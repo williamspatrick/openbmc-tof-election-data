@@ -1,0 +1,1777 @@
+{
+    "project": "openbmc/openpower-vpd-parser",
+    "branch": "master",
+    "id": "Ie7c7fff5699d8b89d5aa0995f4074ccb3fdd6c37",
+    "number": 54428,
+    "subject": "Update vpd read and write flow",
+    "owner": {
+        "name": "SunnySrivastava",
+        "email": "sunnsr25@in.ibm.com",
+        "username": "SunnySrivastava1984"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/openpower-vpd-parser/+/54428",
+    "commitMessage": "Update vpd read and write flow\n\nThe commit implement changes to log Pel and call out\nFRU and record in case of any ECC failure while reading\nthe vpd data for the FRU and continue with the processing\nof rest of the records.\n\nIn case of write, BMC reboot is blocked till the VPD is\nupdated. Doing this will restrict any data/Ecc corruption\ndue to BMC reboot while VPD data is being updated.\n\nTested:\nCorrupted vpd for tpm_wilson then trigerred collection of\nvpd for the FRU.\nPel was logged calling out the FRU\n\nroot@rain127bmc:~# ibm-read-vpd --file /sys/bus/i2c/drivers/at24/0-0051/eeprom\nroot@rain127bmc:~# peltool -a\n[\n{\n\"Private Header\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Created by\":               \"0x4000\",\n    \"Created at\":               \"06/10/2022 06:36:59\",\n    \"Committed at\":             \"06/10/2022 06:36:59\",\n    \"Creator Subsystem\":        \"BMC\",\n    \"CSSVER\":                   \"\",\n    \"Platform Log Id\":          \"0x50002B35\",\n    \"Entry Id\":                 \"0x50002B35\",\n    \"BMC Event Log Id\":         \"10\"\n},\n\"User Header\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Log Committed by\":         \"0x2000\",\n    \"Subsystem\":                \"CEC Hardware - VPD Interface\",\n    \"Event Scope\":              \"Entire Platform\",\n    \"Event Severity\":           \"Predictive Error\",\n    \"Event Type\":               \"Not Applicable\",\n    \"Action Flags\": [\n                                \"Service Action Required\",\n                                \"Report Externally\",\n                                \"HMC Call Home\"\n    ],\n    \"Host Transmission\":        \"Not Sent\",\n    \"HMC Transmission\":         \"Not Sent\"\n},\n\"Primary SRC\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"1\",\n    \"Created by\":               \"0x4000\",\n    \"SRC Version\":              \"0x02\",\n    \"SRC Format\":               \"0x55\",\n    \"Virtual Progress SRC\":     \"False\",\n    \"I5/OS Service Event Bit\":  \"False\",\n    \"Hypervisor Dump Initiated\":\"False\",\n    \"Backplane CCIN\":           \"2E43\",\n    \"Terminate FW Error\":       \"False\",\n    \"Deconfigured\":             \"False\",\n    \"Guarded\":                  \"False\",\n    \"Error Details\": {\n        \"Message\":              \"A VPD ecc exception occurred.\"\n    },\n    \"Valid Word Count\":         \"0x09\",\n    \"Reference Code\":           \"BD554002\",\n    \"Hex Word 2\":               \"00080255\",\n    \"Hex Word 3\":               \"2E430010\",\n    \"Hex Word 4\":               \"00000000\",\n    \"Hex Word 5\":               \"00000000\",\n    \"Hex Word 6\":               \"00000000\",\n    \"Hex Word 7\":               \"00000000\",\n    \"Hex Word 8\":               \"00000000\",\n    \"Hex Word 9\":               \"00000000\",\n    \"Callout Section\": {\n        \"Callout Count\":        \"1\",\n        \"Callouts\": [{\n            \"FRU Type\":         \"Normal Hardware FRU\",\n            \"Priority\":         \"Mandatory, replace all with this type as a unit\",\n            \"Location Code\":    \"U78DB.ND0.WZS002U-P0-C22\",\n            \"Part Number\":      \"02WF429\",\n            \"CCIN\":             \"6B59\",\n            \"Serial Number\":    \"Y131UF09S00H\"\n        }]\n    }\n},\n\"Extended User Header\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Created by\":               \"0x2000\",\n    \"Reporting Machine Type\":   \"9105-42A\",\n    \"Reporting Serial Number\":  \"13BE990\",\n    \"FW Released Ver\":          \"\",\n    \"FW SubSys Version\":        \"fw1020.00-58.9\",\n    \"Common Ref Time\":          \"00/00/0000 00:00:00\",\n    \"Symptom Id Len\":           \"20\",\n    \"Symptom Id\":               \"BD554002_2E430010\"\n},\n\"Failing MTMS\": {\n    \"Section Version\":          \"1\",\n    \"Sub-section type\":         \"0\",\n    \"Created by\":               \"0x2000\",\n    \"Machine Type Model\":       \"9105-42A\",\n    \"Serial Number\":            \"13BE990\"\n},\n\"User Data 0\": {\n    \"Section Version\": \"1\",\n    \"Sub-section type\": \"1\",\n    \"Created by\": \"0x2000\",\n    \"BMCState\": \"Ready\",\n    \"BootState\": \"SecondaryProcInit\",\n    \"ChassisState\": \"On\",\n    \"FW Version ID\": \"fw1020.00-58.9-3-gb29698f8cf\",\n    \"HostState\": \"Running\",\n    \"System IM\": \"50001000\"\n},\n\"User Data 1\": {\n    \"Section Version\": \"1\",\n    \"Sub-section type\": \"1\",\n    \"Created by\": \"0x2000\",\n    \"CALLOUT_INVENTORY_PATH\": \"/xyz/openbmc_project/inventory/system/chassis/motherboard/tpm_wilson\",\n    \"DESCRIPTION\": \"ERROR: ECC check did not pass for the Record:VINI\"\n}\n}\n]\n\nSigned-off-by: Sunny Srivastava <sunnsr25@in.ibm.com>\nChange-Id: Ie7c7fff5699d8b89d5aa0995f4074ccb3fdd6c37\n",
+    "createdOn": 1654780571,
+    "lastUpdated": 1657253424,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1654780571,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1654780623,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654780623,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654780649,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44716/ : FAILURE"
+        },
+        {
+            "timestamp": 1654781222,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1654781279,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654781279,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654781304,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44717/ : FAILURE"
+        },
+        {
+            "timestamp": 1654781725,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1654781789,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654781789,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654781911,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44718/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654782025,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1654838932,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 5: Commit message was updated."
+        },
+        {
+            "timestamp": 1654843165,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 6: Commit message was updated."
+        },
+        {
+            "timestamp": 1654843608,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1654843662,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654843662,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654843782,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44775/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655112923,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1655112967,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655112967,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655112993,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44869/ : FAILURE"
+        },
+        {
+            "timestamp": 1655117968,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1655117992,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655117992,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655118019,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44873/ : FAILURE"
+        },
+        {
+            "timestamp": 1655118494,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1655118517,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 10:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1655118545,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655118545,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655118687,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44874/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655120306,
+            "reviewer": {
+                "name": "Jinu Joy Thomas",
+                "email": "jinu.joy.thomas@in.ibm.com",
+                "username": "jinuthomas"
+            },
+            "message": "Patch Set 10: Code-Review+1"
+        },
+        {
+            "timestamp": 1657112674,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1657112732,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1657112732,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1657112855,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/46487/ : SUCCESS"
+        },
+        {
+            "timestamp": 1657249305,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 11: Code-Review-1\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1657253248,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1657253263,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 11:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1657253290,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1657253290,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1657253424,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/46645/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "30ceafd90cebb8fe2a6c15336d2641d22f3d390f",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/1",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1654780571,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 103,
+            "sizeDeletions": 29
+        },
+        {
+            "number": 2,
+            "revision": "508cb97e89ba652a836325d182cab341701ed14b",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/2",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1654781222,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 104,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 3,
+            "revision": "8c11b8b73dce06768787c8351f794d3093927cc7",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/3",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1654781725,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 104,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 4,
+            "revision": "84e94b0c704b653433d88b646a0b73f0069a97ee",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/4",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1654782025,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 106,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 5,
+            "revision": "b0d9e82445186dd7d520c3689f97bc4a0f92103c",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/5",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1654838932,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 131,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 220,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 6,
+            "revision": "463ee4b60caf84d6426fa6ae745ac22e9ae3441f",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/6",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1654843165,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 130,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 219,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 7,
+            "revision": "2f620fe491a1388163d8777785176eecad4c7edf",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/7",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1654843608,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 130,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 219,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 8,
+            "revision": "df395ee119d8928daf2fcc21a789f4316f255ef7",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/8",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1655112923,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "line": 1604,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Santosh: Use either path from const or config."
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 547,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Spelling"
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "line": 556,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Use path from const or config."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 134,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 136,
+                    "deletions": -59
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 341,
+            "sizeDeletions": 88
+        },
+        {
+            "number": 9,
+            "revision": "322caa5af952d885a86559453d98263b94fc9a7f",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/9",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1655117968,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 134,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 152,
+                    "deletions": -59
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 358,
+            "sizeDeletions": 88
+        },
+        {
+            "number": 10,
+            "revision": "7ac0c37f5867043d374aaecbcf8bfe9bb9626f38",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/28/54428/10",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1655118494,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 134,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 159,
+                    "deletions": -59
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 365,
+            "sizeDeletions": 88
+        },
+        {
+            "number": 11,
+            "revision": "74bf76872b635ef0a38cc868a136bf872ae054e7",
+            "parents": [
+                "6b2b53749082f98ee8d23bd10c792c9c88e0ae39"
+            ],
+            "ref": "refs/changes/28/54428/11",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1657112674,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "app.cpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Seeing as this is not really going to be used by the op vpd parser app, please just pass in a default string here."
+                },
+                {
+                    "file": "app.cpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "impl.cpp",
+                    "line": 152,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "This seems unnecessary to do inside this function and adds an undesirable dependency on the format of the exception string. Please revert this change here and instead add it at the call site as needed."
+                },
+                {
+                    "file": "impl.cpp",
+                    "line": 152,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 503,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "This has gotten quite ugly, tbh. We should think about removing it."
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 503,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "We can have a TBD or I can log an issue to track in our downstream repo."
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Why did the const qualifier need to be removed?"
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "line": 178,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "As in some cases we are modifying objPath in updateKeyword api."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 134,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 144,
+                    "deletions": -59
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -2
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 354,
+            "sizeDeletions": 88
+        },
+        {
+            "number": 12,
+            "revision": "7b7779358cb5b55bda6b78d6dac27a97f9cdada8",
+            "parents": [
+                "6b2b53749082f98ee8d23bd10c792c9c88e0ae39"
+            ],
+            "ref": "refs/changes/28/54428/12",
+            "uploader": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "createdOn": 1657253248,
+            "author": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 134,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/ipz_parser/parser.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-parser/parser_factory.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 144,
+                    "deletions": -59
+                },
+                {
+                    "file": "vpd-parser/parser_factory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/editor_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd-manager/manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -2
+                },
+                {
+                    "file": "vpd-parser/ipz_parser.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_app.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 356,
+            "sizeDeletions": 88
+        }
+    ]
+}

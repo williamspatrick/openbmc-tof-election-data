@@ -1,0 +1,915 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "Ib539d90c058014bf1b1e1f1998f4b7ce11da729a",
+    "number": 45691,
+    "subject": "Add Update Events to Update service procedure",
+    "owner": {
+        "email": "vchitrali@nvidia.com",
+        "username": "vinodchitrali"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/45691",
+    "commitMessage": "Add Update Events to Update service procedure\n\n1) Task messages in Update proceduces are very generic. Mostly talk about start, running and complete.\nA white paper https://www.dmtf.org/sites/default/files/standards/documents/DSP2062_1.0.0.pdf defines more\nrelevant messages in Update Task. The Change provides support for adding messages in Update Procedure task\n2) Adds registry for Update events in \"/redfish/v1/Registries/UpdateEvent\"\nTest logs:\n==========\nValidator logs\n===========\n```\n INFO -\n *** /redfish/v1/Registries/UpdateEvent\n INFO -   Type (#MessageRegistryFile.v1_1_0.MessageRegistryFile), GET SUCCESS (time: 0.087983)\n INFO -   PASS\n INFO -\n\nJsonSchemaFile.v1_1_4.JsonSchemaFile, Counter({'pass': 8, 'skipOptional': 3, 'passGet': 1})\nOrderedDict()\nMembers.JsonSchemaFile#59, Counter({'pass': 8, 'skipOptional': 3, 'passGet': 1})\nJsonSchemas.JsonSchemas, Counter({'pass': 62, 'passGet': 1, 'skipOptional': 1})\nMetadata: Namespaces referenced in service: {'CertificateService.v1_0_0', 'Role.v1_2_2', 'ManagerAccount.v1_4_0', 'CertificateLocations.v1_0_0', 'Redfish', 'TaskService.v1_1_4', 'JsonSchemaFileCollection', 'MessageRegistryFile.v1_1_0', 'LogEntryCollection', 'ComputerSystem.v1_13_0', 'MessageRegistry.v1_4_0', 'MessageRegistry.v1_4_1', 'RoleCollection', 'FabricCollection', 'SoftwareInventory.v1_1_0', 'LogService.v1_1_0', 'Manager.v1_11_0', 'ComputerSystemCollection', 'VLanNetworkInterfaceCollection', 'EventDestinationCollection', 'TelemetryService.v1_2_1', 'ServiceRoot.v1_5_0', 'Memory.v1_11_0', 'JsonSchemaFile', 'ManagerNetworkProtocol.v1_5_0', 'OemAccountService.v1_0_0', 'Certificate.v1_0_0', 'ChassisCollection', 'MessageRegistryFileCollection', 'TaskCollection', 'MemoryCollection', 'AccountService.v1_5_0', 'ManagerCollection', 'StorageCollection', 'EthernetInterfaceCollection', 'SessionCollection', 'SessionService.v1_0_2', 'LogServiceCollection', 'Processor.v1_11_0', 'SoftwareInventoryCollection', 'JsonSchemaFile.v1_0_2', 'EthernetInterface.v1_4_1', 'Storage.v1_7_1', 'OemManager', 'UpdateService.v1_5_0', 'CertificateCollection', 'ManagerAccountCollection', 'MetricReportDefinitionCollection', 'Bios.v1_1_0', 'ActionInfo.v1_1_2', 'MetricReportCollection', 'EventService.v1_5_0', 'ProcessorCollection'}\nMetadata: Namespaces missing from $metadata: set()\nElapsed time: 0:02:09\nCounter({'pass': 3400, 'skipOptional': 2625, 'metadataNamespaces': 2294, 'warnDeprecated': 232, 'passGet': 141, 'serviceNamespaces': 53, 'invalidPropertyValue': 34, 'warningPresent': 28, 'passAction': 8, 'optionalAction': 7, 'unverifiedComplexAdditional': 1})\ngetSchemaDetails() -> CacheInfo(hits=2, misses=2600, maxsize=64, currsize=64)\ncallResourceURI() -> CacheInfo(hits=283, misses=274, maxsize=128, currsize=128)\nValidation has succeeded.\n\n```\n\n===========\n\nRegistry entry Logs\n========\n```\n{\n  \"@odata.id\": \"/redfish/v1/Registries\",\n  \"@odata.type\": \"#MessageRegistryFileCollection.MessageRegistryFileCollection\",\n  \"Description\": \"Collection of MessageRegistryFiles\",\n  \"Members\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Registries/Base\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Registries/TaskEvent\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Registries/ResourceEvent\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Registries/UpdateEvent\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Registries/OpenBMC\"\n    }\n  ],\n  \"Members@odata.count\": 4,\n  \"Name\": \"MessageRegistryFile Collection\"\n}#:~/openbmc/openbmc/build/dgx$ curl -b cjar -k https://${bmc}/redfish/v1/Registries/UpdateEvent\n{\n  \"@odata.id\": \"/redfish/v1/Registries/UpdateEvent\",\n  \"@odata.type\": \"#MessageRegistryFile.v1_1_0.MessageRegistryFile\",\n  \"Description\": \"DMTF UpdateEvent Message Registry File Location\",\n  \"Id\": \"Update\",\n  \"Languages\": [\n    \"en\"\n  ],\n  \"Languages@odata.count\": 1,\n  \"Location\": [\n    {\n      \"Language\": \"en\",\n      \"PublicationUri\": \"https://redfish.dmtf.org/registries/Update.1.0.0.json\",\n      \"Uri\": \"/redfish/v1/Registries/UpdateEvent/UpdateEvent\"\n    }\n  ],\n  \"Location@odata.count\": 1,\n  \"Name\": \"UpdateEvent Message Registry File\",\n  \"Registry\": \"Update.1.0.0\"\n}\n\n{\n  \"@Redfish.Copyright\": \"Copyright 2014-2020 DMTF. All rights reserved.\",\n  \"@odata.type\": \"#MessageRegistry.v1_4_1.MessageRegistry\",\n  \"Description\": \"This registry defines the update status and error messages.\",\n  \"Id\": \"Update.1.0.0\",\n  \"Language\": \"en\",\n  \"Messages\": {\n    \"ActivateFailed\": {\n      \"Description\": \"Indicates that the component failed to activate the image.\",\n      \"Message\": \"Activation of image '%1' on '%2' failed.\",\n      \"MessageSeverity\": \"Critical\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"Critical\"\n    },\n    \"AllTargetsDetermined\": {\n      \"Description\": \"Indicates that all target resources or devices for an update operation have been determined by the service.\",\n      \"Message\": \"All the target device to be updated have been determined.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 0,\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    \"ApplyFailed\": {\n      \"Description\": \"Indicates that the component failed to apply an image.\",\n      \"Message\": \"Installation of image '%1' to '%2' failed.\",\n      \"MessageSeverity\": \"Critical\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"Critical\"\n    },\n    \"ApplyingOnComponent\": {\n      \"Description\": \"Indicates that a component is applying an image.\",\n      \"Message\": \"Image '%1' is being applied on '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    \"AwaitToActivate\": {\n      \"Description\": \"Indicates that the resource or device is awaiting for an action to proceed with activating an image.\",\n      \"Message\": \"Awaiting for an action to proceed with activating image '%1' on '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"Perform the requested action to advance the update operation.\",\n      \"Severity\": \"OK\"\n    },\n    \"AwaitToUpdate\": {\n      \"Description\": \"Indicates that the resource or device is awaiting for an action to proceed with installing an image.\",\n      \"Message\": \"Awaiting for an action to proceed with installing image '%1' on '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"Perform the requested action to advance the update operation.\",\n      \"Severity\": \"OK\"\n    },\n    \"InstallingOnComponent\": {\n      \"Description\": \"Indicates that a component is installing an image.\",\n      \"Message\": \"Image '%1' is being installed on '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    \"OperationTransitionedToJob\": {\n      \"Description\": \"Indicates that the update operation transitioned to a job for managing the progress of the operation.\",\n      \"Message\": \"The update operation has transitioned to the job at URI '%1'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 1,\n      \"ParamTypes\": [\n        \"string\"\n      ],\n      \"Resolution\": \"Follow the referenced job and monitor the job for further updates.\",\n      \"Severity\": \"OK\"\n    },\n    \"TargetDetermined\": {\n      \"Description\": \"Indicates that a target resource or device for a image has been determined for update.\",\n      \"Message\": \"The target device '%1' will be updated with image '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    \"TransferFailed\": {\n      \"Description\": \"Indicates that the service failed to transfer an image to a component.\",\n      \"Message\": \"Transfer of image '%1' to '%2' failed.\",\n      \"MessageSeverity\": \"Critical\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"Critical\"\n    },\n    \"TransferringToComponent\": {\n      \"Description\": \"Indicates that the service is transferring an image to a component.\",\n      \"Message\": \"Image '%1' is being transferred to '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    \"UpdateInProgress\": {\n      \"Description\": \"Indicates that an update is in progress.\",\n      \"Message\": \"An update is in progress.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 0,\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    \"UpdateSuccessful\": {\n      \"Description\": \"Indicates that a resource or device was updated.\",\n      \"Message\": \"Device '%1' successfully updated with image '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    \"VerificationFailed\": {\n      \"Description\": \"Indicates that the component failed to verify an image.\",\n      \"Message\": \"Verification of image '%1' at '%2' failed.\",\n      \"MessageSeverity\": \"Critical\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"Critical\"\n    },\n    \"VerifyingAtComponent\": {\n      \"Description\": \"Indicates that a component is verifying an image.\",\n      \"Message\": \"Image '%1' is being verified at '%2'.\",\n      \"MessageSeverity\": \"OK\",\n      \"NumberOfArgs\": 2,\n      \"ParamTypes\": [\n        \"string\",\n        \"string\"\n      ],\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    }\n  },\n  \"Name\": \"Update Message Registry\",\n  \"OwningEntity\": \"DMTF\",\n  \"RegistryPrefix\": \"Update\",\n  \"RegistryVersion\": \"1.0.0\"\n}#:~/openbmc/openbmc/build/dgx$\n\n```\n=====\n\nBMC Update Logs\n========\n\n```\nopenbmc:$ curl -k  -H \"Content-Type: application/octet-stream\" -X POST -T /tmp/obmc-phosphor-image-dgx.static.mtd.tar     https://${bmc}/redfish/v1/UpdateService\n{\n  \"@odata.id\": \"/redfish/v1/TaskService/Tasks/1\",\n  \"@odata.type\": \"#Task.v1_4_3.Task\",\n  \"Id\": \"1\",\n  \"TaskState\": \"Running\",\n  \"TaskStatus\": \"OK\"\n}\nopenbmc:$ curl b cjar -k    https://${bmc}/redfish/v1/TaskService/Tasks/1\n{\n  \"@odata.id\": \"/redfish/v1/TaskService/Tasks/1\",\n  \"@odata.type\": \"#Task.v1_4_3.Task\",\n  \"EndTime\": \"2021-08-06T03:17:34+00:00\",\n  \"Id\": \"1\",\n  \"Messages\": [\n    {\n      \"@odata.type\": \"#MessageRegistry.v1_4_1.MessageRegistry\",\n      \"Message\": \"The target device 'BMC' will be updated with image 'eb4edfa2'.\",\n      \"MessageArgs\": [\n        \"BMC\",\n        \"eb4edfa2\"\n      ],\n      \"MessageId\": \"Update.1.0.0.TargetDetermined\",\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    {\n      \"@odata.type\": \"#MessageRegistry.v1_4_1.MessageRegistry\",\n      \"Message\": \"An update is in progress.\",\n      \"MessageArgs\": null,\n      \"MessageId\": \"Update.1.0.0.UpdateInProgress\",\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    },\n    {\n      \"@odata.type\": \"#MessageRegistry.v1_4_1.MessageRegistry\",\n      \"Message\": \"Device 'BMC' successfully updated with image 'eb4edfa2'.\",\n      \"MessageArgs\": [\n        \"BMC\",\n        \"eb4edfa2\"\n      ],\n      \"MessageId\": \"Update.1.0.0.UpdateSuccessful\",\n      \"Resolution\": \"None.\",\n      \"Severity\": \"OK\"\n    }\n  ],\n  \"Name\": \"Task 1\",\n  \"Payload\": {\n    \"HttpHeaders\": [\n      \"Host: 127.0.0.1:2443\",\n      \"User-Agent: curl/7.58.0\",\n      \"Accept: */*\",\n      \"Content-Length: 24166400\"\n    ],\n    \"HttpOperation\": \"POST\",\n    \"JsonBody\": \"null\",\n    \"TargetUri\": \"/redfish/v1/UpdateService\"\n  },\n  \"PercentComplete\": 100,\n  \"StartTime\": \"2021-08-06T03:17:33+00:00\",\n  \"TaskMonitor\": \"/redfish/v1/TaskService/Tasks/1/Monitor\",\n  \"TaskState\": \"Completed\",\n  \"TaskStatus\": \"OK\"\n}\n\n```\n\nSigned-off-by: Vinod Chitrali <vchitrali@nvidia.com>\nChange-Id: Ib539d90c058014bf1b1e1f1998f4b7ce11da729a\n",
+    "createdOn": 1628262207,
+    "lastUpdated": 1655611765,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1628262207,
+            "reviewer": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1628262221,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1628266017,
+            "reviewer": {
+                "name": "Deepak Kodihalli",
+                "email": "deepak.kodihalli.83@gmail.com",
+                "username": "dkodihal"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1"
+        },
+        {
+            "timestamp": 1628266259,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/23979/ : FAILURE"
+        },
+        {
+            "timestamp": 1628270775,
+            "reviewer": {
+                "name": "Deepak Kodihalli",
+                "email": "deepak.kodihalli.83@gmail.com",
+                "username": "dkodihal"
+            },
+            "message": "Patch Set 1:\n\nVinod - there are formatting errors on generate_json_messages.py caught by CI. Please check."
+        },
+        {
+            "timestamp": 1628272153,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(7 comments)\n\nI did a very rough pass at this, but it looks like it's still a work in progress, so I'l avoid doing any in depth review until it's ready."
+        },
+        {
+            "timestamp": 1628501206,
+            "reviewer": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1628501223,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628501289,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/24050/ : FAILURE"
+        },
+        {
+            "timestamp": 1628561675,
+            "reviewer": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1628561699,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628562026,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/24103/ : FAILURE"
+        },
+        {
+            "timestamp": 1628565267,
+            "reviewer": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1628565299,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1628565635,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/24106/ : FAILURE"
+        },
+        {
+            "timestamp": 1628705937,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1629222655,
+            "reviewer": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1629222672,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1629223087,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/24494/ : SUCCESS"
+        },
+        {
+            "timestamp": 1629229554,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1629721760,
+            "reviewer": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "message": "Patch Set 5:\n\n(11 comments)"
+        },
+        {
+            "timestamp": 1629746003,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1655611765,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Abandoned\n\nNo response from submitter."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "dea4f06a64acb473279a78775f38d50de2f72ae1",
+            "parents": [
+                "7eeafa76c8241552bbcb1edf9a5303e6706a9c61"
+            ],
+            "ref": "refs/changes/91/45691/1",
+            "uploader": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "createdOn": 1628262207,
+            "author": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "50/72 please."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "More detail.  You've added several new files, and a new script, and a couple of new dependencies.  a little more detail around the \"why\" would be good here."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 288,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Looks undone?"
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "line": 266,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Not sure I understand this FIXME, but I'm sure I will once it's implemented."
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "line": 266,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is not how we declare unused variables."
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is taking on explicit dependencies on jinja2, which we've thusfar avoided by including the generated strings in with the code.  I'm not neccesarily against using jinja2, but I'd like to see us consistently use one approach or another, so we should prove out jinja2s utility on one of the existing template generators."
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "line": 58,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please follow standard python conventions for declaring and using a main method."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 348,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 126,
+                    "deletions": -87
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/update_messages.hpp",
+                    "type": "ADDED",
+                    "insertions": 192,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 195,
+                    "deletions": -16
+                },
+                {
+                    "file": "scripts/templates/messages.tmpl",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/registries/update_event_message_registry.hpp",
+                    "type": "ADDED",
+                    "insertions": 229,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1208,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 2,
+            "revision": "ad044a9b3e48360dc3b2ea410d5d87df905e7d85",
+            "parents": [
+                "7eeafa76c8241552bbcb1edf9a5303e6706a9c61"
+            ],
+            "ref": "refs/changes/91/45691/2",
+            "uploader": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "createdOn": 1628501206,
+            "author": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 348,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 126,
+                    "deletions": -87
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/update_messages.hpp",
+                    "type": "ADDED",
+                    "insertions": 192,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 189,
+                    "deletions": -16
+                },
+                {
+                    "file": "scripts/templates/messages.tmpl",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/registries/update_event_message_registry.hpp",
+                    "type": "ADDED",
+                    "insertions": 229,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1206,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 3,
+            "revision": "45fc020f33334ff5fdf2c4de42b2fd1425bcca03",
+            "parents": [
+                "7eeafa76c8241552bbcb1edf9a5303e6706a9c61"
+            ],
+            "ref": "refs/changes/91/45691/3",
+            "uploader": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "createdOn": 1628561675,
+            "author": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 348,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 126,
+                    "deletions": -87
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/update_messages.hpp",
+                    "type": "ADDED",
+                    "insertions": 192,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "type": "ADDED",
+                    "insertions": 61,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 195,
+                    "deletions": -16
+                },
+                {
+                    "file": "scripts/templates/messages.tmpl",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/registries/update_event_message_registry.hpp",
+                    "type": "ADDED",
+                    "insertions": 229,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1212,
+            "sizeDeletions": 104
+        },
+        {
+            "number": 4,
+            "revision": "161f3402e092413dad95acc61fc3a3ac1b135983",
+            "parents": [
+                "7eeafa76c8241552bbcb1edf9a5303e6706a9c61"
+            ],
+            "ref": "refs/changes/91/45691/4",
+            "uploader": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "createdOn": 1628565267,
+            "author": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 350,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You don't need to include every response in your commit message, just enough that other people can see what you tested and replicate on their systems.\n\nLooking at the above, I see a lot of testing on the new registry, but no testing on the actual task service/event service things.  If you want, we can split the \"add the registry\" things into a separate commit, as it's relatively self contained, but it's up to you."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 350,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "Will test results of event service. Also, will see if i can separate out the as 2 commits"
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Do you need? They tend not to stay updated"
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "you've now omitted this script entirely.  Can you please reply to Gunnar and have a discussion.  Your patchset now includes generated files, but doesn't include the generator.  We'll need to have a discussion on whether or not we want to generate the files, or just leave them as-is and edit them by hand.  For the base registry, we edit by hand even though they were generated, but we'll have to discuss what makes sense here."
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "line": 1,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "i will drop this script in this commit . Will do it as separate commit later"
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why are we dropping it?  Is it not needed to generate the schemas?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 349,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 120,
+                    "deletions": -84
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/update_messages.hpp",
+                    "type": "ADDED",
+                    "insertions": 192,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "scripts/generate_json_messages.py",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 188,
+                    "deletions": -16
+                },
+                {
+                    "file": "scripts/templates/messages.tmpl",
+                    "type": "ADDED",
+                    "insertions": 41,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/registries/update_event_message_registry.hpp",
+                    "type": "ADDED",
+                    "insertions": 229,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1206,
+            "sizeDeletions": 101
+        },
+        {
+            "number": 5,
+            "revision": "49f534f95cdd268d9660503396b5129d042958dc",
+            "parents": [
+                "7eeafa76c8241552bbcb1edf9a5303e6706a9c61"
+            ],
+            "ref": "refs/changes/91/45691/5",
+            "uploader": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "createdOn": 1629222655,
+            "author": {
+                "email": "vchitrali@nvidia.com",
+                "username": "vinodchitrali"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "None of these are valid redfish properties.  Please update this to return proper error codes, as the DEVELOPING.md doc calls out explicitly."
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 98,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 119,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This line is essentially copied 7 times in the following lines.  Please abstract this a bit.  I would recommend moving the if state == ladder into its own method (like we do for other dbus->redfish conversions) which would then generate a redfish type, then call sendEvent in one spot.  This would clean this method up a lot.  I realize this was just copied, but lets clean it up while we're here."
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 119,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "agreed, this was existing code, just restructure to server the purpose. Shall we take this in separate review ?"
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 119,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "if you're moving code around, it's generally a good idea to put the code move in its own commit so it's easier for maintainers to avoid issues like this.  Lets put the code move in its own commit, and any cleanup you're willing to do can be added ontop, but wouldn't be required."
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 166,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: This should be logged as an error, right?  I don't think there's a way to recover here, but logging this at error level would probably help in debug."
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 166,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "agreed, Same here this was existing code, Shall we take this in separate review ?"
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 166,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Sure, feel free to put the parts where you're moving code around in its own commit."
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 179,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This kind of pattern is generally not done.  We should avoid pushing custom handlers if we can, but I'm still not really following how these are used, so I'm having trouble proposing an alternative."
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 179,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "Currently  Task messages array is confined to Task Message registry. The Above implementation gives flexibility add there own message registry. \n\nIn Update case its allowing Update Message to be added as part of Task message array by defining new handlers for Events and Messages."
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "line": 179,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Currently  Task messages array is confined to Task Message registry. The Above implementation gives flexibility add there own message registry. \n\nRight, considering that there's only a couple of registries, I'm not sure why this level of flexibility would be needed.  it would seem we could just code it up directly in the existing handlers.\n\n> \n> In Update case its allowing Update Message to be added as part of Task message array by defining new handlers for Events and Messages.\n\nWhy would we not just add it as part of the existing code?  I'm not understanding why we need a custom settable callback here."
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "What's the point of this?  As written, this will always return unknown.  I kinda wonder if we should enforce async_methods_call callbacks returning void so this code doesn't compile."
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "line": 98,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "line": 261,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is way bigger than should be put in a lambda at 6 scopes deep.  Please make an attempt to abstract this."
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "line": 261,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "line": 105,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "NumberOfArgs is required in the schema.  Why did this need to change?"
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "line": 105,
+                    "reviewer": {
+                        "email": "vchitrali@nvidia.com",
+                        "username": "vinodchitrali"
+                    },
+                    "message": "There are some messages without  NumberOfArgs key. The script was crashing."
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "line": 105,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Considering it's required, next steps would be to upstream fixes to DMTF to get those files fixed, rather than cover up the issues here."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 348,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/task.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 118,
+                    "deletions": -83
+                },
+                {
+                    "file": "redfish-core/lib/message_registries.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/update_messages.hpp",
+                    "type": "ADDED",
+                    "insertions": 188,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/parse_registries.py",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/update_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 171,
+                    "deletions": -16
+                },
+                {
+                    "file": "redfish-core/include/registries/update_event_message_registry.hpp",
+                    "type": "ADDED",
+                    "insertions": 229,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1074,
+            "sizeDeletions": 100
+        }
+    ]
+}

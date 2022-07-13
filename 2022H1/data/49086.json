@@ -1,0 +1,1885 @@
+{
+    "project": "openbmc/phosphor-power",
+    "branch": "master",
+    "id": "Ic8022cf137978ff660680e9680f778853cbecf0d",
+    "number": 49086,
+    "subject": "psu-ng: Clear faults when voltage back in range",
+    "owner": {
+        "name": "Brandon J. Wyman",
+        "email": "bjwyman@gmail.com",
+        "username": "bjwyman"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-power/+/49086",
+    "commitMessage": "psu-ng: Clear faults when voltage back in range\n\nIf the last read voltage (via READ_VIN) was below the minimum and\nnow it is back in a valid range (100 or 200 volt range valid), clear all\nthe faults to allow for re-detection of faults and logging of new errors.\n\nTrace if INPUT_FAULT_WARN or VIN_UV clear. We should not expect to see\nthat without sending a CLEAR_FAULTS command (or a power cycle).\n\nTested:\n    Rainier 2S2U real hardware.\n    ePDU outlet off/on allows re-detection of injected CML fault.\n    - input fault, vin_uv fault, pgood/off fault.\n    - repeat shows faults cleared, and new faults logged.\n    Simulator pgood fault, then low voltage followed by good voltage.\n    Verify simulator can re-detect faults after voltage back in range.\n    Simulator fake input fault/warn on, then off and other fault on.\n    - verified tracing input going off without clear faults sent.\n    Simulator fake input fault/warn on, then no faults.\n    - verified tracing input going off without clear faults sent.\n\nChange-Id: Ic8022cf137978ff660680e9680f778853cbecf0d\nSigned-off-by: Brandon Wyman <bjwyman@gmail.com>\n",
+    "createdOn": 1637801099,
+    "lastUpdated": 1642013863,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1637801099,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1637801115,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637801193,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/30781/ : FAILURE"
+        },
+        {
+            "timestamp": 1638412236,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1638412250,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1638412388,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1638412750,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/31029/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638457450,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 2:\n\nVin_UV is latched, right?  So it wouldn't clear unless we send the clear_faults ourselves.  We need to clear it if the dynamic reading is back to a good level.  Check the fsp code for the implementation..."
+        },
+        {
+            "timestamp": 1638460556,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 2: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638469147,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> Vin_UV is latched, right?  So it wouldn't clear unless we send the clear_faults ourselves.  We need to clear it if the dynamic reading is back to a good level.  Check the fsp code for the implementation...\n\nThere is a note in the specs:\n8. Optional behavior for Input UV fault:  Reading register 7Ch will also clear these registers; 79h[3], 79h[13], and 7Ch[3].  If fault remains present and power up attempted, fault bits will reoccur.\n\nI am not entirely sure that is normal after re-reading 10.2.3. Clearing Warning Or Fault Bits."
+        },
+        {
+            "timestamp": 1638560484,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 2:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1638577593,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 2:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1639533987,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1639534000,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639534571,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32060/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639534809,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 3:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1639534855,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 3:\n\n> Patch Set 2:\n> \n> Vin_UV is latched, right?  So it wouldn't clear unless we send the clear_faults ourselves.  We need to clear it if the dynamic reading is back to a good level.  Check the fsp code for the implementation...\n\nDone. See Patchset 3."
+        },
+        {
+            "timestamp": 1639578972,
+            "reviewer": {
+                "name": "Jim Wright",
+                "email": "jlwright@us.ibm.com",
+                "username": "wrightjl1"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639589031,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639590498,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 4: Commit message was updated."
+        },
+        {
+            "timestamp": 1639670047,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639673908,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1639693190,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639693438,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639693699,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639693844,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1639755596,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1639769643,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1639786505,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1639786551,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639786566,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1639786632,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/32230/ : FAILURE"
+        },
+        {
+            "timestamp": 1640018709,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 5:\n\n(11 comments)"
+        },
+        {
+            "timestamp": 1640027319,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 5:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1640027764,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 5:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1640030830,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1640030844,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1640031142,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 6:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1640031415,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32280/ : SUCCESS"
+        },
+        {
+            "timestamp": 1640120666,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641496778,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 6: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641501931,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1641501948,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 6: Code-Review+2"
+        },
+        {
+            "timestamp": 1641501966,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Removed Code-Review+2 by Shawn McCarney <shawnmm@us.ibm.com>\n"
+        },
+        {
+            "timestamp": 1641501975,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1641502000,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641508699,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 6:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1641508870,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1641510096,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1641510139,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641510139,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641510348,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641510710,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35008/ : SUCCESS"
+        },
+        {
+            "timestamp": 1641512282,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 7: Code-Review+1"
+        },
+        {
+            "timestamp": 1641595240,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641848929,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641857944,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1641857954,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641857954,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641858034,
+            "reviewer": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1641858519,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35230/ : SUCCESS"
+        },
+        {
+            "timestamp": 1641913424,
+            "reviewer": {
+                "name": "Derek Howard",
+                "email": "derekh@us.ibm.com",
+                "username": "derekhoward55"
+            },
+            "message": "Patch Set 8: Code-Review+1"
+        },
+        {
+            "timestamp": 1641940883,
+            "reviewer": {
+                "name": "Matt Spinler",
+                "email": "spinler@us.ibm.com",
+                "username": "spinler"
+            },
+            "message": "Patch Set 8: Code-Review+1"
+        },
+        {
+            "timestamp": 1642005670,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Patch Set 8: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642005686,
+            "reviewer": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "message": "Change has been successfully rebased and submitted as 82affd9426f8f5b2f222595cfa4803251a9299e1"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "485f4556a3b5868627f4d57e02e228b5b2a4aa8c",
+            "parents": [
+                "a61c1aa0a2006dedf0752bf7efca364a86d4dd96"
+            ],
+            "ref": "refs/changes/86/49086/1",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1637801099,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 44,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "a0a41e2d0fdce998a4bb558f19276dab01e354cd",
+            "parents": [
+                "b3ba516f3f418b9b1a98d4bd27210799383262b2"
+            ],
+            "ref": "refs/changes/86/49086/2",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1638412236,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Not sure what you meant here.  \"re-detection of injected\"?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Caused CML fault by causing an \"invalid/unsupported command\" to be sent.\n\nRemoved input voltage by using ePDU to drop the outlet power supplying input voltage to the power supply.\n\nRe-applied input voltage to the power supply by instructing ePDU to activate the outlet.\n\nAll fault conditions cleared. This was due to Input/VIN_UV fault clearing.\n\nCaused CML fault again, and new PEL logged. Showing that the fault condition was indeed cleared to allow re-logging of faults as PELs.\n\n(This will need to be redone, due to change to use READ_VIN)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "I shall redact this word, and replace it with re-detect. (typo)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 376,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "If I am understanding this correctly, this will lead to the following behavior:\n* One or more fault bits are set in statusWord\n* The code prior to this will set data members for those fault bits, like inputFault and mfrFault \n* If VIN_UV_FAULT has transitioned to off, all those bits will be cleared\n\nIs this the desired behavior?  Do we want to lose all the other error state?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 376,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "This is changing. I will only trace the fact that vinUVFault was true (it got set in the past), but for some reason it is no longer on. This would be unexpected, as there are only specific conditions that should result in that fault clearing, one of those being that a CLEAR_FAULTS command was sent.\n\nIt might be possible that someone manually enabled single-bit clearing and sent a command to clear specific bits via i2cset. Manually tinkering could lead to \"weird system behavior\".\n\nThe clearFaults() call in this path will be removed, as pointed out by Derek."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 376,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 382,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "probably good to add a journal entry if the vin_uv fault clears on it's own (without us sending the clear_fault cmd or a enable) like we did on fsp systems... that is a ps fw bug and could lead to weird system behavior"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 382,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 398,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "If we've gotten here, then we know STATUS_WORD=0x0000 right?  Although maybe it makes the journal entry make more sense.  Also, should this say VIN_UV fault cleared so we know why the faults are being cleared?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 398,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Correct, if we get here, STATUS_WORD is 0x0000.\n\nI will change \"Faults cleared\" to \"\"VIN_UV cleared\".\n\nThe clearFaults() call in this path will be removed, a new path will call that dependent on a check of READ_VIN values instead, as pointed out by Derek."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 398,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 457,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "It is a little clunky having the list twice: here and in analyze().  Whenever you add a new flag, you have to add a duplicate assignment in two places.\n\nIf you add any more flags for other error types, it might make sense to refactor this list into a clearFaultFlags() method that both analyze() and clearFaults() call."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 457,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "\ud83d\udc4d\nI think I have some more added in another patchset/commit. Interesting idea...may add/change later."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 457,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-power/+/49892"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "There are quite a few tests in here that result in some verbose output if a test fails, making it quite difficult to weed through and find the reason for the failing test. \ud83d\ude12\n\nI will be working on trying to reduce that verbosity."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Put this on top of gtest update for warnings commit. \ud83d\ude0a"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 831,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Added these due to noted local CI test output clutter."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 831,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 25,
+                    "deletions": -1
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 74,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 3,
+            "revision": "505f29b4a1201a9f59cba7f26d84c03b7b92924a",
+            "parents": [
+                "391a0690043baafbe96b7962a3e843101c53fcb7"
+            ],
+            "ref": "refs/changes/86/49086/3",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1639533987,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Jim Wright",
+                        "email": "jlwright@us.ibm.com",
+                        "username": "wrightjl1"
+                    },
+                    "message": "Nit: typo"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 522,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "\"It is a little clunky having the list twice....\" remains.\nShould consider clearFaultFlags() method Shawn recommended."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 522,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Later commit addresses this."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 40,
+                    "deletions": -1
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 425,
+                    "deletions": -11
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 488,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 4,
+            "revision": "6d8852d8b6ed4cca821a99039c9726656f929f22",
+            "parents": [
+                "391a0690043baafbe96b7962a3e843101c53fcb7"
+            ],
+            "ref": "refs/changes/86/49086/4",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1639590498,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "do we need to check the input_fault_warning bit here too?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Supposedly INPUT_FAULT_WARN can come on for any of these:\n7 VIN OV Fault\n6 VIN OV Warning\n5 VIN UV Warning\n4 VIN UV Fault\n3 Unit Off For Low Input Voltage\n2 IIN OC Fault\n1 IIN OC Warning\n0 PIN OP Warning\nAre we thinking we want to trace for INPUT_FAULT_WARN magically going off as well?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "Well we'll log an AC loss error if input_fault bit is on (as we would for vin_uv), so it would seem to follow if the input_fault bit goes off we should do the same things that we do for vin_uv going off.  I.e., if we treat those bits the same for the error happening, shouldn't we treat them the same for the error clearing?\n\nOn FSP systems we wouldn't even look at vin_uv, all latched AC detection was based on the input_fault bit.  We told the ps guys we'd look at vin_uv now on bmc as well, which is fine, but that doesn't mean we can ignore the input_fault bit."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Okay, I will add a similar check/trace/clear for the inputFault."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 413,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "you don't need to do vinUVFault = false here?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 413,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Hrm... I was thinking we wanted to avoid that, but the change was to not do the clearFaults() call. In the case where everything goes back to good, I am clearing vinUVFault (setting it to false).\n\nMakes sense to do the vinUVFault = false here if I do it in the other case?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 413,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 426,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "how do we know in these 2 cases if it cleared without us sending the clear_fault (or reading the 0x7C)?  the lack of the \"READ_VIN back in range: inputVoltageOld = {} inputVoltage = {}\" entry?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 426,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "I was thinking yes, but are you thinking of maybe a case of:\n1. present, VIN_UV\n2. missing\n3. present, clearFaults(), VIN good.\n?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 426,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "No I'm not thinking of a missing scenario, just the bits clearing either with or without us sending the clear faults.  I think the lack of the entry is fine."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 426,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Yes, the lack of seeing that \"READ_VIN back in range\" trace, aside from something like a power off/on, would be an indicator that we did not attempt to clear the faults. The PSUManager will call clearFaults() on the power state changing from off to on.\n\nOther possibilities: \n0) Already pointed out missing/present scenario.\n1) The power supply decided to clear it on its own, \n2) Something with phosphor-hwmon possibly cleared it.\n3) Someone manually cleared it (using say i2cset)"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 426,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 463,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "are we guaranteed to do the next set of poll cmds after doing the clear faults here, and before we come into this routine the next second?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 463,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "If we are in this routine, analyze(), and the power supply is present, we would attempt to read the STATUS_WORD.\n\nIf we are in this routine, analyze(), and the power supply is missing, we will not do any of the commands.\n\nAm I not following the question?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 463,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "No you are not following the question.  Nothing to do with any ps missing.  We want to guarantee 1 and only 1 reading of the status registers between each time we go through this analyze() function.\n\nFor instance, in this path, we want the sequence to be:\n1. \"poll\" cmds sent.\n2. analyze() -> clear faults cmd sent.\n3. next \"poll\" cmds sent.\n4. analyze() called, we see the faults cleared correctly etc.\n\nWe DON'T want the sequence to be:\n1. \"poll\" cmds sent.\n2. analyze() -> clear faults cmd sent.\n4. analyze() called, we see the faults not cleared because there was no \"poll\" cmds sent between the analyze() calls.\n\nand we DON'T want the sequence to be:\n1. \"poll\" cmds sent.\n2. analyze() -> clear faults cmd sent.\n3. next \"poll\" cmds sent.\n4. next \"poll\" cmds sent.\n5. analyze() called, but there were 2 sets of \"poll\" cmds sent in between."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 463,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "I believe the answer is yes, unless there is a read failure while attempting to read STATUS_WORD, then this will get skipped as we will go to the catch block.\n\nIf there are not read failures, then the normal sequence should be:\n1. Read STATUS_WORD\n2. Read READ_VIN (inputVoltage updated)\n\nIf there are no read failures, there is a fault, that we clear, that should be:\n1. Read STATUS_WORD, fault on.\n2. Read STATUS_*\n3. Set fault variable(s)\n4. Read READ_VIN (update inputVoltage, possibly goes low)\n5. Read STATUS_WORD, fault still on.\n6. Read STATUS_*\n7. Read READ_VIN (update invputVoltage, out of range to in range)\n8. Clear faults.\n9. Read STATUS_WORD, good.\n..."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 463,
+                    "reviewer": {
+                        "name": "Derek Howard",
+                        "email": "derekh@us.ibm.com",
+                        "username": "derekhoward55"
+                    },
+                    "message": "I think there are windows when we would end up NOT sending the clear faults cmd (eg, if AC came back after we read STATUS_WORD, but before we read STATUS_INPUT. we wouldn't read STATUS_INPUT on FSP systems, as that will cause the ps to clear faults as well, however reading this was added to bmc code), but I think that is ok.  As long as we know that AC has came back so power is again being provided by the ps and the latched fault status is cleared, we should be ok.  And of course as long as analyze() is called once and only once in between each set of \"poll\" cmds."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 463,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Okay, think we are all good here then."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 40,
+                    "deletions": -1
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 425,
+                    "deletions": -11
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 488,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 5,
+            "revision": "6614b576d4d27adbff50f8d8cfb32606b4807892",
+            "parents": [
+                "391a0690043baafbe96b7962a3e843101c53fcb7"
+            ],
+            "ref": "refs/changes/86/49086/5",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1639786505,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Nit: This line is too long and wraps funny."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 404,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Is that odd according to the PMBus spec, or according to specific PSUs we've worked with in the past?\n\nI'm just curious why we have this special behavior for these two faults and not any of the others.\n\nI think in general we want this code to match the PMBus spec."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 404,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "There are a variety of ways for the fault to clear, some of which are not implemented in the monitor, so if one of those methods is clearing these bits, it is not expected.\n\n10.2.1 - When a bit is set, it remains set until cleared as described in Section 10.2.3.\n\n10.2.3. Clearing Warning Or Fault Bits\n* The bit is individually cleared (Section 10.2.4),\nWe do not do this in the monitor program, so if that is how it got cleared, \nsomething else did it. Not expected.\n\n* A RESET signal (if one exists) is asserted,\nThe monitor does not do this, so if that cleared the fault, not expected.\n\n* The output is commanded through the CONTROL pin, the OPERATION command, or the combined action of the CONTROL pin and OPERATION command, to turn off and then to turn back on, or\nThat would be a power cycle. Hopefully that is via state manager. If not, it is unexpected.\n\n* Bias power is removed from the PMBus device. Removing the bias power usually means that the input power has been removed long enough that the voltage to the control circuit has decayed to zero. However, in some devices, the input power and the power to the control circuitry are separate. In this case, removing the bias power means removing the input power to the control circuitry.\nThat is essentially what we are checking with the READ_VIN logic."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 404,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Having unresolved comments makes this a bit confusing if it merges.\nSince the other methods to clear the faults are not used by the monitor, I am assuming that calling this \"odd behavior\" is acceptable."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "It is unfortunate that we have basically a copy/paste of these lines below in the else clause.  In general, this method is getting really long (>250 lines) and is a candidate for refactoring.  You don't have to do it in this commit, but it would be good to find some common code or else just maybe break some parts of this into separate sub-methods.  It gets hard to test and read when it gets so long."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "I agree this is getting kind of long."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Any changes here would be in a future commit."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 405,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 468,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Do we need hysteresis here?\n\nFor example, if a PSU has an input voltage that is oscillating between (VIN_VOLTAGE_MIN-1) and (VIN_VOLTAGE_M+1), are we going to fill the journal and error log with repeated errors and recoveries?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 468,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "I would not expect that. I have not seen that. However, I suppose it might possibly happen. I am not so certain that extra logic here is warranted."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 468,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Apparently no objection to not adding the extra logic. Crossing fingers, hopefully do not see this after the fact, but if we do, we can add something to avoid flooding the journal and error log. \ud83d\ude0a"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 520,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Should these lines be deleted?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 520,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Well, the FIXME line could definitely go.\n\nThere might be some utility to keeping that DEBUG journal entry around."
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 520,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Since these lines were inserted in many places, should this be added to setPMBusExpectations instead?"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "I was not sure if I should do that, as there are some possible cases where that is not desired."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "No changes planned. Let me know if I should change something to address this."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 354,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Just curious: why does it sometimes do a readString(READ_VIN) and other times do a read(READ_VIN)?  Does the returned value from read(READ_VIN) mean anything?  I noticed you set it to a value like 1 or 3."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 354,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "The read(READ_VIN) was originally added as the only method for getting the CLEAR_FAULTS command sent out via the pmbus hwmon device driver code. It is noted, somewhere, that the return value in that case does not matter. I used the 1, 2, 3 values as somewhat of an indication of how many times I had expected this to be called that way.\n\nThe readString(READ_VIN) is used by the code that is getting the voltage in millivolts, and then using C++ conversion functions to get it to volts."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1031,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Is there a reason you used the constant READ_VIN earlier in the file but not functions like HasInputFault(), HasMFRFault() and HasVoutOVFault()?"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1031,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "I thought I fixed all of these to use READ_VIN. :-/"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1031,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1475,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Is this code supposed to be replaced with a call to setMissingToPresentExpects()?"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1475,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Yes."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1475,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1548,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Is this code supposed to be replaced with a call to setMissingToPresentExpects()"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1548,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Yes"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1548,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1615,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "Is this code supposed to be replaced with a call to setMissingToPresentExpects()"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1615,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Yes"
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 1615,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 64,
+                    "deletions": -1
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 419,
+                    "deletions": -11
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 515,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 6,
+            "revision": "4a6861e7b4c2c707e5ca5c44d361e7188e1b5743",
+            "parents": [
+                "391a0690043baafbe96b7962a3e843101c53fcb7"
+            ],
+            "ref": "refs/changes/86/49086/6",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1640030830,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "This looks good.  I can't merge until you resolve the merge conflict though."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 441,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "One of the reasons for the CI failure was this missing."
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "line": 851,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Another CI failure fix."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -1
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 396,
+                    "deletions": -11
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 491,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 7,
+            "revision": "d4d683ea87dadd9575c44e8fde06cef9e0f18a27",
+            "parents": [
+                "e3f7ad238a5ffaa87e19839ce15c12c3e8df9c9e"
+            ],
+            "ref": "refs/changes/86/49086/7",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1641510096,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Pretty sure I fixed the merge conflicts. The clearFaultFlags() got merged in and create a slight mess.\nDiff ps6 to ps7 shows just changes related to that.\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "This has a merge conflict.  Can you rebase?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 416,
+                    "reviewer": {
+                        "name": "Matt Spinler",
+                        "email": "spinler@us.ibm.com",
+                        "username": "spinler"
+                    },
+                    "message": "I guess you may need to rebase and add into analyzeVinUVFault()?"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 416,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 396,
+                    "deletions": -11
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 473,
+            "sizeDeletions": 11
+        },
+        {
+            "number": 8,
+            "revision": "197cc850d06f149e295775969b469b4240200e1f",
+            "parents": [
+                "f087f4750c1e50e4db50c99d904d7c05f64fe4c8"
+            ],
+            "ref": "refs/changes/86/49086/8",
+            "uploader": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "createdOn": 1641857944,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Brandon J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "Rebased, had to move tracing magical input fault and VIN_UV clearing into new helper functions.\n"
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "line": 450,
+                    "reviewer": {
+                        "name": "Shawn McCarney",
+                        "email": "shawnmm@us.ibm.com",
+                        "username": "smccarney"
+                    },
+                    "message": "You don't have to do it here obviously, but now that you've refactored this so nicely, I think you could delete all these blank lines between method calls in a future commit."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 396,
+                    "deletions": -11
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 474,
+            "sizeDeletions": 11
+        },
+        {
+            "number": 9,
+            "revision": "82affd9426f8f5b2f222595cfa4803251a9299e1",
+            "parents": [
+                "ccea2d2b95e1f826d42a14a47b1b30aaec5cd93d"
+            ],
+            "ref": "refs/changes/86/49086/9",
+            "uploader": {
+                "name": "Shawn McCarney",
+                "email": "shawnmm@us.ibm.com",
+                "username": "smccarney"
+            },
+            "createdOn": 1642005686,
+            "author": {
+                "name": "Brandon J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 46,
+                    "deletions": 0
+                },
+                {
+                    "file": "phosphor-power-supply/test/power_supply_tests.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 396,
+                    "deletions": -11
+                },
+                {
+                    "file": "phosphor-power-supply/power_supply.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 474,
+            "sizeDeletions": 11
+        }
+    ]
+}

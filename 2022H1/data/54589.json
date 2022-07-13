@@ -1,0 +1,304 @@
+{
+    "project": "openbmc/docs",
+    "branch": "master",
+    "topic": "design",
+    "id": "I1bc857b7f565eb5660be9af448cf415c48514aab",
+    "number": 54589,
+    "subject": "design: propose simple firmware update API",
+    "owner": {
+        "name": "Justin Ledford",
+        "email": "justinledford@google.com",
+        "username": "justinledford"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/docs/+/54589",
+    "commitMessage": "design: propose simple firmware update API\n\nThis design proposes a simpler alternative to the existing Software API used\nfor firmware updates.\n\nSigned-off-by: Justin Ledford <justinledford@google.com>\nChange-Id: I1bc857b7f565eb5660be9af448cf415c48514aab\n",
+    "createdOn": 1655263143,
+    "lastUpdated": 1657689996,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1655263143,
+            "reviewer": {
+                "name": "Justin Ledford",
+                "email": "justinledford@google.com",
+                "username": "justinledford"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1655270698,
+            "reviewer": {
+                "name": "Lei YU",
+                "email": "yulei.sh@bytedance.com",
+                "username": "mine260309"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1655319523,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1655321380,
+            "reviewer": {
+                "name": "Justin Ledford",
+                "email": "justinledford@google.com",
+                "username": "justinledford"
+            },
+            "message": "Patch Set 1:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1657671073,
+            "reviewer": {
+                "name": "Justin Ledford",
+                "email": "justinledford@google.com",
+                "username": "justinledford"
+            },
+            "message": "Topic set to design"
+        },
+        {
+            "timestamp": 1657689507,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1657689996,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(6 comments)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "4cf8c2eaa3765bebe786595857271ec0198d78c2",
+            "parents": [
+                "bc8205063946cb6f2e357d22188c5dd6dfbcfd92"
+            ],
+            "ref": "refs/changes/89/54589/1",
+            "uploader": {
+                "name": "Justin Ledford",
+                "email": "justinledford@google.com",
+                "username": "justinledford"
+            },
+            "createdOn": 1655263143,
+            "author": {
+                "name": "Justin Ledford",
+                "email": "justinledford@google.com",
+                "username": "justinledford"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Who is the vendor in this case that would have a hard time implementing the existing APIs?\nbmcweb already implements the Update Redfish API to be an update-and-activate in one call."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Justin Ledford",
+                        "email": "justinledford@google.com",
+                        "username": "justinledford"
+                    },
+                    "message": "There is no specific vendor, I am just speculating. Even with the bmcweb call, a vendor needs to develop against the full end-to-end flow with bmcweb, image manager and their item updater. What I'm saying here is that the vendor can easily develop and test their implementation without the full workflow. They should still test the whole workflow before sending for review, but this API could just make development easier."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> bmcweb already implements the Update Redfish API to be an update-and-activate in one call.\n\nAs the person that implemented the current API in bmcweb, it was very...very difficult for me given the complexities, and arguably breaks some of the design ideals in bmcweb to do it (requires storing state, ect), and causes bugs like:\nhttps://github.com/openbmc/bmcweb/issues/202\n\nThat basically can't be solved in a reasonable way because of having to store state that doesn't exist on dbus.\n\nAlso, it's more than one call, it's a call to the filesystem to write the payload, then it's a call to the dbus-broker to set up the match, then its a polling waiting for the update to get accepted, then it's polling to wait for the update to complete.  This design is attempting to simplify that.\n\n\nSome immediate possible users include:\nNvme, which supports updating over nvme-mi\nVRs, which have an i2c based update API\nPossible integration with fwupd, which already supports a ton of devices."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 48,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "It looks like the ImagePath is the path on BMC that is the uploaded image is it?\nWhat is the difference between this new API and the existing `RequestedActivation`?\n\nI feel that they are doing pretty much the same thing?"
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 48,
+                    "reviewer": {
+                        "name": "Justin Ledford",
+                        "email": "justinledford@google.com",
+                        "username": "justinledford"
+                    },
+                    "message": "Yes the path is local to the BMC.\nRequestedActivation requires the ItemUpdater to first know about an image through the Version object published by the ImageManager, and then creating that Activation object. This new API cuts out that extra step so a client can directly send an image to an ItemUpdater-like daemon."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 54,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can we just avoid the filesystem altogether and pass an FD?  we've used it in other places successfully, it just wasn't well known when the first update APIs were built, and it avoids a lot of permissions issues that we've seen in the past with daemons sharing FDs.\n\nAlternatively, could we just make this array<uint8>?  Is there a dbus limit that we would hit?"
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 58,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "We shouldn't be passing a signature on the filesystem.  It's not intended to be large.\n\nAlso, we need to support:\n1. Devices with no crypto verification\n2. Devices for which the crypto signature is embedded in the payload.\n\nSo at a minimum, this needs to be optional, but I suspect in most cases we'd just embed it in the image itself.\n\n\nIn terms of documentation, because this is a common interface, we probably need a lot more details on what requirements on the signature are.  \"string\" isn't very descriptive about format or behavior."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 60,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Probably need an error type of \"Firmware Update already in progress\", \"signature failure\" and \"Device not in required state\" (probably power state)."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 62,
+                    "reviewer": {
+                        "name": "Lei YU",
+                        "email": "yulei.sh@bytedance.com",
+                        "username": "mine260309"
+                    },
+                    "message": "How does this API tell which status is for which image?\nE.g. if user tries to update BMC and BIOS images, and calls UpdateFirmware twice, how does this API tell which image is in progress?"
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 62,
+                    "reviewer": {
+                        "name": "Justin Ledford",
+                        "email": "justinledford@google.com",
+                        "username": "justinledford"
+                    },
+                    "message": "There would be separate objects for each device. So if BIOS and BMC are managed by the same daemon, there should be 2 separate objects on that daemon."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can we call this \"idle\" instead?"
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 81,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The task service APIs give a progress indicator thats 0-100.  We should probably at least make that possible."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 90,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "In each of these states, it adds some unknowns to the behavior.  How long is an update implementation required to stay in the \"done\" state before it goes back to None?  If VerifyError occurs, is it possible to go back to None?  Is it required to allow a reattempt?"
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 104,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "An alternative could be adding an option in the existing interfaces that when an image is uploaded it automatically sets the RequestedActivations property to start the activation."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 104,
+                    "reviewer": {
+                        "name": "Justin Ledford",
+                        "email": "justinledford@google.com",
+                        "username": "justinledford"
+                    },
+                    "message": "Would that be an option passed through Redfish to bmcweb, so that bmcweb automatically sets the RequestedActivations property? I believe bmcweb already does this by default.\n\nA problem this new API is trying to solve is for firmware upgrades without Redfish, where some local process within the BMC is coordinating the firmware upgrade. In that case (and even in the case of Redfish SimpleUpdate) I don't see the use for the ImageManager, when the image can be passed directly to the ItemUpdater."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 104,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> An alternative could be adding an option in the existing interfaces that when an image is uploaded it automatically sets the RequestedActivations property to start the activation.\n\nthe problem here is that it still requires an untrusted daemon (bmcweb) to be writing the filesystem, which requires some level of permissions.  That's one of the big things being avoided.\n\nWith that said, Adriana is right here, there should be something in the alternatives section, even if it's just \"keep the current API\""
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If this is the plan, please plan on removing the ImageManager interface first, and having that be the first target before the bmcweb patches land.  This avoids having to support two implementations for a period of time, and needing to have complex logic to determine which implementation to use at any given time."
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "line": 115,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Surely theres some testing?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "designs/simple-firmware-update-api.md",
+                    "type": "ADDED",
+                    "insertions": 115,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 128,
+            "sizeDeletions": 0
+        }
+    ]
+}

@@ -1,0 +1,2501 @@
+{
+    "project": "openbmc/phosphor-certificate-manager",
+    "branch": "master",
+    "id": "I495f5c1c1c4a2ac880dd3233be31b84a78d79a43",
+    "number": 50067,
+    "subject": "Authorities list: implement InstallAll & ReplaceAll",
+    "owner": {
+        "name": "Nan Zhou",
+        "email": "nanzhoumails@gmail.com",
+        "username": "FighterNan"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-certificate-manager/+/50067",
+    "commitMessage": "Authorities list: implement InstallAll & ReplaceAll\n\nThis change implements the design in\nhttps://gerrit.openbmc-project.xyz/c/openbmc/docs/+/49317.\n\nInstallAll: enumerate all certs in the input file and install all of\nthem;\nReplaceAll: replace all certs with the new authorities list\nAtomic: implemented via creating temporary folder and issuing swap.\n\nAdded ability to unit test service reload as well.\n\nTested:\n1. Unit tests\n2. Tested loading/deleting authorities list in QEMU.\n\n```\nroot@xxx:~# busctl call xyz.openbmc_project.Certs.Manager.Authority.Ldap \\\n> /xyz/openbmc_project/certs/authority/ldap \\\n> xyz.openbmc_project.Certs.InstallAll \\\n> InstallAll s /tmp/trust_bundle.pem\nas 3 \"/xyz/openbmc_project/certs/authority/ldap/1\"\n\"/xyz/openbmc_project/certs/authority/ldap/2\"\n\"/xyz/openbmc_project/certs/authority/ldap/3\"\nroot@xxx:~# ls /etc/ssl/certs/authority/\n10a5d8b0.0  5b49ceaa.0\tf3ddaa86.0  file0qmgPV\tfileDbjTzW  fileR4TtjO\ntrust_bundle\nroot@xxx:~# busctl call\nxyz.openbmc_project.Certs.Manager.Authority.Ldap\n/xyz/openbmc_project/certs/authority/ldap\nxyz.openbmc_project.Certs.ReplaceAll ReplaceAll s /tmp/trust_bundle.pem\nroot@xxx:~# ls /etc/ssl/certs/authority/\n10a5d8b0.0  5b49ceaa.0\tf3ddaa86.0  file1obsEZ\tfileOqVoaC  filerUBZCj\ntrust_bundle\n\nroot@xxx:~# wget -qO- http://localhost/redfish/v1/Managers/bmc/Truststore/Certificates/\n{\n  \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/\",\n  \"@odata.type\": \"#CertificateCollection.CertificateCollection\",\n  \"Description\": \"A Collection of TrustStore certificate instances\",\n  \"Members\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/1\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/2\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/3\"\n    }\n  ],\n  \"Members@odata.count\": 3,\n  \"Name\": \"TrustStore Certificates Collection\"\n}\nroot@xxx:~# wget -qO- http://localhost/redfish/v1/Managers/bmc/Truststore/Certificates/1\n{\n  \"@odata.id\": \"/redfish/v1/Managers/bmc/Truststore/Certificates/1\",\n  \"@odata.type\": \"#Certificate.v1_0_0.Certificate\",\n  \"CertificateString\": \"-----BEGIN CERTIFICATE-----\\nMIICZTCCAgugAwIBAgIUANIf0jvaRNq1MdwxrXPnk25VrmYwCgYIKoZIzj0EAwIw\\nVTETMBEGA1UEChMKY2FtcHVzLWFzaDENMAsGA1UECxMEcm9vdDEvMC0GA1UEAwwm\\ne2QyZWQ1MGJkLTczMTQtNDgxZC04OWE0LTVkMjkxMmYyMGQ5NH0wIBcNNzAwMTAx\\nMDAwMDAwWhgPOTk5OTEyMzEyMzU5NTlaMFUxEzARBgNVBAoTCmNhbXB1cy1hc2gx\\nDTALBgNVBAsTBHJvb3QxLzAtBgNVBAMMJntkMmVkNTBiZC03MzE0LTQ4MWQtODlh\\nNC01ZDI5MTJmMjBkOTR9MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7lp/J3Gj\\nc4TKubuYtzpxu2D3STlwTwEjgFbTaLZnQ0KXt7pBrcYc3yY1t74WBluvzM9iok6Q\\nDcEFX5aIYcoaAKOBtjCBszAOBgNVHQ8BAf8EBAMCAQYwKQYDVR0lBCIwIAYIKwYB\\nBQUHAwEGCCsGAQUFBwMCBgorBgEEAdZ5AgcBMA8GA1UdEwEB/wQFMAMBAf8wHQYD\\nVR0OBBYEFIPrX7lbeJhvHHcQ7iYOry50aYKYMBcGA1UdIAQQMA4wDAYKKwYBBAHW\\neQIFBDAtBgNVHR4BAf8EIzAhoB8wHYYbLmNhbXB1cy1hc2gucHJvZC5nb29nbGUu\\nY29tMAoGCCqGSM49BAMCA0gAMEUCIAS/ZrMPBj992vVVplwzH9DWDCSMu1rCgvqw\\nam3byOT1AiEAyrr3FAP+7js7z+h8d94hTyy1kTn+4NOvUWrVzHUmJI8=\\n-----END CERTIFICATE-----\\n\",\n  \"Description\": \"TrustStore Certificate\",\n  \"Id\": \"1\",\n  \"Issuer\": {\n    \"CommonName\": \"{d2ed50bd-7314-481d-89a4-5d2912f20d94}\",\n    \"Organization\": \"campus-ash\",\n    \"OrganizationalUnit\": \"root\"\n  },\n  \"KeyUsage\": [\n    \"CRLSigning\",\n    \"ServerAuthentication\",\n    \"ClientAuthentication\",\n    \"\"\n  ],\n  \"Name\": \"TrustStore Certificate\",\n  \"Subject\": {\n    \"CommonName\": \"{d2ed50bd-7314-481d-89a4-5d2912f20d94}\",\n    \"Organization\": \"campus-ash\",\n    \"OrganizationalUnit\": \"root\"\n  },\n  \"ValidNotAfter\": \"9999-12-31T23:59:59+00:00\",\n  \"ValidNotBefore\": \"1970-01-01T00:00:00+00:00\"\n}\n```\n\nSigned-off-by: Nan Zhou <nanzhoumails@gmail.com>\nChange-Id: I495f5c1c1c4a2ac880dd3233be31b84a78d79a43\n",
+    "createdOn": 1640906071,
+    "lastUpdated": 1654732306,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1640906071,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1640906106,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1640906106,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1640906183,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1640906575,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/34779/ : SUCCESS"
+        },
+        {
+            "timestamp": 1641412531,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Removed reviewer Ed Tanous."
+        },
+        {
+            "timestamp": 1643736415,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1643736438,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643736438,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643736471,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643736738,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Removed reviewer Ed Tanous."
+        },
+        {
+            "timestamp": 1643737273,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/36438/ : SUCCESS"
+        },
+        {
+            "timestamp": 1643744978,
+            "reviewer": {
+                "name": "Valentin",
+                "email": "kunin@google.com",
+                "username": "GTValentine"
+            },
+            "message": "Patch Set 2:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1643745998,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643746165,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1643749403,
+            "reviewer": {
+                "name": "Valentin",
+                "email": "kunin@google.com",
+                "username": "GTValentine"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645069675,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1645069687,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645069687,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645069717,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1645069756,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645070441,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Removed reviewer Ed Tanous."
+        },
+        {
+            "timestamp": 1645070523,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37443/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645130085,
+            "reviewer": {
+                "name": "Valentin",
+                "email": "kunin@google.com",
+                "username": "GTValentine"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1645216174,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1645216183,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645216183,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645216202,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 4:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1645216206,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37654/ : FAILURE"
+        },
+        {
+            "timestamp": 1645216522,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1645216548,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645216553,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645216570,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37655/ : FAILURE"
+        },
+        {
+            "timestamp": 1645217022,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1645217033,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645217033,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Removed reviewer Ed Tanous."
+        },
+        {
+            "timestamp": 1645217033,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645217511,
+            "reviewer": {
+                "name": "Valentin",
+                "email": "kunin@google.com",
+                "username": "GTValentine"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1645217949,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37657/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645218853,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645463894,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 6: Code-Review-1\n\n(17 comments)"
+        },
+        {
+            "timestamp": 1645463947,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645576160,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1645576165,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 6:\n\n(17 comments)"
+        },
+        {
+            "timestamp": 1645576174,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Removed reviewer Ed Tanous."
+        },
+        {
+            "timestamp": 1645576186,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645576186,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645577065,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37822/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645621798,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 7: Code-Review-1\n\n(10 comments)"
+        },
+        {
+            "timestamp": 1645622491,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1645622535,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645630366,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645676875,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1645677000,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1645681867,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1645681874,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1645681878,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645681878,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645681880,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Removed reviewer Ed Tanous."
+        },
+        {
+            "timestamp": 1645682725,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37943/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645711708,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 8: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645726563,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646375132,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647377427,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647551666,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647602691,
+            "reviewer": {
+                "name": "MARRI DEVENDER RAO",
+                "email": "devenrao@in.ibm.com",
+                "username": "devenrao"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647879060,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647997932,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648062139,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8: Code-Review+2"
+        },
+        {
+            "timestamp": 1648062245,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648063204,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Removed reviewer Ed Tanous with the following votes:\n\n* Code-Review+2 by Ed Tanous <ed@tanous.net>\n"
+        },
+        {
+            "timestamp": 1648137407,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 8: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648137427,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Change has been successfully rebased and submitted as 6ec13c8f759962d29c0ac3a69b64de705116065d"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "69048b3bc882dae38b88bb950ff0c06e8c6c0ca9",
+            "parents": [
+                "6e96fd7df64d782929c05f85a13845708050f3cd"
+            ],
+            "ref": "refs/changes/67/50067/1",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1640906071,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This is commented on purpose. \n\nI will enable the two interfaces once https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/50045 is merged."
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. The interface has been merged."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 95,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 373,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 117,
+                    "deletions": -2
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -1
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 874,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 2,
+            "revision": "09891c4ab450a5c2b50dcda41dd20b5792dd699a",
+            "parents": [
+                "b68cdc9199e714beb65541bbfb19396657ad648f"
+            ],
+            "ref": "refs/changes/67/50067/2",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1643736415,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "`"
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 391,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "This performs a lot of logic but doesn't return anything. I am worried about error handling. E.g. if we fail to write to file, I would like the dbus API to return an error. Would it be possible?"
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 391,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Yes, we use exceptions in the OpenBMC stack. The DBus framework we have in OpenBMC will catch those exception and inform the clients corresponding errors. \n\nThese errors are in https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/50045 and specified in the \"errors\" section.\n\n```\n      errors:\n        - xyz.openbmc_project.Common.Error.InternalFailure\n        - xyz.openbmc_project.Certs.Error.InvalidCertificate\n        - xyz.openbmc_project.Common.Error.NotAllowed\n\n```"
+                },
+                {
+                    "file": "certificate.hpp",
+                    "line": 188,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "nit: params names mismatch (sourceFilePath vs certSrcFilePath). Also add ||?"
+                },
+                {
+                    "file": "certificate.hpp",
+                    "line": 188,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done.\n\nThis codebase is using docgen style IIUC, which doesn't add ||."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 101,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "optional: file IO in C++ is ugly. I recommend encapsulating it in a separate set of utils, e.g. feel free to copy https://gbmc-internal.git.corp.google.com/prodid-securityd/+/refs/heads/master/file_io_util.cc\n\nat the very least, add inputCertFileStream.close()"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 101,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. Good catch!\n\nI will do file IO related clean up in a separate CL. The examples you linked are in Return Code stack, but it should be applicable in exception stack as well."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "should it return early if an error is detected?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 109,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "elog<InternalFailure>() will throw an exception and codes jumps to some internal exception handling blocks.\n\nSo yes, it returns early at the `elog` lines."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 360,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "Can you please explain the mechanics of how Cert Manager updates the gRPC daemons with the new trust bundle?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 360,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Oh, I missed the notification. Added. Good catch.\n\nI also enabled unit test to verify this service notification"
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "Will DeleteAll be implemented in a separate CL?"
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "It is implemented here. See the override `replaceAll` class method."
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "can this be a const ref / string_view? Or is the interface auto generated?"
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 89,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "The interface is auto generated."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 379,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 110,
+                    "deletions": -5
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 170,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -1
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 887,
+            "sizeDeletions": 15
+        },
+        {
+            "number": 3,
+            "revision": "44d08aaebbc080fa19fa10deb278016568241964",
+            "parents": [
+                "b68cdc9199e714beb65541bbfb19396657ad648f"
+            ],
+            "ref": "refs/changes/67/50067/3",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1645069675,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Apologize for the late reply. I am back to focus on these changes. PTAL"
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 96,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "nit: parameter naming, ordering (installFilePath vs sourceFilePath vscertFilePath )"
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 96,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 407,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "For my understanding: how does this work? What does it watch?"
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 407,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This is not related to authority manager and not planed to be used in any Google's cases as well. \n\nSee https://github.com/openbmc/phosphor-certificate-manager/blob/master/certs_manager.cpp#L127; authority manager won't initialize the watch\n\nFor other types of managers, we monitor the install dir via inotify, if any new cert is added, we refresh currently installed certs and notify consumers."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 339,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "const ref would avoid an extra copy here"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 339,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 359,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "nit: weird to see a mix of iterative and functional programming. Prefer `for (const auto& cert : installedCerts)` for consistency with the prev blocks."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 359,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 1802,
+                    "reviewer": {
+                        "name": "Valentin",
+                        "email": "kunin@google.com",
+                        "username": "GTValentine"
+                    },
+                    "message": "Can you add a test for DeleteAll?"
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 1802,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 483,
+                    "deletions": -77
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 110,
+                    "deletions": -5
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 175,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -7
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1004,
+            "sizeDeletions": 98
+        },
+        {
+            "number": 4,
+            "revision": "36181568bb8eff9ea1d2673329826c81162c80f4",
+            "parents": [
+                "b68cdc9199e714beb65541bbfb19396657ad648f"
+            ],
+            "ref": "refs/changes/67/50067/4",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1645216174,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 512,
+                    "deletions": -77
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 111,
+                    "deletions": -6
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 180,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -7
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1039,
+            "sizeDeletions": 99
+        },
+        {
+            "number": 5,
+            "revision": "d35fb43a95cd3ec6d828bd2c44d0708795666388",
+            "parents": [
+                "b68cdc9199e714beb65541bbfb19396657ad648f"
+            ],
+            "ref": "refs/changes/67/50067/5",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1645216522,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 512,
+                    "deletions": -77
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 111,
+                    "deletions": -6
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 183,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -7
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1042,
+            "sizeDeletions": 99
+        },
+        {
+            "number": 6,
+            "revision": "c7387e75e6d09ddedee0761f72030c048e1e94e4",
+            "parents": [
+                "b68cdc9199e714beb65541bbfb19396657ad648f"
+            ],
+            "ref": "refs/changes/67/50067/6",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1645217022,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Dear maintainers, PTAL.\n\nOne of my colleagues have reviewed the change."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "I managed to review partially will complete the rest tomorrow"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "need sometime to correlate things"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Thanks! Changed and replied accordingly."
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 276,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "internal::CertificateInterface(bus, objPath.c_str(), true),"
+                },
+                {
+                    "file": "certificate.cpp",
+                    "line": 276,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. Yeah, thanks. These codes are written before we have the internal alias."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "is this required? i assume you want sstream"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 28,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "You are right, this is for my debug print. Removed."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "all these are already there in the header file, do we need to include them again?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "nope. After using the internal alias, we are good here."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 43,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "same as above"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 43,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 80,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "not sure std::string_view is good here, auto would have let the compiler pick the best one."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 80,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "string_view gives us size. It also works well with string.find() without copying the actual buffer.\n\nI tried auto, which doesn't work.\n\n```\n...\npem.find(beginCertificate, begin); // this line compiles with auto \n...\nend += endCertificate.size(); // while this line doesn't\n```"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 80,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "thanks for th explanation, now it makes sense."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "x509list may be certsList? or certificatesList\n\nthis is no way related to x509, my assumption?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 115,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "didn;t understand what is this for? why is begin set again?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 115,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "added a comment explaining the logic."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "block?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 123,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "changed to identifier."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "as this message is displayed to the user should it be more generic? \n\"Install all not supported for authority certificates\""
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 308,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "this check can go to line 290 that way we need not execute logic from 292 to 301"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 308,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 314,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "this can go after line 297 that way we need not execute code from 299 to 301 in failure"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 314,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 392,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "is it remove or removeall"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 392,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "It is remove. It is a single file. Individual certs will be handled by `installedCerts.clear()`.\n\nIdeally we don't have other files in the directory, other than a single authorities list file, a serials of split single certs and their file aliases."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 931,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "this List name is confusing, it is a path can;t we use some other name for the variable"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 931,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. changed to authoritiesListFilePath"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 932,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "is this filename or path name?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 932,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "this is filename, like \"a.pem\"."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 942,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "is this to delete files that are copied from older releases? is it a file we are deleting or path? we could use fs::remove for file?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 942,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "we want also remove directories if any. But ideally we don't have other files in the directory, other than a single authorities list file, a serials of split single certs and their file aliases.\n\nI bet internally remove_all checks if the given |path| is a file. So it should be cheap to call remove_all in general."
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 207,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "why this became virtual? I guess we do not have any derived classes from certs_manager?"
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "line": 207,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This is for unit test. Valentine found a bug that I actually forgot to invoke \"reloadOrReset\" in InstallAll.\n\nAs the commit message states, \"Added ability to unit test service reload as well.\"\n\nAre you worried about https://wiki.sei.cmu.edu/confluence/display/cplusplus/OOP50-CPP.+Do+not+invoke+virtual+functions+from+constructors+or+destructors? The only data shared in \"reloadOrReset\" is the bus connection, and it is initialized in base class. I believe we are safe."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 512,
+                    "deletions": -77
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 111,
+                    "deletions": -6
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 184,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -7
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1043,
+            "sizeDeletions": 99
+        },
+        {
+            "number": 7,
+            "revision": "d5b4e570e935876c5e31749e06614318028f8209",
+            "parents": [
+                "b68cdc9199e714beb65541bbfb19396657ad648f"
+            ],
+            "ref": "refs/changes/67/50067/7",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1645576160,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "1) Please test restoring of certificates by creating few and restarting the serivce and ensure certificates are loaded back\n\n2) Code getting complicated, it started with small server and client certificate install and is bloating, may be time to split into multiple managers probably.\n\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "i see restore path is tested by unit test, please ignore the comment"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "For 2), yes, I plan to do two clean ups in the future,\n\n1. get a Manager interface and all types of Manager are just different derived classes; this way we don't need all those branches around Manager types.\n2. add a file util library.\n\nI am working on introducing another type of Manager: Certificate Revocation List (CRL). So the cleanup 1 becomes more necessary. Will add you on the design review of CRL."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "nice one, forgot that first condition \"begin = pem.find(beginCertificate, begin)\" is executed only once."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 114,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 332,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "why temppath and temp objects, is it to ensure that upon failure we do not install partial certificates?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 332,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Yes. That's part of the design. If the last cert fails, we won't the previous ones. Rollback is hard so we use this temppath method"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 944,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "is testing for restoring of certificates done?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 944,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "saw test case and looks good."
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 944,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "thanks"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 970,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "if we are returning from line 943 this code will never execute, should we delete?"
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "line": 970,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "No, we need them for the normal authority recovery (single file based).\n\nIf you look at line 930, we have a strict check \"fs::exists(authoritiesListFilePath)\"."
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": ":)"
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 262,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Ack. :)"
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 281,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "good test, instead of bypassing the method we are mocking and ensuring that it is called?"
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 281,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Yeah, since there's not a very good way to test systemd method calls, instead we just ensure the reload function was called."
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "are we checking here that reloadOrReset is called with this service name? for my understanding"
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "line": 289,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Yes, Eq is a matcher, it ensures we reload the correct service.\n\nIf you check this string value to something else, the unit test will fail."
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "stringstream not used in the newly added code"
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. Good catch."
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "line": 242,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "extra space"
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "line": 242,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. It's actually a bug, we should use semicolon instead of comma at line 241. Good catch!"
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "line": 243,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "this check can go to line 232 that way we need not create cert pointer"
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "line": 243,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "do not see vector added in this file"
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. Good catch."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 512,
+                    "deletions": -77
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": -6
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 183,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -7
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1038,
+            "sizeDeletions": 99
+        },
+        {
+            "number": 8,
+            "revision": "c7c7f355d14aad3a87c739450a881d448bba35a2",
+            "parents": [
+                "b68cdc9199e714beb65541bbfb19396657ad648f"
+            ],
+            "ref": "refs/changes/67/50067/8",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1645681867,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "sorry for the delay, the code was there long time for review."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Friendly ping, can this be merged now?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Friendly ping for +2, it has been two weeks without additional comments :)"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Devender,\n\nWhat is this waiting for?  I'm assuming it can merge?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "MARRI DEVENDER RAO",
+                        "email": "devenrao@in.ibm.com",
+                        "username": "devenrao"
+                    },
+                    "message": "please socre i need another +1 or will check with jayanth"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Ed is not directly involved in the implementation. He +1ed the design https://gerrit.openbmc-project.xyz/c/openbmc/docs/+/49317.\n\nValentin has reviewed this change in details and +1ed it. He represents the team which is the consumer of this feature.\n\nCould you help check with jayanth?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Friendly ping"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. I will wait for a day to see if there are any more comments"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Waited for a work day and no comments. Will +2 and submit. Feel free to reach out to me if anyone has any comment. "
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 512,
+                    "deletions": -77
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": -6
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 183,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -7
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1036,
+            "sizeDeletions": 99
+        },
+        {
+            "number": 9,
+            "revision": "6ec13c8f759962d29c0ac3a69b64de705116065d",
+            "parents": [
+                "e869bb63df5f492a98b49786f78e584fd121e30f"
+            ],
+            "ref": "refs/changes/67/50067/9",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648137427,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "config.h.in",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "certificate.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -9
+                },
+                {
+                    "file": "test/certs_manager_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 512,
+                    "deletions": -77
+                },
+                {
+                    "file": "certificate.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 107,
+                    "deletions": -6
+                },
+                {
+                    "file": "certs_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 183,
+                    "deletions": 0
+                },
+                {
+                    "file": "x509_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "certs_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -7
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 1036,
+            "sizeDeletions": 99
+        }
+    ]
+}

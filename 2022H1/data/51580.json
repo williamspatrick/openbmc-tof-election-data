@@ -1,0 +1,1471 @@
+{
+    "project": "openbmc/entity-manager",
+    "branch": "master",
+    "id": "I215bb2f6da0e1b23e5f52727c749993452c031e9",
+    "number": 51580,
+    "subject": "fru-device: use FRUReader API to simplify FRU parsing I/O",
+    "owner": {
+        "name": "Zev Weiss",
+        "email": "zev@bewilderbeest.net",
+        "username": "zevweiss"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/entity-manager/+/51580",
+    "commitMessage": "fru-device: use FRUReader API to simplify FRU parsing I/O\n\nFRUReader::read() abstracts away SMBus block-size limits, which allows\nus to replace the loop at the end of readFRUContents() with a single\nreader.read() call.\n\nFRUReader also (due its caching) eliminates the need to share I/O\nbuffers between the IPMI and Tyan parsers.  We can thus restructure the\nparsing code to try each of them separately in turn, reusing the same\nFRUReader to avoid duplicating I/O.  This eliminates the findFRUHeader()\nfunction (each parser just looks for a header where it expects it);\ntests are updated accordingly to exercise readFRUContents() instead.\n\ntestFRUData was generated via https://github.com/ipmitool/frugen using\nthe '--ascii' flag and the following JSON:\n\n    {\n        \"chassis\": {\n            \"type\": 17,\n            \"pn\": \"OBMC_TEST_CHASSIS\",\n            \"serial\": \"XYZ123\"\n        },\n        \"board\": {\n            \"mfg\": \"OpenBMC Project\",\n            \"pname\": \"OBMC_TEST_BOARD\",\n            \"serial\": \"ABC012\",\n            \"pn\": \"BOARD_PARTNUM\"\n        },\n        \"product\": {\n            \"lang\": 1,\n            \"mfg\": \"OpenBMC Project\",\n            \"pname\": \"OBMC_TEST_PRODUCT\",\n            \"serial\": \"9999\",\n        }\n    }\n\nTested: on an ASRock Rack romed8hm3, fru-device successfully recognizes\nand parses the baseboard FRU EEPROM as it did prior to this patch.\n\nSigned-off-by: Zev Weiss <zev@bewilderbeest.net>\nChange-Id: I215bb2f6da0e1b23e5f52727c749993452c031e9\n",
+    "createdOn": 1645835447,
+    "lastUpdated": 1654717201,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1645835447,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1645835476,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645835476,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645835518,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/38091/ : FAILURE"
+        },
+        {
+            "timestamp": 1645835652,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1645835661,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645835661,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645835940,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38092/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645837145,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1645837156,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645837156,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645837435,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38093/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645837683,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1645837699,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645837699,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645837990,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38095/ : SUCCESS"
+        },
+        {
+            "timestamp": 1646056810,
+            "reviewer": {
+                "name": "Oskar Senft",
+                "email": "osk@google.com",
+                "username": "osenft"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646057035,
+            "reviewer": {
+                "name": "Oskar Senft",
+                "email": "osk@google.com",
+                "username": "osenft"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646093709,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646096896,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646107712,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1646107734,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1646107734,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1646108015,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38209/ : SUCCESS"
+        },
+        {
+            "timestamp": 1646108684,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1646147210,
+            "reviewer": {
+                "name": "Oskar Senft",
+                "email": "osk@google.com",
+                "username": "osenft"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1646170331,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1646213054,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1646213068,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1646213068,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1646213350,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/38326/ : SUCCESS"
+        },
+        {
+            "timestamp": 1646231907,
+            "reviewer": {
+                "name": "Oskar Senft",
+                "email": "osk@google.com",
+                "username": "osenft"
+            },
+            "message": "Patch Set 6: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647487095,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647622874,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1647622895,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647644724,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1647916628,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1647916646,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647916647,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647916980,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39391/ : SUCCESS"
+        },
+        {
+            "timestamp": 1647930442,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1647991409,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1647991427,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647991428,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647991487,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39459/ : FAILURE"
+        },
+        {
+            "timestamp": 1647992180,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 9: Patch Set 8 was rebased."
+        },
+        {
+            "timestamp": 1647992199,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647992199,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647992751,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39464/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648615366,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1648615382,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648615382,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648615683,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40083/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648621153,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 10:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648623916,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 11: Commit message was updated."
+        },
+        {
+            "timestamp": 1651112404,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 12: Patch Set 11 was rebased."
+        },
+        {
+            "timestamp": 1651112420,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651112420,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651112706,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/42145/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654209402,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1654209447,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654209447,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654209736,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44309/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654212044,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654717201,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13: Code-Review+1"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "a3b1d9a0fd5fdd9112faceba5ca9e1200649ea5c",
+            "parents": [
+                "ee4ab1789857c06309456fe2335f0a297ea182f1"
+            ],
+            "ref": "refs/changes/80/51580/1",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1645835447,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -17
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 57,
+                    "deletions": -46
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 89,
+                    "deletions": -94
+                }
+            ],
+            "sizeInsertions": 176,
+            "sizeDeletions": 157
+        },
+        {
+            "number": 2,
+            "revision": "83b383ed613e698679c5981e8087713ea7ea2f2e",
+            "parents": [
+                "ee4ab1789857c06309456fe2335f0a297ea182f1"
+            ],
+            "ref": "refs/changes/80/51580/2",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1645835652,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 24,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -17
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 57,
+                    "deletions": -46
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -94
+                }
+            ],
+            "sizeInsertions": 177,
+            "sizeDeletions": 157
+        },
+        {
+            "number": 3,
+            "revision": "93d123034deb3a769f6f9a5bcc32b21bcf31e67c",
+            "parents": [
+                "ee4ab1789857c06309456fe2335f0a297ea182f1"
+            ],
+            "ref": "refs/changes/80/51580/3",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1645837145,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -17
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 58,
+                    "deletions": -46
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -94
+                }
+            ],
+            "sizeInsertions": 201,
+            "sizeDeletions": 157
+        },
+        {
+            "number": 4,
+            "revision": "cb76fe004a3427e78e09ea98d9d5ebc8fa48eaca",
+            "parents": [
+                "59b101378b4f53d0d24cfe001e4c7c50d635c28b"
+            ],
+            "ref": "refs/changes/80/51580/4",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1645837683,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Oskar Senft",
+                        "email": "osk@google.com",
+                        "username": "osenft"
+                    },
+                    "message": "With the current implementation, this method has two different semantics depending on whether noCache is set. As I understand, if noCache==true the \"read\" method tries to get all the requested data, even if it requires multiple calls to readFunc. With noCache==false, the \"read\" method will return whatever readFunc returns, even if it's fewer bytes than was requested.\n\nI can't think of an easy way to fix this - do you?\n\nIf nothing else, maybe just add a comment to this method / the class to make clear what the semantics of \"read\" are."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Oskar Senft",
+                        "email": "osk@google.com",
+                        "username": "osenft"
+                    },
+                    "message": "One idea: Maybe split the FruReader class into a base class that performs no caching and does not \"guarantee\" to read all requested bytes. And a child class \"CachedFruReader\" that does perform caching and does try to read all the bytes. With that, you could require the \"CachedFruReader\" to be used in the call to readIPMIFRUContents?"
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "> With the current implementation, this method has two different semantics depending on whether noCache is set. As I understand, if noCache==true the \"read\" method tries to get all the requested data, even if it requires multiple calls to readFunc. With noCache==false, the \"read\" method will return whatever readFunc returns, even if it's fewer bytes than was requested.\n\nHmm, that's a good observation -- thanks for pointing it out.\n\nIn case it's not obvious (maybe I should've stated it explicitly in a comment), I only added the `noCache` flag in this commit as an optimization for the Tyan path to avoid double-caching with a FRUReader stacked on top of another FRUReader -- I'm pretty sure it should work fine to just accept the double-caching; it still shouldn't lead to any duplicated I/O, just a little more CPU time and (transient) memory consumption, and just seemed kind of inelegant.  That said, the `noCache` flag itself isn't exactly a thing of beauty either...your suggestion of separate classes for the cached and uncached versions would certainly be cleaner, and I sort of considered that while I was writing it, but decided it seemed a bit elaborate for my needs at the time -- though now I'm reconsidering (it's a small enough class, anyway).\n\nGranted, it would still have the semantic mismatch between their respective `::read()` methods, but at least that would be distinguished by them being separate types, rather than just by the value of a runtime flag parameter.  And as long as the uncached version is only used as a layer stacked over a caching one, the stronger `::read()` semantics of the underlying one would sort of bubble up through it anyway.\n\nIt would also lead to the base class only really being useful as a wrapper around the derived class, which seems like a slightly funny arrangement to end up with, but [shrug]?  (I suppose we could also arrange the inheritance the other way around, which would avoid that particular weirdness at the cost of being weird in other ways...)\n\nAnyway, that's probably enough rambling/thinking-out-loud for the moment here; I'll draft up a new version with something like the above."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "> you could require the \"CachedFruReader\" to be used in the call to readIPMIFRUContents?\n\n...though I realize now it might be a little more complex than this.  The reader the Tyan parser wraps around the default (caching) one is uncached, so readIPMIFRUContents() needs to be able to accept that, not just a caching one.  But at the same time it also needs the stronger guarantees of the caching one's `::read()` function in order to be able to snarf up the whole FRU region at the end of the function in a single `.read()` call.  Lemme see if I can cook something up that achieves both..."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 92,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Okay, now addressed in the patchset 5 by way of an abstract base FRUReader class basically defining just the `::read()` interface, and CachingFRUReader and OffsetFRUReader as separate derived classes, with readIPMIFRUContents() taking a FRUReader.\n\nOffsetFRUReader is a little more constrained, but is of course sufficient for the Tyan format (and another I think Lei Yu mentioned having out-of-tree patches for on Discord), and is also still guaranteed to provide the stronger `::read()` semantics by way of (a) requiring an existing FRUReader to construct it, and (b) CachingFRUReader being the only other concrete FRUReader class."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -17
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -53
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -100
+                }
+            ],
+            "sizeInsertions": 202,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 5,
+            "revision": "83fb224c7fb229777a2963f93f2985df126ef5ac",
+            "parents": [
+                "a6cb47510d8edec5598a1b7e5c90fe04ae783714"
+            ],
+            "ref": "refs/changes/80/51580/5",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1646107712,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/FruUtils.cpp",
+                    "line": 666,
+                    "reviewer": {
+                        "name": "Oskar Senft",
+                        "email": "osk@google.com",
+                        "username": "osenft"
+                    },
+                    "message": "Is it worth logging this? I guess this is somewhat unexpected, isn't it?"
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "line": 666,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Perhaps in the case where it fails outright (returns negative), though not otherwise IMO.  I'll tweak it to distinguish that case."
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "line": 345,
+                    "reviewer": {
+                        "name": "Oskar Senft",
+                        "email": "osk@google.com",
+                        "username": "osenft"
+                    },
+                    "message": "Should we maybe actually verify that the return value is what we expect? Same in TyanValidData. I guess the test should have done that originally ..."
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "line": 345,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "line": 348,
+                    "reviewer": {
+                        "name": "Oskar Senft",
+                        "email": "osk@google.com",
+                        "username": "osenft"
+                    },
+                    "message": "Typo"
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "line": 348,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -15
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -53
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 82,
+                    "deletions": -100
+                }
+            ],
+            "sizeInsertions": 206,
+            "sizeDeletions": 168
+        },
+        {
+            "number": 6,
+            "revision": "d5d720bbea13f754b12ee023ff26b944b80607e4",
+            "parents": [
+                "dd70df9265dec74a204635851b401880e18dac9a"
+            ],
+            "ref": "refs/changes/80/51580/6",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1646213054,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Oskar Senft",
+                        "email": "osk@google.com",
+                        "username": "osenft"
+                    },
+                    "message": "LGTM, thank you!"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ping...Ed, any thoughts on this?  (And the preceding https://gerrit.openbmc-project.xyz/c/openbmc/entity-manager/+/51548)"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Replied to both."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 121,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This seems like overkill to have its own virtualized class for.  Could we just add this to fruReader, and in the common case, offset would be zero.  That seems way simpler to me."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 121,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ack -- this is perhaps a bit over-generalized (in nebulous anticipation of other FRUReader implementations that may very well never need to exist)."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 121,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Re-did this in a separate commit of its own (https://gerrit.openbmc-project.xyz/c/openbmc/entity-manager/+/52214)."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 125,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "this seems like an odd type choice for an offset.  I would've expected size_t."
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "line": 125,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "I think when I wrote it I was thinking in terms of the signedness of file offsets (loff_t and the like) for seeking and such, and the size of the type mirroring the uint16_t offset parameter of the existing ReadBlockFunc, but in this case I'm having a hard time imagining a need for a negative offset, so yeah, size_t would probably make more sense."
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "line": 803,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't use both the non-template version of to_array AND auto in the same statement.  As the maintainer, I'm left wondering \"what's the type of this object?\" which this code doesn't really answer."
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "line": 803,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -15
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -53
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 86,
+                    "deletions": -100
+                }
+            ],
+            "sizeInsertions": 211,
+            "sizeDeletions": 168
+        },
+        {
+            "number": 7,
+            "revision": "4cca32e889a3ad3f590a7c24e132e46a29babb57",
+            "parents": [
+                "e89c9814677d5744555199cce75be3fa9e8289df"
+            ],
+            "ref": "refs/changes/80/51580/7",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1647916628,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -15
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -53
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 87,
+                    "deletions": -100
+                }
+            ],
+            "sizeInsertions": 196,
+            "sizeDeletions": 168
+        },
+        {
+            "number": 8,
+            "revision": "785ae3064b424211be86142cd6224efd1d4888ed",
+            "parents": [
+                "93dd53db1355ea8115757b683fbd715ac7e5cd24"
+            ],
+            "ref": "refs/changes/80/51580/8",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1647991409,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -15
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -53
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -96
+                }
+            ],
+            "sizeInsertions": 194,
+            "sizeDeletions": 164
+        },
+        {
+            "number": 9,
+            "revision": "5863ed28b3811da7ba8b91afba82034b70090f9a",
+            "parents": [
+                "f8b7385badc40c1242314d84232a7172aa7e8439"
+            ],
+            "ref": "refs/changes/80/51580/9",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1647992180,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -15
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 60,
+                    "deletions": -53
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 85,
+                    "deletions": -96
+                }
+            ],
+            "sizeInsertions": 194,
+            "sizeDeletions": 164
+        },
+        {
+            "number": 10,
+            "revision": "de06252f86bddf77595489b784e016d8045feb3f",
+            "parents": [
+                "e55906303e47ffba6a4fe919633efc6b0fb05d23"
+            ],
+            "ref": "refs/changes/80/51580/10",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1648615366,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Rebased to resolve merge conflicts, and now clang-formatted as well.  (Likewise with the preceding patches in the series.)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -14
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 65,
+                    "deletions": -58
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -98
+                }
+            ],
+            "sizeInsertions": 202,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 11,
+            "revision": "a0253451e0d7172710ba4e5efc2a0748fab1813f",
+            "parents": [
+                "e55906303e47ffba6a4fe919633efc6b0fb05d23"
+            ],
+            "ref": "refs/changes/80/51580/11",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1648623916,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -14
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 65,
+                    "deletions": -58
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -98
+                }
+            ],
+            "sizeInsertions": 202,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 12,
+            "revision": "a2b5d481e98beae8cefc31c61ab4c438c499126e",
+            "parents": [
+                "80a77c5dae3c94f32cb34301722f3f951eede02b"
+            ],
+            "ref": "refs/changes/80/51580/12",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1651112404,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FruUtils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -14
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 65,
+                    "deletions": -58
+                },
+                {
+                    "file": "src/FruUtils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -98
+                }
+            ],
+            "sizeInsertions": 202,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 13,
+            "revision": "6c5ddec745bf2eb8cad7e54392e35ff1abab7b91",
+            "parents": [
+                "e3600e58539f2668c73f207c286c23c8a3534265"
+            ],
+            "ref": "refs/changes/80/51580/13",
+            "uploader": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "createdOn": 1654209402,
+            "author": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Ed, pinging again on this?  (And the preceding two patches in the series.)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 47,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/fru_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 88,
+                    "deletions": -98
+                },
+                {
+                    "file": "include/fru_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -14
+                },
+                {
+                    "file": "test/test_fru-utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 65,
+                    "deletions": -58
+                }
+            ],
+            "sizeInsertions": 202,
+            "sizeDeletions": 170
+        }
+    ]
+}

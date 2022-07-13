@@ -1,0 +1,3286 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I80b5444e61263f79e89b10abd556d59af6f17c8c",
+    "number": 53175,
+    "subject": "LogService: Add support for Fault Log",
+    "owner": {
+        "name": "Claire Weinan",
+        "email": "cweinan@google.com",
+        "username": "daylight22"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/53175",
+    "commitMessage": "LogService: Add support for Fault Log\n\nThe corresponding log service is at\n/redfish/v1/Managers/bmc/LogServices/FaultLog\n\nFault Log is a new type of dump for aggregating fault data. For details\nplease see\nhttps://github.com/openbmc/docs/blob/master/designs/hw-fault-monitor.md\n\nWe're currently assuming we'll have a single Fault Log instance per\nBMC, which can support multiple host processors.\n\nTested:\nFirst enabled redfish-dump-log option\n\nFault Log showed up in the expected LogService collection:\n./curl_bin -k -H \"X-Auth-Token: $token\" -X GET http://${bmc}/redfish/v1/Managers/bmc/LogServices/\n{\n  \"@odata.id\": \"/redfish/v1/Managers/bmc/LogServices\",\n  \"@odata.type\": \"#LogServiceCollection.LogServiceCollection\",\n  \"Description\": \"Collection of LogServices for this Manager\",\n  \"Members\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/LogServices/Journal\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/LogServices/Dump\"\n    },\n    {\n      \"@odata.id\": \"/redfish/v1/Managers/bmc/LogServices/FaultLog\"\n    }\n  ],\n  \"Members@odata.count\": 3,\n  \"Name\": \"Open BMC Log Services Collection\"\n}\n\nFaultLog dump entries are created when a fault is detected by a BMC\ndaemon -- we don't support FaultLog dump entry creation requested by\na Redfish client via the CollectDiagnosticData LogService action.\nFault Log CollectDiagnosticData returned Not Found (HTTP error\n404) as expected:\n$curl -k -H \"X-Auth-Token: $token\" -X POST http://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Actions/LogService.CollectDiagnosticData -d '{\"DiagnosticDataType\":\"Manager\", \"OEMDiagnosticDataType\":\"FaultLog\"}'\nNot Found\n\nGenerated Fault Log dump entries via BMC console:\nbusctl call xyz.openbmc_project.Dump.Manager  /xyz/openbmc_project/dump/faultlog xyz.openbmc_project.Dump.Create CreateDump a{sv} 0\n\nRetrieved Fault Log dump entries (including with query parameters top and skip):\ncurl -k -H \"X-Auth-Token: $token\" -X GET\nhttp://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries/1\ncurl -k -H \"X-Auth-Token: $token\" -X GET\nhttp://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries\ncurl -k -H \"X-Auth-Token: $token\" -X GET\nhttp://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries?\\$skip=2\ncurl -k -H \"X-Auth-Token: $token\" -X GET http://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries?\\$top=3\n\nDeleted Fault Log dump entry:\ncurl -k -H \"X-Auth-Token: $token\" -X DELETE http://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries/1\n\nNote: The following command to clear the Fault Log will not work until\nFault Log entries have the required D-Bus interface implemented\n(xyz.openbmc_project.Dump.Entry.FaultLog):\ncurl -k -H \"X-Auth-Token: $token\" -X POST http://${bmc}/redfish/v1/Managers/bmc/LogServices/FaultLog/Actions/LogService.ClearLog\n\nRedfish Service Validator succeeded on the following URIs:\n/redfish/v1/Managers/bmc/LogServices\n/redfish/v1/Managers/bmc/LogServices/FaultLog\n/redfish/v1/Managers/bmc/LogServices/FaultLog/Entries\n\nAlso did cursory testing of BMC Dump (/redfish/v1/Managers/bmc/LogServices/Dump/)\nand System Dump (/redfish/v1/Systems/system/LogServices/Dump/) for code\npaths that were refactored.\n\nSigned-off-by: Claire Weinan <cweinan@google.com>\nChange-Id: I80b5444e61263f79e89b10abd556d59af6f17c8c\n",
+    "createdOn": 1650504464,
+    "lastUpdated": 1656086808,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1650504464,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1650504480,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650504481,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650504654,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1650505067,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41762/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651090278,
+            "reviewer": {
+                "name": "Brandon Kim",
+                "email": "brandonkim@google.com",
+                "username": "brandonkimbk"
+            },
+            "message": "Patch Set 2: Code-Review+1\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1651474372,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1651474679,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1651474698,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651474698,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651475276,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/42390/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651507328,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1652401695,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1653533355,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 4: Patch Set 3 was rebased."
+        },
+        {
+            "timestamp": 1653533419,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1653533419,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1653534004,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/43874/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654036314,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 5: Patch Set 4 was rebased."
+        },
+        {
+            "timestamp": 1654036362,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654036362,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654037063,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44121/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654045242,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1654046770,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1654046847,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654046848,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654047539,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44126/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654049847,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1654049918,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654049918,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654050605,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44132/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654051180,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1654051218,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654051218,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654051431,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 8:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1654051628,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 8:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1654051953,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44133/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654241476,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1654241527,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654241527,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654241683,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44345/ : FAILURE"
+        },
+        {
+            "timestamp": 1654241880,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1654241937,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654241938,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654242755,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44346/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654243874,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1654243902,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654243902,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654244598,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44347/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654329692,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1654329759,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654329760,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654330453,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44410/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654377600,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1654377637,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654377638,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654378330,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44418/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654378902,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1654378927,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654378927,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654379026,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44419/ : FAILURE"
+        },
+        {
+            "timestamp": 1654380476,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44420/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654539729,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654539908,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654540676,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 14:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654541351,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 14:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654541513,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 14:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654724775,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1654724823,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654724828,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654725333,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44623/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654726863,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 15:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654740225,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1654740303,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654740304,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654740827,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44638/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654759535,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 17."
+        },
+        {
+            "timestamp": 1654759559,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654759559,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654760066,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44664/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654760779,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1654760839,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654760840,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654761349,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44665/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654761604,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 18:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654847034,
+            "reviewer": {
+                "name": "Jayanth Othayoth",
+                "email": "ojayanth@gmail.com",
+                "username": "ojayanth"
+            },
+            "message": "Patch Set 18: Code-Review+1"
+        },
+        {
+            "timestamp": 1655188983,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1655189018,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655189023,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655189196,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655189522,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44977/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655272082,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 20."
+        },
+        {
+            "timestamp": 1655272113,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655272113,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655272630,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45067/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655275223,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 21."
+        },
+        {
+            "timestamp": 1655275243,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655275243,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655275758,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45068/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655276458,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 21:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655316331,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 22: Patch Set 21 was rebased."
+        },
+        {
+            "timestamp": 1655316375,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655316375,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655317988,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45087/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655344051,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 23: Patch Set 22 was rebased."
+        },
+        {
+            "timestamp": 1655344082,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655344082,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655344594,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45139/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655509672,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 24: Patch Set 23 was rebased."
+        },
+        {
+            "timestamp": 1655509709,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 24: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655509709,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 24: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655510222,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 24: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45278/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655580931,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 24:\n\n(19 comments)"
+        },
+        {
+            "timestamp": 1655825657,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 24:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655947339,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 25: Patch Set 24 was rebased"
+        },
+        {
+            "timestamp": 1655947385,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 25: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655947385,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 25: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655948017,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 25: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45682/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655952958,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 26."
+        },
+        {
+            "timestamp": 1655952989,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 26: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655952989,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 26: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655953302,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 26: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/45685/ : FAILURE"
+        },
+        {
+            "timestamp": 1655958715,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 27."
+        },
+        {
+            "timestamp": 1655958772,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 27: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655958772,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 27: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655959289,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 27: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45688/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655959575,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 27:\n\n(19 comments)"
+        },
+        {
+            "timestamp": 1656005369,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 27:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1656014855,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Uploaded patch set 28."
+        },
+        {
+            "timestamp": 1656014914,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 28: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1656014915,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 28: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1656015428,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 28: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45749/ : SUCCESS"
+        },
+        {
+            "timestamp": 1656016144,
+            "reviewer": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "message": "Patch Set 28:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1656086802,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 28: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1656086808,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as fdd26906ef8884977df85c915444206c8a183639"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3e2b69913cefb01b43147cf4971d9d1ca6452ea7",
+            "parents": [
+                "eb1c47d3d98a186164ffb90214037c6062da7937"
+            ],
+            "ref": "refs/changes/75/53175/1",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1650504464,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 176,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 222,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 2,
+            "revision": "897700b006a7f17718cd55b53ef022141f177a85",
+            "parents": [
+                "eb1c47d3d98a186164ffb90214037c6062da7937"
+            ],
+            "ref": "refs/changes/75/53175/2",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1650504654,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Brandon Kim",
+                        "email": "brandonkim@google.com",
+                        "username": "brandonkimbk"
+                    },
+                    "message": "Looks good to me"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Thanks for reviewing!"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 528,
+                    "reviewer": {
+                        "name": "Brandon Kim",
+                        "email": "brandonkim@google.com",
+                        "username": "brandonkimbk"
+                    },
+                    "message": "very minor not: I guess this and in the other file, this change can technically be a separate CL I believe this is an independent change."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 528,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "It's subtle but the reason this change is in this patchset is that fault log doesn't have an AdditionalDataURI in this current implementation, and AdditionalDataSizeBytes is supposed to describe the size of the data referenced by AdditionalDataURI, so I think it would be strange to have AdditionalDataSizeBytes without AdditionalDataURI. (Fault log AdditionalDataURI will be added in the future, but just not in this current version of the code.) While I could still break out the change, this changeset would then depend on the new changeset -- so I'd prefer not to."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 528,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "That's fine, I've given suggestions on how to proceed in the other comment.  short version, just put AdditionalDataSizeBytes within the appropriate branches."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 528,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 536,
+                    "reviewer": {
+                        "name": "Brandon Kim",
+                        "email": "brandonkim@google.com",
+                        "username": "brandonkimbk"
+                    },
+                    "message": "Should this also be a different CL? seems like a cleanup unrelated to faultlog"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 536,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Sure, opened review at https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/53355. The original motivation was that we'd like fault log entries to be sorted chronologically (by the monotonically increasing Id) when outputting the entries collection, but it seems to me that sorting would probably be nice for all dump types."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 176,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 222,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 3,
+            "revision": "593a36efe904090709031787d5142f2f0d0905ed",
+            "parents": [
+                "eb1c47d3d98a186164ffb90214037c6062da7937"
+            ],
+            "ref": "refs/changes/75/53175/3",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1651474679,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 696,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not following why this is here.  Don't we need a branch for dumpType = \"FaultLog\"?\n\nAt a minimum, we shouldn't be looking this up after immediately setting it just put the AdditionalDataSizeBytes inside each branch above."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 696,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Will change to set AdditionalDataSizeBytes inside each branch.\n\nYes in the future there will be a branch for dumpType=\"FaultLog\", just not in this initial commit as it would be empty for now.\n\nI just wanted to avoid outputting AdditionalDataSizeBytes (previously in line 665) for Fault Log without a corresponding AdditionalDataURI (which we aren't ready to populate for Fault Log yet)."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 696,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 865,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is the wrong error code for \"no-op\".  Method not supported would be the http code we should use, not success.\n\nAlso, shouldn't we be doing this on line 800?"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 865,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Will change to HTTP 405 (method_not_allowed).\n\nAnd I'll move the response creation to line 800 and remove the action parameter checking for FaultLog in line 842."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 865,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2138,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This needs a dbus check to see if the FaultLog interfaces exist, like we do elsewhere.  I realize that the existing dump did it with a compile option, but we can't reuse the same option flag, given that there will be systems with dump support and not faultlog support, and vice version.  current best practice is to rely on mapper lookups for resources on dbus, so that's what we should do here.  take a look at the getCollectionMembers() method for examples of how we do the mapper lookup and create collections.\n\nIdeally at the same time you would clean up the \"Dump\" endpoint to also use mapper lookups, but obviously that's not required."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2138,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Working on it for the next patch"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2138,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2550,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't use lambdas for new code.  use an explicit method with std::Bind_front.\n\nPlease do that for all your handlers."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2550,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2550,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "I tried to use std::bind_front in Patchset 13 and it built okay here in the bmcweb repo, but when I tried building it as part of ___ (adding changes using \"devtool modify bmcweb\") the build failed. Do you have a suggestion on how to fix Patchset 13, or is it ok to use a lambda as shown in Patchset 14? (Compare Patchset 13 <-> 14)."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2550,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm a little confused at what you're saying.  Patchset 14 did pass CI (there was one failure because the worker ran out of hard drive space, but that had nothing to do with your patch).\n\nI'm also not sure what this has to do with devtool  Can you elaborate?"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2550,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Oops, the incomplete comment got posted. Here's what I meant to say:\n\n\"I tried to use std::bind_front in Patchset 13 and it built okay here in the bmcweb repo, but when I tried building it as part of obmc-phosphor-image via \"bitbake bmcweb\" or \"bitbake obmc-phosphor-image\" (after adding the changes using \"devtool modify bmcweb\"), the build failed. Do you have a suggestion on how to fix Patchset 13, or is it ok to use a lambda as shown in Patchset 14? (Compare Patchset 13 <-> 14).\"\n\nSo basically even though Patchset 13 (using std::bind_front) passed CI here, I couldn't get it to build in the obmc-phosphor-image. I'll message you the build error log separately. Patchset 14 (using lambda) passed CI here and builds successfully in obmc-phosphor-image."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2550,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "From chat:\n\n---\nEd:\n\"you tried to use bind_front on an async_method_call?\nI probably wasn't clear enough in my message;  We shouldn't use lambdas in BMCWEB_ROUTE declarations.\nideally we shouldn't use them in async_metho_call either, but there's an incompatibility that we haven't been able to sort out.\nIe: https://github.com/boostorg/callable_traits/issues/192\"\n\nClaire:\nAhh okay. Please ignore Patchset 13 then and just look at Patchset 14 which uses a lambda as usual."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2674,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Most of the code in the block above looks copied from the other dump handlers.  Is there a way we can avoid copying the code here and have a more generic route?"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2674,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done, merged with the \"requestRoutesBMCDump\" functions"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2674,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Just realized that the current patchset's way of merging FaultLog handling with the \"requestRoutesBMCDump\" functions breaks /redfish/v1/Managers/bmc/LogServices/Journal.\n\nEssentially the problem is that the route\nBMCWEB_ROUTE(app, \"/redfish/v1/Managers/bmc/LogServices/<str>/\")\nwould match not only with dumps\n(\"/redfish/v1/Managers/bmc/LogServices/Dump\" and\n/redfish/v1/Managers/bmc/LogServices/FaultLog\")\nbut also with the journal (/redfish/v1/Managers/bmc/LogServices/Journal)\n\nWorking on another patchset."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2674,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Fixed. Went back to using separate routes for \"/redfish/v1/Managers/bmc/LogServices/Dump\" and \"/redfish/v1/Managers/bmc/LogServices/FaultLog\", but the underlying handler functions remain unified."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 170,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 216,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 4,
+            "revision": "e8a4a0cc5f51d9dd39247485e14f4405a1f11e60",
+            "parents": [
+                "ef00d7d42cc8f7d90957ab7ca1f678cd531c2cb4"
+            ],
+            "ref": "refs/changes/75/53175/4",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1653533355,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 170,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 216,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 5,
+            "revision": "186684afd687e2cc6d0f885d8d258df47f76f956",
+            "parents": [
+                "62c416fb0d2f62e09d7f60754ff359ac2389e749"
+            ],
+            "ref": "refs/changes/75/53175/5",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654036314,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 347,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This can be a separate change which can be merged soon."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 347,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Acknowledged, thanks."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 491,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "This seems can be a separate fix as well."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 491,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 659,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "ditto"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 659,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 170,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 216,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 6,
+            "revision": "3379c3957f426c0877b2175e76b2702dc685657a",
+            "parents": [
+                "ef00d7d42cc8f7d90957ab7ca1f678cd531c2cb4"
+            ],
+            "ref": "refs/changes/75/53175/6",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654046770,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 348,
+                    "deletions": -100
+                }
+            ],
+            "sizeInsertions": 394,
+            "sizeDeletions": 100
+        },
+        {
+            "number": 7,
+            "revision": "fdfc50e50aba22a8a12fb55e03f709ba9cd96491",
+            "parents": [
+                "ef00d7d42cc8f7d90957ab7ca1f678cd531c2cb4"
+            ],
+            "ref": "refs/changes/75/53175/7",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654049847,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 343,
+                    "deletions": -100
+                }
+            ],
+            "sizeInsertions": 389,
+            "sizeDeletions": 100
+        },
+        {
+            "number": 8,
+            "revision": "2c4bc9be77c08be714d6351e7b6bf56639f3d5de",
+            "parents": [
+                "ef00d7d42cc8f7d90957ab7ca1f678cd531c2cb4"
+            ],
+            "ref": "refs/changes/75/53175/8",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654051180,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 346,
+                    "deletions": -108
+                }
+            ],
+            "sizeInsertions": 392,
+            "sizeDeletions": 108
+        },
+        {
+            "number": 9,
+            "revision": "7d389fc34959335df6f53efd09c396b063194b47",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/9",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654241476,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 359,
+                    "deletions": -121
+                }
+            ],
+            "sizeInsertions": 405,
+            "sizeDeletions": 121
+        },
+        {
+            "number": 10,
+            "revision": "aa9656f83dc23d94e676a8f7b172e9499e85566f",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/10",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654241880,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 326,
+                    "deletions": -91
+                }
+            ],
+            "sizeInsertions": 372,
+            "sizeDeletions": 91
+        },
+        {
+            "number": 11,
+            "revision": "4fb44d04de920001e7cab39eacb0e3ba5f165498",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/11",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654243874,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 251,
+                    "deletions": -143
+                }
+            ],
+            "sizeInsertions": 291,
+            "sizeDeletions": 143
+        },
+        {
+            "number": 12,
+            "revision": "954289eed148bd0b12889bd8cd57cb9c589a6c75",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/12",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654329692,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 321,
+                    "deletions": -170
+                }
+            ],
+            "sizeInsertions": 396,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 13,
+            "revision": "1d31d633daa13e6241d71e5e28cc7c67117f2249",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/13",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654377600,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 320,
+                    "deletions": -170
+                }
+            ],
+            "sizeInsertions": 395,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 14,
+            "revision": "eada7cd0c09643a92206fa70f9dfe68262f39881",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/14",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654378902,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 321,
+                    "deletions": -170
+                }
+            ],
+            "sizeInsertions": 396,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 15,
+            "revision": "d0c0f8c889f0f98f7df9ee5bd71c3778dd01cdfc",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/15",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654724775,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 321,
+                    "deletions": -170
+                }
+            ],
+            "sizeInsertions": 396,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 16,
+            "revision": "5fe71899557347b2b48dbf793267d864fb11fd40",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/16",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654740225,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 371,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 452,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 17,
+            "revision": "8a52717dfdfa97c6258976ffcae3195b69185ace",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/17",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654759535,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 18,
+            "revision": "22b148ccfcc9115c6441a282770c2baf9a9e9978",
+            "parents": [
+                "f848367f45e16f715b1df8b07cc6747e2f4b5aba"
+            ],
+            "ref": "refs/changes/75/53175/18",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1654760779,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 19,
+            "revision": "05c35fbafe696f21c06f4831288f8444215191ef",
+            "parents": [
+                "c7a6d66054deb891a224aac5c4ae0e66ddeb6769"
+            ],
+            "ref": "refs/changes/75/53175/19",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655188983,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Patchset 19 is a rebase"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 20,
+            "revision": "26f6b21691bf7f3f4c7f4c2a2213af809726e5b2",
+            "parents": [
+                "c7a6d66054deb891a224aac5c4ae0e66ddeb6769"
+            ],
+            "ref": "refs/changes/75/53175/20",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655272082,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 21,
+            "revision": "604a1085515ed07d93e5c35290ad2baa05216cda",
+            "parents": [
+                "e56ed6b98104954444ba2ccb0681b1a174e24b00"
+            ],
+            "ref": "refs/changes/75/53175/21",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655275223,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Rebased and applied fix from https://gerrit.openbmc.org/c/openbmc/bmcweb/+/54591"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 436,
+            "sizeDeletions": 170
+        },
+        {
+            "number": 22,
+            "revision": "087745fd393814c175e0f76bb706a23b2395c0c6",
+            "parents": [
+                "03810a1136e63aaf05ef9d9a15a551050daf825a"
+            ],
+            "ref": "refs/changes/75/53175/22",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655316331,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 23,
+            "revision": "e20bda19da2454cadb86acff4d0122a73471965f",
+            "parents": [
+                "686b7093f35d22fc6435f2ac21a16879ac27b8c0"
+            ],
+            "ref": "refs/changes/75/53175/23",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655344051,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 24,
+            "revision": "19a821c20ad13122fae00ee368fce1fd94620147",
+            "parents": [
+                "e825cbc8f967e54dfd6d911ebbbc6b2bfc7bc543"
+            ],
+            "ref": "refs/changes/75/53175/24",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655509672,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Lots of pretty minor comments.  Ping me on discord if you need any help, then this should be good to go.\n\nAt some point, we need to discuss how to make this more generic, given that any number of log types might be produced, and we can't continue this trend of just hardcoding every possible log name."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "One more thing that will need addressed.  The project is currently working through multi-host support.  Is it expected that there will be one FaultLog instance for the whole platform?  Or one FaultLog instance per host processor?\n\nThat might change the URIs of this patch a little."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "We're currently leaning toward one FaultLog instance per BMC, which can support multiple host processors. (Do we assume 1 BMC per \"platform\"?)"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Lets get that noted in the commit message.  For the moment we don't assume only one \"bmc\" but in the context of your code, I think we're ok."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 358,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "In the future, please avoid renaming variables in the same patch in which you're changing behavior;  It makes things more difficult for the reviewer.  With that said, this seems straightforward, so I was able to work through it."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 358,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 359,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As we do elsewhere, Please structure this as:\n\nstd::string entriesPath = getDumpEntriesPath(dumpType);\nif (entriesPath.empty){\n  ...\n}"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 359,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 507,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Smae as above."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 507,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 726,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "If you want to return method not allowed, simply don't register the route for the POST handler for that URI.  The bmcweb core will then handle this error for you."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 726,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "I implemented your suggestion, but please note that it returns \"Not Found\" instead of \"Method Not Allowed\" -- which I think should be okay since it's consistent with what's returned for other LogServices that don't support the CollectDiagnosticData action.\n\nAlso I removed the CollectDiagnosticData action from being listed for the FaultLog LogService (/redfish/v1/Managers/bmc/LogServices/FaultLog), see getDumpEntryCollection().\n\nBy the way I kind of wanted to keep the comment (line 728-731) somewhere so readers won't wonder why support for create is \"missing\", compared to other dump types that have support. But I'm not sure where would be a good place to put the comment in the code so I just moved it to the commit message."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 726,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The behavior of the core is supposed to be:\n\nIf a route is present, but doesn't support that verb, it returns method_not_supported.  If the route is not matched, it returns not_found.\n\nConsidering that for fault log we don't register the URL at all, I think not_found is correct.\n\n\n> Also I removed the CollectDiagnosticData action from being listed for the FaultLog LogService (/redfish/v1/Managers/bmc/LogServices/FaultLog), see getDumpEntryCollection().\n\nGood.  I missed that in the first review.  Good catch.\n\n> I just moved it to the commit message.\n\nsounds reasonable."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 738,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Same as above, please just init the variable to the value, and do the check in the branch."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 738,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1991,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, the naming convention for this would be handleManagersBmcLogServiceCollectionGet.\n\nin generic terms handle<Route From ServiceRoot><TypeReturned><HttpVerb>\n\nIt looks like this patch comes up with a different pattern for naming.  Please fix all of the naming for consistency."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1991,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Fixed, but have a question below.\n\nSome handlers are generic enough to be used for more than one route. (For example, in my latest patchset handleManagersBmcLogServicesDumpServiceGet() is able to handle both requestRoutesFaultLogDumpService() and requestRoutesBMCDumpService(), with just a difference in the dumpType parameter passed in. It could also potentially handle requestRoutesSystemDumpService() in a future refactoring.\n\nWhat do you think is best from the following options?\n\na) Rename handleManagersBmcLogServicesDumpServiceGet() to something more generic that doesn't include the route from service route, which is different for fault log vs. BMC dump, e.g.\nhandleDumpServiceGet()\n\nb) Create separate handler functions for each route, even though the function contents will be very similar, e.g.\nhandleManagersBmcLogServicesDumpServiceGet()\nhandleManagersBmcLogServicesFaultLogServiceGet()\n\nc) Something else"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1991,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I think the pattern I suggested still works?  \"handleManagersBmcLogServicesDumpServiceGet\"  Doesn't mention fault log, so as a naming convention should be reusable.  Unless you're refering to log services existing in both computerSystem and manager, in which case, maybe just drop ManagersBmc?\n\n\nie handlLogServicesLogEntryCollectionGet\n\n\nThe important parts here are the \"handle\" and the verb being at the end.  The middle is subject to some level of inconsistency, which I'd like to fix at some point, but we're not there yet.\n\nUse good judgement for the middle, and we'll go with whatever you come up with."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 1991,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Dropped \"ManagersBmc\" from the dump handler function names. Will leave it as a future task to refactor System Dump (/redfish/v1/Systems/system/LogServices/Dump) to also call these same functions."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2024,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, this is right on the border of too complex to be putting in a lambda.  I will leave it up to you if you want to move it to a normal function, but anything else added in this context will for sure require it."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2024,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "ack"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2035,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As we do elsewhere, please set this to nlohmann::json::array_t to handle the case where there are no logs present, we will still return the correct type.\n\nas-written, this will break users that don't have either log types enabled on dbus."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2035,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Already handled by line 2010:\nlogServiceArray = nlohmann::json::array();\n\nIf we set it again here (logServiceArrayLocal = nlohmann::json::array();) it would clear out previous array contents (e.g. the Journal added in line 2013), which is not intended.\n\nAlso verified through testing that the correct type is returned (empty array) when no log types are present under /redfish/v1/Managers/bmc/LogServices/"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2035,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Already handled by line 2010:\n> logServiceArray = nlohmann::json::array();\n> \n> If we set it again here (logServiceArrayLocal = nlohmann::json::array();) it would clear out previous array contents (e.g. the Journal added in line 2013), which is not intended.\n\nACK.  My mistake, fine as-is.\n\n> \n> Also verified through testing that the correct type is returned (empty array) when no log types are present under /redfish/v1/Managers/bmc/LogServices/"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2038,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Note, at some point in the future, we need to move these LogServices to JUST relying on the dbus path, so that we're not hardcoding specific paths in bmcweb, and people like yourself can add logs at will.\n\nJust FYI, no action needed in this patchset."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2038,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2333,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As a matter of being consistent, please just duplicate this in each of the route handlers, so that when we get better patterns, this is less effort to move."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2333,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2334,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Aren't there 3 types of dumps?  And isn't this check essentially performed elsewhere when we try to map paths?  Could we just rely on the later checks?"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2334,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Oh, this is leftover from when I was trying to make generic routes for the BMC dumps (for the 2 dump types under /redfish/v1/Managers/bmc/LogServices/). But I had to revert the generic routes as mentioned in one of my previous comments because the generic routes matched the journal too, which was unwanted.\n\nThe check was to see if we got one of the 2 valid BMC dump types (i.e. not the System dump or anything else). It's not really needed now that the generic routes are gone, though it could catch a goofy case where we have a bug in bmcweb code and pass in the \"System\" dumpType for a BMC dump. Anyways, removed the check."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2349,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please explitly set this in the other two branches that use this to make it clear which types use which."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2349,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2358,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Should we be setting the overwrite policy at all in this case?  Hard to say which is better, just omitting it or setting unknown."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2358,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "I would say that setting it to \"Unknown\" is better as it gives a hint that the policy is likely not one of the other valid choices (\"NeverOverWrites\" / \"WrapsWhenFull\")."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2358,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Sure, seems reasonable."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2376,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This looks incorrect for the FaultLog case?  I'm a little surprised the redfish service validator didn't flag this.  Can you double check that you're getting a passing result on your system?"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2376,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Fixed, thanks for catching this. I just ran Redfish Service Validator again and it still did not flag the mismatch between @odata.id and Id. It looks like the validator checks @odata.id vs. the actual URI (https://github.com/DMTF/Redfish-Service-Validator/blob/02d35b75dcbbe6ca3dad3093dd67ee0308195286/validateResource.py#L48), but it doesn't seem to check Id.\n\nBy the way, it looks like Journal also has an Id mismatch as seen in requestRoutesBMCJournalLogService()"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2380,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "For FaultLog, is it the right thing to be returning the BMC time, when the faults were generated from the host?"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2380,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Yes, the intention is for fault log entries to use BMC time, namely the time when the fault log manager gets notified of a fault and creates a fault log entry. For faults originating from the host, the Redfish client can follow AdditionalDataURI (once it's implemented in a later patchset), to get the timestamp as recorded by the host."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2380,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "ACK"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2391,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please don't brace construct nlohmann objects.  It bloats binary sizes, and is slower.  I recently got this documented as common error #13.  Please read the recommendations under the COMMON_ERRORS.md doc, and do as it suggests."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2391,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Done, thanks for pointing it out. I must have copied this from other code before \"Remove brace initialization of json objects\" (commit 1476687deb1697d865b20458a0097c9ab5fd44e2) got merged."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2419,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please use urlFromPieces, which escapes values properly.  I realize that it's unlikely these values will need escaping, but consistency helps us to avoid bugs."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2419,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Acknowledged. Actually when testing this code again I realized this approach based on dumpType is incorrect for the BMC dump at /redfish/v1/Managers/bmc/LogServices/Dump whose dumpType is \"BMC\" but whose URI uses \"Dump\".  I've refactored this into getDumpEntryCollection() and am now setting @odata.id based on entriesPath instead. I guess another way would be to use req.urlView, but we would need to chop off any query parameters."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2419,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "FWIW, at some point I'd like to remove handlers access to uriView.  Basically every usage of it is more complicated than just relying on the parsed value from your called handler."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2553,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, can you move this to line 2537 so that we're registering\n\n/FaultLog\n/FaultLog/Entries\n/FaultLog/Entries/<str>\n/FaultLog/Actions/....\nect\n\nHaving decending order like that helps readers."
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2553,
+                    "reviewer": {
+                        "name": "Claire Weinan",
+                        "email": "cweinan@google.com",
+                        "username": "daylight22"
+                    },
+                    "message": "Good eye -- fixed here and also for requestRoutesBMCDumpEntryCollection(). Not sure how I managed to get them out of order :)"
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 2553,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "When you review this stuff every day, catching stuff like that gets easier \ud83d\ude0a"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 25,
+            "revision": "f5dedda5d66ebe521751009c39ac632b6f8d8595",
+            "parents": [
+                "fe04d49cb52d8989818561c71bdbd6ba676058a5"
+            ],
+            "ref": "refs/changes/75/53175/25",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655947339,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 75,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 354,
+                    "deletions": -169
+                }
+            ],
+            "sizeInsertions": 435,
+            "sizeDeletions": 169
+        },
+        {
+            "number": 26,
+            "revision": "f937c1e53ac3bbb9476a20b17d95766cf28d6433",
+            "parents": [
+                "fe04d49cb52d8989818561c71bdbd6ba676058a5"
+            ],
+            "ref": "refs/changes/75/53175/26",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655952958,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 343,
+                    "deletions": -184
+                }
+            ],
+            "sizeInsertions": 426,
+            "sizeDeletions": 184
+        },
+        {
+            "number": 27,
+            "revision": "81470f1dffb17523d7387bc3266e13b8fba38da0",
+            "parents": [
+                "fe04d49cb52d8989818561c71bdbd6ba676058a5"
+            ],
+            "ref": "refs/changes/75/53175/27",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1655958715,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 327,
+                    "deletions": -177
+                }
+            ],
+            "sizeInsertions": 410,
+            "sizeDeletions": 177
+        },
+        {
+            "number": 28,
+            "revision": "379f587958bd8b35574510123eab9cbdee24d688",
+            "parents": [
+                "fe04d49cb52d8989818561c71bdbd6ba676058a5"
+            ],
+            "ref": "refs/changes/75/53175/28",
+            "uploader": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "createdOn": 1656014855,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 382,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Debatably, we should be using boost::urls::url for this, and not be making the string copy, but what's there is no worse than what we have, so it's fine."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 81,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 320,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 406,
+            "sizeDeletions": 176
+        },
+        {
+            "number": 29,
+            "revision": "fdd26906ef8884977df85c915444206c8a183639",
+            "parents": [
+                "80d37e76bc27e19c29cc7522423f95f98c958873"
+            ],
+            "ref": "refs/changes/75/53175/29",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1656086808,
+            "author": {
+                "name": "Claire Weinan",
+                "email": "cweinan@google.com",
+                "username": "daylight22"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 81,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/redfish.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 320,
+                    "deletions": -176
+                }
+            ],
+            "sizeInsertions": 406,
+            "sizeDeletions": 176
+        }
+    ]
+}

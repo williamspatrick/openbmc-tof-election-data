@@ -1,0 +1,347 @@
+{
+    "project": "openbmc/sdbusplus",
+    "branch": "master",
+    "topic": "wip",
+    "id": "Ie46e55798300cc856e9c93adfac97c84b1d4f18e",
+    "number": 47564,
+    "subject": "POC/Test: Try to shut up the recursion checker",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/sdbusplus/+/47564",
+    "commitMessage": "POC/Test: Try to shut up the recursion checker\n\nDO NOT MERGE\n\nIn theory, if the message fails to encode, there is a path where our\nnormally unrecursive method becomes recursive.  Clang-tidy has found\nthis, and while it's unlikely to cause stack issues, as it's a failure\npath, and likely leads to stopping whatever loop you're currently in, it\nwould be useful if we didn't have to work around it, an clang had a\nclean run.\n\nAsio has a convention for this in callback handlers in the form of\nio_context::post, which allows queuing up the callback to occur on the\nnext opportunity of the executor, effectively breaking the recursion\nloop.\n\nThis is a POC to see if this helps Jayashree in this patchset:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/dbus-sensors/+/38905/34/src/IpmbSensor.cpp\n\nI have done no testing aside from a compilation test.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: Ie46e55798300cc856e9c93adfac97c84b1d4f18e\n",
+    "createdOn": 1633547760,
+    "lastUpdated": 1644902385,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1633547760,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1633547771,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1633547880,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Topic set to wip"
+        },
+        {
+            "timestamp": 1633547918,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/27622/ : FAILURE"
+        },
+        {
+            "timestamp": 1636700121,
+            "reviewer": {
+                "name": "Jayashree Dhanapal",
+                "email": "jayashree-d@hcl.com",
+                "username": "Jayashree-D"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1636700147,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636700808,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30180/ : SUCCESS"
+        },
+        {
+            "timestamp": 1637650957,
+            "reviewer": {
+                "name": "Jayashree Dhanapal",
+                "email": "jayashree-d@hcl.com",
+                "username": "Jayashree-D"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1637650971,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1637651639,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/30720/ : SUCCESS"
+        },
+        {
+            "timestamp": 1638377363,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1640158519,
+            "reviewer": {
+                "name": "Jayashree Dhanapal",
+                "email": "jayashree-d@hcl.com",
+                "username": "Jayashree-D"
+            },
+            "message": "Patch Set 3:\n\n(2 comments)\n\nHi Ed,\n\nSorry for the late response. Recursive dbus async call has been used in dbus-sensors, which results in CI issue. To avoid the \"misc-no-recursion\" error, boost::asio::post is used in line 193.\n\n            boost::asio::post(io_, [&] {\n                boost::system::error_code ec =\n                    boost::system::errc::make_error_code(\n                        static_cast<boost::system::errc::errc_t>(\n                            e.get_errno()));\n                applyHandler(ec, m);\n            });\n\nClang-tidy logs after applying above changes:\n\n../subprojects/sdbusplus/include/sdbusplus/asio/connection.hpp:175:17: note: Frame #7: function 'operator()' calls function 'apply<(lambda at ../src/IpmbSDRSensor.cpp:118:9) &, std::tuple<boost::system::error_code, std::tuple<int, unsigned char, unsigned char, unsigned char, unsigned char, std::vector<unsigned char>>> &>' here:\n                std::apply(handler, response);\n                            \nBut the recursion error is not solved. Hence after analyzing the clang-tidy logs, boost::asio::post has been applied in line 180.\n\n                boost::asio::post(self->io_,\n                                  [&] { std::apply(handler, response); });            \n                \nWhile applying in line 180, io_ is not able to access inside that lambda function, so I tried with weak_ptr by enabling std::enable_shared_from_this<connection> in this class. This crashes the services in runtime.\n\n\nCould you please suggest any other options to solve this issue?"
+        },
+        {
+            "timestamp": 1641300605,
+            "reviewer": {
+                "name": "Jayashree Dhanapal",
+                "email": "jayashree-d@hcl.com",
+                "username": "Jayashree-D"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641825234,
+            "reviewer": {
+                "name": "Jayashree Dhanapal",
+                "email": "jayashree-d@hcl.com",
+                "username": "Jayashree-D"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642098665,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644902385,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Abandoned"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "f6ffb89ac1dfdb90164c936f3bcd810bed4d1c4d",
+            "parents": [
+                "60cfc8c7aad2c0477c8f37620014f9da483d3859"
+            ],
+            "ref": "refs/changes/64/47564/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1633547760,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/asio/connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 36,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "50ef0a31e52af4e4f5fcff469e1a3d11af821cca",
+            "parents": [
+                "838b284d5b7a83d54df06091d1045698cc9e6565"
+            ],
+            "ref": "refs/changes/64/47564/2",
+            "uploader": {
+                "name": "Jayashree Dhanapal",
+                "email": "jayashree-d@hcl.com",
+                "username": "Jayashree-D"
+            },
+            "createdOn": 1636700121,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/asio/connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 36,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 3,
+            "revision": "59825bc219beec515dbb94121b51a4e854531e31",
+            "parents": [
+                "c77885c2c69944e58f9e13497a532f0d53031c09"
+            ],
+            "ref": "refs/changes/64/47564/3",
+            "uploader": {
+                "name": "Jayashree Dhanapal",
+                "email": "jayashree-d@hcl.com",
+                "username": "Jayashree-D"
+            },
+            "createdOn": 1637650957,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jayashree Dhanapal",
+                        "email": "jayashree-d@hcl.com",
+                        "username": "Jayashree-D"
+                    },
+                    "message": "> Patch Set 3:\n> \n> (2 comments)\n> \n> Hi Ed,\n> \n> Sorry for the late response. Recursive dbus async call has been used in dbus-sensors, which results in CI issue. To avoid the \"misc-no-recursion\" error, boost::asio::post is used in line 193.\n> \n>             boost::asio::post(io_, [&] {\n>                 boost::system::error_code ec =\n>                     boost::system::errc::make_error_code(\n>                         static_cast<boost::system::errc::errc_t>(\n>                             e.get_errno()));\n>                 applyHandler(ec, m);\n>             });\n> \n> Clang-tidy logs after applying above changes:\n> \n> ../subprojects/sdbusplus/include/sdbusplus/asio/connection.hpp:175:17: note: Frame #7: function 'operator()' calls function 'apply<(lambda at ../src/IpmbSDRSensor.cpp:118:9) &, std::tuple<boost::system::error_code, std::tuple<int, unsigned char, unsigned char, unsigned char, unsigned char, std::vector<unsigned char>>> &>' here:\n>                 std::apply(handler, response);\n>                             \n> But the recursion error is not solved. Hence after analyzing the clang-tidy logs, boost::asio::post has been applied in line 180.\n> \n>                 boost::asio::post(self->io_,\n>                                   [&] { std::apply(handler, response); });            \n>                 \n> While applying in line 180, io_ is not able to access inside that lambda function, so I tried with weak_ptr by enabling std::enable_shared_from_this<connection> in this class. This crashes the services in runtime.\n> \n> \n> Could you please suggest any other options to solve this issue?\n\nHi Ed,\n\nCould you please suggest any other options to solve this issue?\n\nThanks"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jayashree Dhanapal",
+                        "email": "jayashree-d@hcl.com",
+                        "username": "Jayashree-D"
+                    },
+                    "message": "> Patch Set 3:\n> \n> (2 comments)\n> \n> Hi Ed,\n> \n> Sorry for the late response. Recursive dbus async call has been used in dbus-sensors, which results in CI issue. To avoid the \"misc-no-recursion\" error, boost::asio::post is used in line 193.\n> \n>             boost::asio::post(io_, [&] {\n>                 boost::system::error_code ec =\n>                     boost::system::errc::make_error_code(\n>                         static_cast<boost::system::errc::errc_t>(\n>                             e.get_errno()));\n>                 applyHandler(ec, m);\n>             });\n> \n> Clang-tidy logs after applying above changes:\n> \n> ../subprojects/sdbusplus/include/sdbusplus/asio/connection.hpp:175:17: note: Frame #7: function 'operator()' calls function 'apply<(lambda at ../src/IpmbSDRSensor.cpp:118:9) &, std::tuple<boost::system::error_code, std::tuple<int, unsigned char, unsigned char, unsigned char, unsigned char, std::vector<unsigned char>>> &>' here:\n>                 std::apply(handler, response);\n>                             \n> But the recursion error is not solved. Hence after analyzing the clang-tidy logs, boost::asio::post has been applied in line 180.\n> \n>                 boost::asio::post(self->io_,\n>                                   [&] { std::apply(handler, response); });            \n>                 \n> While applying in line 180, io_ is not able to access inside that lambda function, so I tried with weak_ptr by enabling std::enable_shared_from_this<connection> in this class. This crashes the services in runtime.\n> \n> \n> Could you please suggest any other options to solve this issue?\n\nHi Ed,\n\nCould you please suggest any other options to solve this issue?\n\nThanks\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Continue to break the recursive loops using boost::asio::post"
+                },
+                {
+                    "file": "include/sdbusplus/asio/connection.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "this is going to crash anyone that's not constructing a connection via shared_ptr.  I'm pretty sure this isn't what you want."
+                },
+                {
+                    "file": "include/sdbusplus/asio/connection.hpp",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Jayashree Dhanapal",
+                        "email": "jayashree-d@hcl.com",
+                        "username": "Jayashree-D"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "include/sdbusplus/asio/connection.hpp",
+                    "line": 152,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "lock() can fail, which you don't check for here.  Handle your errors."
+                },
+                {
+                    "file": "include/sdbusplus/asio/connection.hpp",
+                    "line": 152,
+                    "reviewer": {
+                        "name": "Jayashree Dhanapal",
+                        "email": "jayashree-d@hcl.com",
+                        "username": "Jayashree-D"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/sdbusplus/asio/connection.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -9
+                }
+            ],
+            "sizeInsertions": 46,
+            "sizeDeletions": 9
+        }
+    ]
+}

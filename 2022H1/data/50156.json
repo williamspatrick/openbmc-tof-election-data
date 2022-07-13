@@ -1,0 +1,2694 @@
+{
+    "project": "openbmc/phosphor-networkd",
+    "branch": "master",
+    "topic": "support-static-ntp-server",
+    "id": "If8b1b3ed2afb531f179e00da173f6f86a1bf0c18",
+    "number": 50156,
+    "subject": "Set static & dhcp sent ntp server ip on ethernet obj",
+    "owner": {
+        "name": "Asmitha Karunanithi",
+        "email": "asmitk01@in.ibm.com",
+        "username": "asmithakarun"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-networkd/+/50156",
+    "commitMessage": "Set static & dhcp sent ntp server ip on ethernet obj\n\nCurrently there is no way to differentiate between the Static\nand DHCP assigned NTP servers at dbus\n\nThis commit adds StaticNTPServers peroperty to hold the static\nconfiguration of NTP servers. This is a read-write property.\nThe existing NTPServer propery will hold both static and DHCP\nassigned NTP servers. This is a read-only property.\n\nThe static and dhcp sent ntp server details are present in the\ndbus object hosted by systemd-timesyncd service (mentioned in\nTested By section).\n\nIn this change, networkd fetches the ntp server details from the\ntimesyncd dbus object and set the \"NTPServers\" property with dhcp sent\nip and \"StaticNTPServers\" will be set from the configuration file.\n\nTested By:\n\n* Change the ntp server ips in dhcp config file & restart dhcpd\n* timesyncd dbus object contains the new list of ips as below:\n\nbusctl introspect org.freedesktop.timesync1 /org/freedesktop/timesync1\nNAME                                TYPE      SIGNATURE          RESULT/VALUE                             FLAGS\norg.freedesktop.DBus.Introspectable interface -                  -                                        -\n.Introspect                         method    -                  s                                        -\norg.freedesktop.DBus.Peer           interface -                  -                                        -\n.GetMachineId                       method    -                  s                                        -\n.Ping                               method    -                  -                                        -\norg.freedesktop.DBus.Properties     interface -                  -                                        -\n.Get                                method    ss                 v                                        -\n.GetAll                             method    s                  a{sv}                                    -\n.Set                                method    ssv                -                                        -\n.PropertiesChanged                  signal    sa{sv}as           -                                        -\norg.freedesktop.timesync1.Manager   interface -                  -                                        -\n.FallbackNTPServers                 property  as                 4 \"time1.google.com\" \"time2.google.com\"\u2026 const\n.Frequency                          property  x                  0                                        -\n.LinkNTPServers                     property  as                 1 \"1.1.1.1\"                              -\n.NTPMessage                         property  (uuuuittayttttbtt) 0 0 0 0 0 0 0 4 0 0 0 0 0 1844453508490\u2026 emits-change\n.PollIntervalMaxUSec                property  t                  2048000000                               const\n.PollIntervalMinUSec                property  t                  32000000                                 const\n.PollIntervalUSec                   property  t                  2048000000                               -\n.RootDistanceMaxUSec                property  t                  5000000                                  const\n.ServerAddress                      property  (iay)              2 4 1 1 1 1                              -\n.ServerName                         property  s                  \"1.1.1.1\"                                -\n.SystemNTPServers                   property  as                 0                                        const\n\n* Since network configuration has changed, the service restarts and\nntp server details are loaded from timesyncd dbus object & config file,\nand are set in dbus objects hosted by networkd.\n\ncommand: busctl introspect xyz.openbmc_project.Network /xyz/openbmc_project/network/eth0\n         busctl introspect xyz.openbmc_project.Network /xyz/openbmc_project/network/eth1\n\n* Ethernet interface network config files will be updated with NTP=<ip addresses> under [Network]\n\ncommand: cat /etc/systemd/network/00-bmc-eth0.network\n         cat /etc/systemd/network/00-bmc-eth1.network\n\nSigned-off-by: Asmitha Karunanithi <asmitk01@in.ibm.com>\nChange-Id: If8b1b3ed2afb531f179e00da173f6f86a1bf0c18\n",
+    "createdOn": 1641466273,
+    "lastUpdated": 1655895818,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1641466273,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1641466286,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641466286,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641466433,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/34984/ : FAILURE"
+        },
+        {
+            "timestamp": 1641532086,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1641808030,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1641808040,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1641808040,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1641808052,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 1:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1641808176,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35152/ : SUCCESS"
+        },
+        {
+            "timestamp": 1641808998,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1641829549,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1641833943,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 2: Code-Review-1\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1641921247,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 2:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1643082627,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643082800,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643628784,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643628788,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Removed Code-Review+1 by Sunitha Harish <sunithaharish04@gmail.com>\n"
+        },
+        {
+            "timestamp": 1643629476,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643863338,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643865354,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643884693,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644263211,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644293890,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649232126,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Topic set to support-static-ntp-server"
+        },
+        {
+            "timestamp": 1649236687,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649241220,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1649241231,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649241231,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649241260,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40619/ : FAILURE"
+        },
+        {
+            "timestamp": 1649257455,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1649257467,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649257467,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649257521,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40638/ : FAILURE"
+        },
+        {
+            "timestamp": 1649327381,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 4: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649355232,
+            "reviewer": {
+                "name": "Jiaqing Zhao",
+                "email": "jiaqing.zhao@intel.com",
+                "username": "jiaqingz-intel"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649433811,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1649433829,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649433829,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649433854,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 5:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1649433861,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40825/ : FAILURE"
+        },
+        {
+            "timestamp": 1649798743,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5: Code-Review+1"
+        },
+        {
+            "timestamp": 1649798797,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649798797,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649799096,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5:\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41086/ : FAILURE"
+        },
+        {
+            "timestamp": 1649799193,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649851140,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 6: Patch Set 5 was rebased"
+        },
+        {
+            "timestamp": 1649851151,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649851151,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649851190,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41144/ : FAILURE"
+        },
+        {
+            "timestamp": 1649852903,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1649852915,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649852915,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649853058,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41146/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649857764,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649923030,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1649923055,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649923055,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649923088,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41206/ : FAILURE"
+        },
+        {
+            "timestamp": 1649924649,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1649924660,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649924660,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649924804,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41207/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649944750,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 9: Code-Review+1"
+        },
+        {
+            "timestamp": 1649951966,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 9: Code-Review+1"
+        },
+        {
+            "timestamp": 1650264422,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650282466,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650372396,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651073963,
+            "reviewer": {
+                "name": "Adriana Kobylak",
+                "email": "anoo@linux.ibm.com",
+                "username": "anoo1"
+            },
+            "message": "Patch Set 9: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651131420,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1651131429,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651131429,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651131464,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42161/ : FAILURE"
+        },
+        {
+            "timestamp": 1651132992,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1651133002,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651133002,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651133038,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42163/ : FAILURE"
+        },
+        {
+            "timestamp": 1651133364,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1651133374,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651133374,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651133408,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42167/ : FAILURE"
+        },
+        {
+            "timestamp": 1651134050,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1651134069,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651134070,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651134101,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42168/ : FAILURE"
+        },
+        {
+            "timestamp": 1651134938,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1651134954,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651134955,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651134990,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42169/ : FAILURE"
+        },
+        {
+            "timestamp": 1651138939,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 14:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1651143988,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1651144000,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651144001,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651144034,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/42198/ : FAILURE"
+        },
+        {
+            "timestamp": 1651146867,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1651146881,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1651146881,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1651147017,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/42200/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651147096,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 16:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1651650114,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 16: Code-Review+1"
+        },
+        {
+            "timestamp": 1651650192,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 16:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651722822,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 16:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1651730038,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 16:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1651730663,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 16:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652697678,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 16:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652792751,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 16: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1652872094,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Uploaded patch set 17."
+        },
+        {
+            "timestamp": 1652872116,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1652872116,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1652872253,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/43472/ : SUCCESS"
+        },
+        {
+            "timestamp": 1652872602,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652875553,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 17: Code-Review+1"
+        },
+        {
+            "timestamp": 1652881912,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 17: Code-Review+1"
+        },
+        {
+            "timestamp": 1653374922,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653646475,
+            "reviewer": {
+                "name": "Jiaqing Zhao",
+                "email": "jiaqing.zhao@intel.com",
+                "username": "jiaqingz-intel"
+            },
+            "message": "Patch Set 17: Code-Review+1"
+        },
+        {
+            "timestamp": 1654244426,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 17: Code-Review+2"
+        },
+        {
+            "timestamp": 1655142781,
+            "reviewer": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655894919,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655895818,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c2843c3f0b79bea3cbc3cac31e4b1e8b46f8dc4d",
+            "parents": [
+                "cc5a670f1650e76b66750365bd4beecf821969fa"
+            ],
+            "ref": "refs/changes/56/50156/1",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1641466273,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "typo"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I think output of this command need not be pasted in the commit message. This makes it too long"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 143,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Just explaining the logic should be good enough. \nLike:\nEthernet interface network config files will be updated with the NTP=<ip addresses>"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 143,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Please fix the CI failure as well"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Is this enabled by default on BMC ?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Yes, as I see it here: https://github.com/openbmc/openbmc/blob/master/meta-phosphor/recipes-core/systemd/systemd_%25.bbappend#L17"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This can be a new method - loadNtpServers"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 188,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 226,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "b678a2d2cf97459eb2d910653e288a0d46fe5fe5",
+            "parents": [
+                "cc5a670f1650e76b66750365bd4beecf821969fa"
+            ],
+            "ref": "refs/changes/56/50156/2",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1641808030,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Which config file? \nIf you mentioning about network file, Then we don't need to update the config file for the info which BMC(Dhcp client) receives through DHCP server."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Yes. bmc-00-eth<0/1>.network\n\n>Then we don't need to update the config file for the info which BMC(Dhcp client) receives through DHCP server.\n\nAck"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "How do we know that the NTP servers are for the eth0 or eth1 interface?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "I thought ntp server details were not specific to any interface as such (eth0/1)\n\nPlease correct me if i am wrong."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "You can have ntp server specific to the intreface.\nhttps://www.freedesktop.org/software/systemd/man/systemd.network.html"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Yes. systemd has it at interface level. But redfish does not have an interface level command to PATCH the nameservers. Its at the system level, and that made us to copy the same value to both interfaces. \n\nWe need a way from redfish to allow setting the ntp servers at EthernetInterface schema. Not at the NetworkProtocol schema."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "On second thought - Ratan, should the NTP server be at interface level ? or its good to be at system level ? \nNTP is for the time management and it does not matter if the time comes down to the system via eth0 or eth1. Single time should be given to the system.\nExample - If both interfaces have different NTP servers attached, then which NTP server's time is going to be consumed by the system?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@sunitha: Can you get the opinion from the systemd-networkd by opening a issue in the systemd-repo?\nPhopshor-networkd is a wrapper over systemd-networkd, We are not taking our decision by looking at the external interface level protocols. \n\n>  But redfish does not have an interface level command to PATCH the nameservers.\n\nRedfish is having the interface level command to patch the nameservers.\n\n> On second thought - Ratan, should the NTP server be at interface level ? or its good to be at system level ? \nNTP is for the time management and it does not matter if the time comes down to the system via eth0 or eth1. Single time should be given to the system.\n\nYour point is correct but that should be same for the namserver and the ntpserver both.\n\nI think we need to get some opinion from the systemd-networkd."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Sure Ratan. Created https://github.com/systemd/systemd/issues/22384"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "see the above commentary."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "How we are going to differentiate between the static NTP servers v/s NTP servers got through DHCP.\n\nPlease have a look at how it has been done for the NameServers."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "When i tested, i saw that there was one static ntp server ip set using patch on NetworkProtocol.\n\nWhen there was dhcp ip sent, as per above comments, only static ip was stored in the network config file. That way one can differentiate between static & dhcp (one in config file is static and the others are dhcp)? Or is there any other way?\n\nAlso, may i know if there is a path where we read static ntp servers other than this config file?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "My query was regarding the https://github.com/openbmc/phosphor-dbus-interfaces/blob/master/yaml/xyz/openbmc_project/Network/EthernetInterface.interface.yaml\nWhere we have\n 1) nameservers: which shows all the namse servers configured on the system(Read only).\n2) Static Nameservers: which shows all the static nameservers configured on the system(Read/write).\n\nNow when you have a single D-bus property how you are going to differentiate? Say user wants to patch the Ntp servers property and delete the Ntp servers which BMC got it through DHCP.\n\nHow we are going to control that?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Created https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/50887 to address the dbus property for NTP servers\n\n@Asmitha - as per https://github.com/systemd/systemd/issues/22384 ; the listed NTP servers at timesyncd need not be written to the interface specific network config file. This is a system level configuration and can be copied to /etc/systemd/timesyncd.conf\n\nSimilar to NameServers, we need DMTF redfish schema changes to list the NTP servers as well. I will create an issue for redfish as well."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@asmitha and @sunitha: Can we take a look at https://github.com/openbmc/phosphor-dbus-interfaces/blob/master/yaml/xyz/openbmc_project/Network/EthernetInterface.interface.yaml and introduce one more property Static NTP servers same as DNS.\n\nStaticNTPServers: shows the NTP server details from the network configuration file.\nntpServers: shows the ntp server details from the timesyncd."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I had pushed https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-dbus-interfaces/+/50887 for the same Ratan. Please have a look at that commit and we can get that in first"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "It should load the DHCP provided IPs from the timesyncd and the static ips from the configuration file. There should not be a write to config call here"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 847,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 859,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This is not used"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 859,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 859,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-networkd/+/53513/1"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 63,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 111,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "5d26c5ece70d35e047135f97f42d602893132e33",
+            "parents": [
+                "166b9598ac83db574c4e9b666e770b76f3501b29"
+            ],
+            "ref": "refs/changes/56/50156/3",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1649241220,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 68,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 146,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 4,
+            "revision": "e2efeecd007dc2fc907a2a8b58cbde3e7ff46286",
+            "parents": [
+                "166b9598ac83db574c4e9b666e770b76f3501b29"
+            ],
+            "ref": "refs/changes/56/50156/4",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1649257455,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1020,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "As I said in the dbus interface review, this attempted validation is wrong. it makes total sense for a DHCP server but it does not make sense for an NTP server. \n\nDHCP is the name resolution so you cannot put a name here and it MUST be an up address. \nNTP uses name resolution and is, in practice, rarely an IP address."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1020,
+                    "reviewer": {
+                        "name": "Jiaqing Zhao",
+                        "email": "jiaqing.zhao@intel.com",
+                        "username": "jiaqingz-intel"
+                    },
+                    "message": "+1, NTP servers can be hostnames. https://www.freedesktop.org/software/systemd/man/systemd.network.html#NTP="
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1020,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1045,
+                    "reviewer": {
+                        "name": "Jiaqing Zhao",
+                        "email": "jiaqing.zhao@intel.com",
+                        "username": "jiaqingz-intel"
+                    },
+                    "message": "elog already throws. There is no need to return here."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1045,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -10
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 144,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 5,
+            "revision": "8338791c4ac0342984045109558029ae9cfcf057",
+            "parents": [
+                "166b9598ac83db574c4e9b666e770b76f3501b29"
+            ],
+            "ref": "refs/changes/56/50156/5",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1649433811,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Once the dbus interfaces change go in, the CI will pass."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I merged the phosphor-dbus-interfaces change but it appears that you have testcase failure that need to be worked out."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 138,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 6,
+            "revision": "218e59e4a1a938cc71ad7b2529536e16efb33214",
+            "parents": [
+                "c2e061f2ce0f5ece2deb7a8c4bbd1e4c06e2cfcb"
+            ],
+            "ref": "refs/changes/56/50156/6",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1649851140,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 138,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 7,
+            "revision": "69fa08a038656d291cfc72218d148ab370a670f1",
+            "parents": [
+                "c2e061f2ce0f5ece2deb7a8c4bbd1e4c06e2cfcb"
+            ],
+            "ref": "refs/changes/56/50156/7",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1649852903,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 201,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Please add tests for read-only NTPServers property. SET should throw NotAllowed error. GET should return the servers list from timesyncd"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 201,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 140,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 8,
+            "revision": "8e415ddfa05c8d67c5e35833e357a225393db81e",
+            "parents": [
+                "c2e061f2ce0f5ece2deb7a8c4bbd1e4c06e2cfcb"
+            ],
+            "ref": "refs/changes/56/50156/8",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1649923030,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 155,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 9,
+            "revision": "cfa23c83887d521282853c769ea19b7043e19667",
+            "parents": [
+                "c2e061f2ce0f5ece2deb7a8c4bbd1e4c06e2cfcb"
+            ],
+            "ref": "refs/changes/56/50156/9",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1649924649,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Adriana Kobylak",
+                        "email": "anoo@linux.ibm.com",
+                        "username": "anoo1"
+                    },
+                    "message": "Please move the bus.call() inside the try/catch block, or this change causes the network app to core dump in non-NTP systems (TimeSyncMethod set to Manual),"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 810,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "I am not getting why we are expecting a call getNTPServerFromTimeSyncd()?\nWe have not called the loadNtpserver on the interface which further calls this function(getNTPServerFromTimeSyncd())"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Since this property contains both static and dhcp sent ntp server ips, i thought having this call here would be appropriate.\nIf it shouldn't be here, then should it be just #224 and #227 in this testcase?"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "No, What I am asking that you have mentioned that the test cases is Expecting this call getNTPServerFromTimeSyncd, \n\nHow the getNTPServerFromTimeSyncd is going to be called if we are creating the interface object?"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 156,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 10,
+            "revision": "9738ed37f0bdcd1dca5154f77a574a3c88f25c70",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/10",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1651131420,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 155,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 11,
+            "revision": "aa177c79ce3c44971d72b3fdc4359bb1c9340ed4",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/11",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1651132992,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 155,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 12,
+            "revision": "ef95c5cd2b9fc86618805689e20d003516ca988b",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/12",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1651133364,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 155,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 13,
+            "revision": "5657593f39dda2c5d2fb748f9a1a5dc226b09b93",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/13",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1651134050,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 14,
+            "revision": "1924ef7a063b3a8039c6998c00653c5c9a41cee5",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/14",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1651134938,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 874,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Please move this line into try block as well"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 874,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Please push a separate commit for moving this into the try block"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 874,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "You need to mock getNTPServerFromTimeSyncd only"
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "The latest PS contains the changes"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "expect call to getNTPServerFromTimeSyncd"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 225,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "The latest PS contains the changes"
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 226,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "this source code just returns the ntpServers list. So no need to test this."
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 226,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "The latest PS contains the changes"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 15,
+            "revision": "80be9f37e6fd7bba8ba999ca2262059ffad1d22e",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/15",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1651143988,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 16,
+            "revision": "3b385cf1105726de0b96e36194b8ecd891fe4725",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/16",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1651146867,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Hi Reviewers,\nCan you please give your votes for this change?\n\nThanks."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I have little opinion on the changes since PS9 as they are mostly test cases.  They seem reasonable.  I left a minor nit but otherwise +1."
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "nit: Typically we'd do this as 'ntpServers'.  I did a bunch of work last year in the sdbusplus bindings to ensure we never had unusual cases like this because they're so jarring to read."
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "line": 110,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 17,
+            "revision": "e86fc6cc41be86ac29ab5baa81d8dc58cc154764",
+            "parents": [
+                "24b5a619e1e63195c775bca893d6f7ebbff1d1a5"
+            ],
+            "ref": "refs/changes/56/50156/17",
+            "uploader": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "createdOn": 1652872094,
+            "author": {
+                "name": "Asmitha Karunanithi",
+                "email": "asmitk01@in.ibm.com",
+                "username": "asmithakarun"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Hi Maintainers, Are we good here to get this to merge?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Asmitha Karunanithi",
+                        "email": "asmitk01@in.ibm.com",
+                        "username": "asmithakarun"
+                    },
+                    "message": "Waiting on another change. I will submit this once that's done."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Yet not submitted, any issues which you got it."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Read-only flag on the NTPServers dbus property was removed by https://github.com/openbmc/phosphor-dbus-interfaces/commit/998c7beda3100c37b8931e8e2fafe7d40311297a . That will need changes in this commit as well.\nI just pushed https://gerrit.openbmc.org/c/openbmc/phosphor-dbus-interfaces/+/54797 now. We will need a property name change here in this commit as per that.\nPlease share your comments/votes on the new change."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/test_ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/ethernet_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -9
+                },
+                {
+                    "file": "src/network_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 12
+        }
+    ]
+}

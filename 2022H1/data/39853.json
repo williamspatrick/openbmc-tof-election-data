@@ -1,0 +1,1277 @@
+{
+    "project": "openbmc/phosphor-user-manager",
+    "branch": "master",
+    "topic": "WIP",
+    "id": "I1ac7a324dc633420e01104043627944afc4127b7",
+    "number": 39853,
+    "subject": "Adapt to OpenBMC's Linux-PAM module changes",
+    "owner": {
+        "name": "Joseph Reynolds",
+        "email": "joseph-reynolds@charter.net",
+        "username": "joseph-reynolds"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-user-manager/+/39853",
+    "commitMessage": "Adapt to OpenBMC's Linux-PAM module changes\n\nThis is co-requisite with a commit which replaces pam_cracklib with\npam_pwquality and replaces pam_tally2 with pam_faillock.\nSee https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/41357.\n\nAdapt to the Linux-PAM module changes:\n- The pam_pwquality.so module replaces the pam_cracklib.so module.\n- The pam_faillock.so module replaces the pam_tally2.so module.\n- The faillock command replaces the pam_tally2 command.\n\nThis adapts to the changed location of several configuration parameters\nwithin the BMC's file system.  It moves them out of the /etc/pam.d/*\nfiles and into config files for affected PAM modules.  Details are\nbelow.\n\nThis changes the implementation of D-Bus \"User\" interfaces:\nhttps://github.com/openbmc/phosphor-dbus-interfaces/blob/master/xyz/openbmc_project/User/\n- /xyz/openbmc_project/User/Attributes.interface.yaml\n    - UserLockedForFailedAttempt - uses the faillock command (was\n      pam_tally2)\n- /xyz/openbmc_project/User/AccountPolicy.interface.yaml\n    - MaxLoginAttemptBeforeLockout - uses the pam_faillock module deny\n      parameter (was pam_tally2)\n    - AccountUnlockTimeout - used the pam_faillock module unlock_time\n      parameter (was pam_tally2)\n    - MinPasswordLength - uses the pam_pwquality module min parameter\n      (was pam_cracklib)\n\nThis also fixes unrelated CI quality checks in bootstrap.sh.\n\nThe following shows properties whose implementation is affected by this\ncommit.  Each entry shows the correlation between:\n - Redfish resource type and property name.\n - D-Bus interface and property name.\n - The location of that property value within the BMC.\n\nRedfish: ManagerAccount.UserLockedForFailedAttempt\nD-Bus: xyz.openbmc_project.User.Attributes UserLockedForFailedAttempt\nBMC Command:\n  old: via the pam_tally2 command\n  new: via the faillock command\n\nRedfish: AccountService.MaxLoginAttemptBeforeLockout\nD-Bus: xyz.openbmc_project.User.AccountPolicy MaxLoginAttemptBeforeLockout\nFile:\n  old: /etc/pam.d/common-auth: pam_tally2.so deny=0\n  new: /etc/security/faillock.conf: deny=0\n\nRedfish: AccountService.AccountUnlockTimeout\nD-Bus: xyz.openbmc_project.User.AccountPolicy AccountUnlockTimeout\nFile:\n  old: /etc/pam.d/common-auth: pam_tally2.so unlock_time=0\n  new: /etc/security/faillock.conf: unlock_time=0\n\nRedfish: AccountService.MinPasswordLength\nD-Bus: xyz.openbmc_project.User.AccountPolicy MinPasswordLength\nFile:\n  old: /etc/pam.d/common-password pam_cracklib.so minlen=8\n  new: /etc/security/pwquality.conf: minlen=8\n\nRedfish: AccountService.RememberOldPasswordTimes\nD-Bus: xyz.openbmc_project.User.AccountPolicy RememberOldPasswordTimes\nFile:\n  unchanged: /etc/pam.d/common-password pam_pwhistory.so remember=0\n\nThis also fixes a spelling error in an error log message:\nMaxLoginAttemptBeforLockout.\n\nTested: for local users onlt\nTested via the busctl command and affected Redfish APIs.\nTested via Redfish and SSH login for root and non-root users.\nMost of the testing was accounted for in the review cited above.\n\nSigned-off-by: Joseph Reynolds <joseph-reynolds@charter.net>\nChange-Id: I1ac7a324dc633420e01104043627944afc4127b7\n",
+    "createdOn": 1611175137,
+    "lastUpdated": 1643171384,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1611175137,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1611175150,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611175186,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11174/ : FAILURE"
+        },
+        {
+            "timestamp": 1611175418,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1611175439,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611175487,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11175/ : FAILURE"
+        },
+        {
+            "timestamp": 1611175555,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 2:\n\nThis requires https://gerrit.openbmc-project.xyz/c/openbmc/meta-phosphor/+/39737 and makes the required corresponding changes to phosphor-user-manager."
+        },
+        {
+            "timestamp": 1611675418,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 2:\n\nTesting found: cannot update min password length.  Next patchset will fix."
+        },
+        {
+            "timestamp": 1611713217,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1611713227,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611713257,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11436/ : FAILURE"
+        },
+        {
+            "timestamp": 1611714607,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1611714627,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611714646,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11438/ : FAILURE"
+        },
+        {
+            "timestamp": 1611761600,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1611761609,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611761725,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11456/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611783316,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 5:\n\nThe corresponding meta-phosphor change moved to use pam_pwquality.so (instead of pam_passwdqc.so) to replace pam_cracklib.so.  The next patchset will adapt to that."
+        },
+        {
+            "timestamp": 1611858997,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1611859009,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611859123,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11535/ : SUCCESS"
+        },
+        {
+            "timestamp": 1612395691,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1612395734,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1612395768,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/11878/ : FAILURE"
+        },
+        {
+            "timestamp": 1612966268,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\nIs it failing because of the following commit?\nhttps://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/40102"
+        },
+        {
+            "timestamp": 1612966776,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\nCan you also elaborate the test cases? What was the test cases which you ran for?\n=> User lock \n=> Password quality.\n=> Minium password length.\n\nI also noticed that you changed the pam configuration files in other commit which may impact other use cases.\nSo need the complete test case list which we have run against all these commits.\n\nAlso I don't see the unit test cases.Can you please add some test cases here to cover the above functionality"
+        },
+        {
+            "timestamp": 1612969924,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)\n\nThis commit is co-req with meta-phosphor changes in https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/40102.\nThe detailed test cases are in that commit message."
+        },
+        {
+            "timestamp": 1613400895,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n> Patch Set 7:\n> \n> (1 comment)\n> \n> This commit is co-req with meta-phosphor changes in https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/40102.\n> The detailed test cases are in that commit message.\n\nIt would be gr8 if you can mention this commit( https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/40102) in the commit itself."
+        },
+        {
+            "timestamp": 1613579308,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1614790294,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)\n\nI'll fix the issue and mention the co-req in the commit message."
+        },
+        {
+            "timestamp": 1615936807,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 7:\n\nThis commit is co-req with https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/41357."
+        },
+        {
+            "timestamp": 1615939945,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1615939962,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615940007,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/13888/ : FAILURE"
+        },
+        {
+            "timestamp": 1616540815,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1616540828,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616540853,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14255/ : FAILURE"
+        },
+        {
+            "timestamp": 1616541106,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1616541123,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616541252,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14260/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616594156,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 10:\n\nThis was built into an image together with co-req change https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/41357 and it passed our test team's testing.\n\nAn email was sent about this.  See https://lore.kernel.org/openbmc/e4dc8f12-4807-cf03-0eea-f19d67387879@linux.ibm.com/T/#u"
+        },
+        {
+            "timestamp": 1616756127,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 10:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1616797065,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 10:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1616797922,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 11: Commit message was updated."
+        },
+        {
+            "timestamp": 1618166119,
+            "reviewer": {
+                "name": "Richard Marian Thomaiyar",
+                "email": "richard.marian.thomaiyar@linux.intel.com",
+                "username": "rthomaiy"
+            },
+            "message": "Patch Set 11: Code-Review-1\n\n(8 comments)\n\nNo major comments (just minor).\nWill it be ok, to do the pam conversion for old to new fw from phosphor-user-manager to avoid dependency issue & turn off, when not needed (Because we can't determine, when people won't need it, and that choice has to be made by them and flag is better way to solve it)."
+        },
+        {
+            "timestamp": 1624315309,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1624315325,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624315376,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/20283/ : FAILURE"
+        },
+        {
+            "timestamp": 1624315755,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1624315766,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624315860,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20285/ : SUCCESS"
+        },
+        {
+            "timestamp": 1631112789,
+            "reviewer": {
+                "name": "Richard Marian Thomaiyar",
+                "email": "richard.marian.thomaiyar@linux.intel.com",
+                "username": "rthomaiy"
+            },
+            "message": "Patch Set 13:\n\nHi Joseph.\nAny update on this patch? Setting the topic to WIP. Please feel to free remove it, once patch is updated"
+        },
+        {
+            "timestamp": 1631112796,
+            "reviewer": {
+                "name": "Richard Marian Thomaiyar",
+                "email": "richard.marian.thomaiyar@linux.intel.com",
+                "username": "rthomaiy"
+            },
+            "message": "Topic set to WIP"
+        },
+        {
+            "timestamp": 1643171384,
+            "reviewer": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "message": "Patch Set 13:\n\n(3 comments)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "4d4ec77902c84b6d9cd414cace3073dce41c21ca",
+            "parents": [
+                "703131fa01422bc28675f5d629edb98d285a1bc4"
+            ],
+            "ref": "refs/changes/53/39853/1",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611175137,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -56
+                }
+            ],
+            "sizeInsertions": 72,
+            "sizeDeletions": 56
+        },
+        {
+            "number": 2,
+            "revision": "1867b9c355add0083c1bdf6b588d7ff57b9a4008",
+            "parents": [
+                "703131fa01422bc28675f5d629edb98d285a1bc4"
+            ],
+            "ref": "refs/changes/53/39853/2",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611175418,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -56
+                }
+            ],
+            "sizeInsertions": 72,
+            "sizeDeletions": 56
+        },
+        {
+            "number": 3,
+            "revision": "197439d644fbbc5f0709dc09e8219afe8ff5715e",
+            "parents": [
+                "703131fa01422bc28675f5d629edb98d285a1bc4"
+            ],
+            "ref": "refs/changes/53/39853/3",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611713217,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 36,
+                    "deletions": -57
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 57
+        },
+        {
+            "number": 4,
+            "revision": "e4cf3c10c628728b5db5eca295a6aec3e776d501",
+            "parents": [
+                "703131fa01422bc28675f5d629edb98d285a1bc4"
+            ],
+            "ref": "refs/changes/53/39853/4",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611714607,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": -58
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 5,
+            "revision": "0f39d74a6a1297f7967bd246f3e4ccbc53d4d44b",
+            "parents": [
+                "703131fa01422bc28675f5d629edb98d285a1bc4"
+            ],
+            "ref": "refs/changes/53/39853/5",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611761600,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 38,
+                    "deletions": -58
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 6,
+            "revision": "42904f6c58e5dc3cce58b0132aa77657f77bb567",
+            "parents": [
+                "703131fa01422bc28675f5d629edb98d285a1bc4"
+            ],
+            "ref": "refs/changes/53/39853/6",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1611858997,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "s/min/minlen/"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 40,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -56
+                }
+            ],
+            "sizeInsertions": 72,
+            "sizeDeletions": 56
+        },
+        {
+            "number": 7,
+            "revision": "0decae55b4a169dda33596e7a4dbf29412b28bda",
+            "parents": [
+                "703131fa01422bc28675f5d629edb98d285a1bc4"
+            ],
+            "ref": "refs/changes/53/39853/7",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1612395691,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 561,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Why do we need this condition if we are removing the pam_tally and pam_cracklib?"
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 561,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This code still handles the common-password pam_history.so remember= parameter which is exposed by Redfish AccountService.RememberOldPasswordTimes.  So I left this code in.  See the commit message for the test case."
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 625,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "same as above."
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 625,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "same"
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 712,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Can we add some comment here? How the output looks like for the error?"
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 712,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "I'll add a comment that says the error message is: /usr/sbin/faillock: Error clearing the tally file for {user}:{output from perror}\n\nThe next line handles this error case.  I unit tested this path by messing with the tally file (I don't remember exactly how)."
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 712,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "The steps to test this (where '#' is the shell prompt for the root user) are:\nChange the faillock directory to a plain file:\n# mv /var/run/faillock /var/run/faillock-real\n# touch /var/run/faillock\n\n# faillock\nfaillock: Error reading tally directory: Not a directory\n# busctl introspect xyz.openbmc_project.User.Manager /xyz/openbmc_project/user/admin\nFailed to get all properties on interface\n  xyz.openbmc_project.User.Attributes: The operation failed internally.\n\nThen to recover:\n# rm /var/run/faillock\n# mv /var/run/faillock-real /var/run/faillock"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 53,
+                    "deletions": -61
+                }
+            ],
+            "sizeInsertions": 131,
+            "sizeDeletions": 61
+        },
+        {
+            "number": 8,
+            "revision": "bbf396a45563c62b2ff0dc2b35040411e02b814f",
+            "parents": [
+                "9638afb9aa848aa0e696c2447e0fbc70a0aa5eed"
+            ],
+            "ref": "refs/changes/53/39853/8",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1615939945,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 80,
+                    "deletions": 0
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -67
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 67
+        },
+        {
+            "number": 9,
+            "revision": "c88dc5d2b899ec8a745694d576791d289066990c",
+            "parents": [
+                "9638afb9aa848aa0e696c2447e0fbc70a0aa5eed"
+            ],
+            "ref": "refs/changes/53/39853/9",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1616540815,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -67
+                }
+            ],
+            "sizeInsertions": 147,
+            "sizeDeletions": 69
+        },
+        {
+            "number": 10,
+            "revision": "796c530d39c6defecfa8d53cea3048ed665ff7b6",
+            "parents": [
+                "9638afb9aa848aa0e696c2447e0fbc70a0aa5eed"
+            ],
+            "ref": "refs/changes/53/39853/10",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1616541106,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "typo?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 76,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "typo?  Yes, my fat fingers.  I will s/onlt/only/."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "what are the tests which we ran? Can we specify here?\nI think you had it somewhere else"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Sorry, I had detailed all of the test cases in https://gerrit.openbmc-project.xyz/c/openbmc/openbmc/+/41357.  I'll repeat them here."
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "more verbose output during clean?"
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "The change on this line is required to pass CI.  It requires use of `find ... -print0 | xargs -0 ...` (null-terminated filenames) so it can handle filenames which contain strange characters.  Otherwise the effect of this pipeline is the same as before."
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "why the single colon has been replaced with double colon?"
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "The change on this line is required to pass CI.  It complained about using ${} inside the single quoted string because shell variable expansion does not happen inside of single quotes string and it thought the variable wanted to expand.  It didn't.  the output of the echo command is the same as before."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -61
+                }
+            ],
+            "sizeInsertions": 143,
+            "sizeDeletions": 63
+        },
+        {
+            "number": 11,
+            "revision": "4c74ecf6178076a06c1776ce9faec75ba6e71dde",
+            "parents": [
+                "9638afb9aa848aa0e696c2447e0fbc70a0aa5eed"
+            ],
+            "ref": "refs/changes/53/39853/11",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1616797922,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "why ? & how we are preserving FW Update scenario."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 23,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "This commit changes\n\n(Just to make sure this is the commit which changes the implementation)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 66,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "I believe your intention is to capture user level interfaces which will be using these properties, i think it's better not to call as affected in user level interfaces.\n\nIn short - There is no affect to user level interface as the underlying implementation will take care. Can we re-word as, Any User-level interfaces which uses these D-Bus properties (x,y,z) should not see any change in behavior, and few are listed"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 74,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "Shall we put a Fixes subject: \n\nFixes: \nlist all the fixes (This way it will be easy to convey)"
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 533,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "shall we call this as directConfigFile / moduleConfigFile to indicate that this is direct module configuration file, and doesn't require a module name search in the configuration file."
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 567,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "Name change would be better to indicate, why moduleName check is skipped, because in direct configuration file, moduleName search is not needed."
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 701,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "When output.size() < 2, then it means that there is an error, and this property can't return proper value. Earlier, exception will be thrown, which will be captured by sdbusplus code and corresponding error will be exposed to the user."
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 726,
+                    "reviewer": {
+                        "name": "Richard Marian Thomaiyar",
+                        "email": "richard.marian.thomaiyar@linux.intel.com",
+                        "username": "rthomaiy"
+                    },
+                    "message": "This value will be treated as property return value.\n\nNeed to always return userLockedForFailedAttempt(userName)  (In case of error userLockedForFailedAttempt will return the correct value."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 91,
+                    "deletions": 0
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 59,
+                    "deletions": -61
+                }
+            ],
+            "sizeInsertions": 152,
+            "sizeDeletions": 63
+        },
+        {
+            "number": 12,
+            "revision": "e02d08d4021cbfd0edd47e1e4fc7723e0574c576",
+            "parents": [
+                "607ed50ae1c4817969a117d951a3e90f686fbde0"
+            ],
+            "ref": "refs/changes/53/39853/12",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1624315309,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 63,
+                    "deletions": -61
+                }
+            ],
+            "sizeInsertions": 146,
+            "sizeDeletions": 62
+        },
+        {
+            "number": 13,
+            "revision": "98ef721acf792aedcf4e3da4f0023c332bbf95fc",
+            "parents": [
+                "607ed50ae1c4817969a117d951a3e90f686fbde0"
+            ],
+            "ref": "refs/changes/53/39853/13",
+            "uploader": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "createdOn": 1624315755,
+            "author": {
+                "name": "Joseph Reynolds",
+                "email": "joseph-reynolds@charter.net",
+                "username": "joseph-reynolds"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "Added some notes."
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "line": 708,
+                    "reviewer": {
+                        "name": "Joseph Reynolds",
+                        "email": "joseph-reynolds@charter.net",
+                        "username": "joseph-reynolds"
+                    },
+                    "message": "This code is incorrect.  This leg should `return true`.\nThe error checking for output.size()<2 should be performed prinr to this test.\n\nIf this bug is not fixed, then when any user is LockedForFailedAttempt, then this code will cause an error which causes phosphor-user-manager to stop working."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 82,
+                    "deletions": 0
+                },
+                {
+                    "file": "bootstrap.sh",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "user_mgr.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 64,
+                    "deletions": -61
+                }
+            ],
+            "sizeInsertions": 147,
+            "sizeDeletions": 62
+        }
+    ]
+}

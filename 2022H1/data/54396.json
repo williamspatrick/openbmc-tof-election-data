@@ -1,0 +1,726 @@
+{
+    "project": "openbmc/openpower-vpd-parser",
+    "branch": "master",
+    "id": "Icc94b5ee0d044271acf7b6263405fca07eb33728",
+    "number": 54396,
+    "subject": "vpd-tool: Fix for Hardware write option",
+    "owner": {
+        "email": "priyanga24@in.ibm.com",
+        "username": "PriyangaRamasamy"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/openpower-vpd-parser/+/54396",
+    "commitMessage": "vpd-tool: Fix for Hardware write option\n\nWith this commit, vpd-tool has a fix in Hardware (-H) write\noption to update only in hardware and not in cache.\n\nThis commit also has an added change. User can provide\nVPD offset value while using read from hardware and write\nto hardware options. Providing offset value is optional.\nBy default offset value is 0. This option is mainly usefull\nwhen providing an EEPROM path which is not present in VPD json.\n\nTest: Tested on everest.\n\nCASE 1: Using Hardware write option will update only hardware and not cache.\n\nroot@ever20bmc:/tmp# ./vpd-tool -w -H -O /sys/bus/spi/drivers/at25/spi12.0/eeprom  -R VINI -K CC --offset 0x30000 -V 0x32\n\nroot@ever20bmc:/tmp# ./vpd-tool -r -H -O /sys/bus/spi/drivers/at25/spi12.0/eeprom -R VINI -K CC --offset 0x30000\n{\n    \"/sys/bus/spi/drivers/at25/spi12.0/eeprom\": {\n        \"CC\": \"2C5F\"\n    }\n}\nroot@ever20bmc:/tmp# ./vpd-tool -r -O /system/chassis/motherboard/dcm0/cpu0 -R VINI -K CC\n{\n    \"/system/chassis/motherboard/dcm0/cpu1\": {\n        \"CC\": \"5C5F\"\n    }\n}\n\nCASE 2: Using normal write option will update both hardware and cache\n\nroot@ever20bmc:/tmp# ./vpd-tool -w -O /system/chassis/motherboard/dcm0/cpu1 -R VINI -K CC -V 0x64\n\nroot@ever20bmc:/tmp# ./vpd-tool -r -O /system/chassis/motherboard/dcm0/cpu1  -R VINI -K CC\n{\n    \"/system/chassis/motherboard/dcm0/cpu1\": {\n        \"CC\": \"dC5F\"\n    }\n}\nroot@ever20bmc:/tmp# ./vpd-tool -r -H -O /sys/bus/spi/drivers/at25/spi22.0/eeprom -R VINI -K CC --offset 0x30000\n\n offset = 196608{\n    \"/sys/bus/spi/drivers/at25/spi22.0/eeprom\": {\n        \"CC\": \"dC5F\"\n    }\n}\n\nCASE 3: Providing wrong offset value during hardware read\n\nroot@ever20bmc:/tmp# ./vpd-tool -r -H -O /sys/bus/i2c/drivers/at24/28-0051/eeprom -R VINI -K CC --offset 19\nVHDR record not found\nDid you provide a valid offset? By default VPD offset is taken as 0. To input offset, use --offset. Refer vpd-tool help.\n\nCASE 4: Providing offset value during normal read operation. As mentioned, there'll be no impact as the offset value will be\nvalid only while using --Hardware/-H option.\n\nroot@ever20bmc:/tmp# ./vpd-tool -r -O /system/chassis/motherboard/dcm0/cpu1  -R VINI -K CC --offset 0\n{\n    \"/system/chassis/motherboard/dcm0/cpu1\": {\n        \"CC\": \"5C5F\"\n    }\n}\n\nCASE 5: Providing wrong offset value during hardware write\n\nroot@ever20bmc:/tmp# ./vpd-tool -w -H -O /sys/bus/spi/drivers/at25/spi12.0/eeprom -R VINI -K CC --offset 20 -V 0x53\nError parsing the given VPD file /sys/bus/spi/drivers/at25/spi12.0/eeprom\nDid you provide a valid offset? By default VPD offset is taken as 0. To input offset, use --offset. Refer vpd-tool help.\n\nCASE 6: Providing offset value during normal write. As mentioned, there'll be no impact as the offset value will be valid\nonly while using --Hardware/-H option.\n\nroot@ever8bmc:/tmp# ./vpd-tool -w -O /system/chassis/motherboard/dasd_backplane/panel1 -R VMPU -K VZ -V 0x64 --offset 19\nroot@ever8bmc:/tmp# ./vpd-tool -r -O /system/chassis/motherboard/dasd_backplane/panel1 -R VMPU -K VZ\n{\n    \"/system/chassis/motherboard/dasd_backplane/panel1\": {\n        \"VZ\": \"d1\"\n    }\n}\n\nCASE 7: Reading and Writing on a EEPROM path which is not a key in JSON.\n\nroot@ever8bmc:/tmp# ./vpd-tool -w -O /sys/bus/spi/drivers/at25/spi13.0/eeprom -R VMPU -K VZ --offset 196608 -H -V 0x64\nroot@ever8bmc:/tmp#\nroot@ever8bmc:/tmp# ./vpd-tool -r -O /sys/bus/spi/drivers/at25/spi13.0/eeprom -R VMPU -K VZ --offset 196608 -H\n{\n    \"/sys/bus/spi/drivers/at25/spi13.0/eeprom\": {\n        \"VZ\": \"d1\"\n    }\n}\n\nSigned-off-by: Priyanga Ramasamy <priyanga24@in.ibm.com>\nChange-Id: Icc94b5ee0d044271acf7b6263405fca07eb33728\n",
+    "createdOn": 1654753733,
+    "lastUpdated": 1657207686,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1654753733,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1654753802,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654753802,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654753919,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44645/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654774619,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1654774663,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654774664,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654774784,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44693/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655896375,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 2: Code-Review-1\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1655897937,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1655897990,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655897990,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655897997,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1655898212,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45584/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655903157,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 3: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655963660,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1655970333,
+            "reviewer": {
+                "name": "Santosh Puranik",
+                "email": "santosh.puranik@in.ibm.com",
+                "username": "santoshpuranik"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1656330571,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1656587441,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1656587451,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1656587451,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1656587573,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/46196/ : SUCCESS"
+        },
+        {
+            "timestamp": 1656596734,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 5: Commit message was updated."
+        },
+        {
+            "timestamp": 1657175176,
+            "reviewer": {
+                "name": "SunnySrivastava",
+                "email": "sunnsr25@in.ibm.com",
+                "username": "SunnySrivastava1984"
+            },
+            "message": "Patch Set 5: Code-Review-1\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1657207348,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1657207361,
+            "reviewer": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1657207407,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1657207407,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1657207686,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/46591/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "9ccaf759aea655e67a6176f1ce79c6dadc5e0e92",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/96/54396/1",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1654753733,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "ibm_vpd_utils.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -46
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -1
+                },
+                {
+                    "file": "ibm_vpd_utils.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -12
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 40,
+            "sizeDeletions": 66
+        },
+        {
+            "number": 2,
+            "revision": "d1c249443da742a998db3d54f737aa91d7dbc6db",
+            "parents": [
+                "3803131f1d4da9e6f41d53a5a6e655e41c34776d"
+            ],
+            "ref": "refs/changes/96/54396/2",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1654774619,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "vpd_tool.cpp",
+                    "line": 72,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "add a caution saying not to use out of LAB"
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "line": 72,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "remove"
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "line": 73,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "line": 508,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Remove this check"
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "line": 508,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -1
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 40,
+            "sizeDeletions": 6
+        },
+        {
+            "number": 3,
+            "revision": "5c2f83958f103f640a36ab0379b8c6bd940c6838",
+            "parents": [
+                "6b2b53749082f98ee8d23bd10c792c9c88e0ae39"
+            ],
+            "ref": "refs/changes/96/54396/3",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1655897937,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "line": 505,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Maybe we should just take this from the user as an optional parameter. Default to 0. Do you think you can do that with this change?"
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "line": 505,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "but how the user will know right offset? and for cpu offset is mandatory. we can't make it optional.\nMy suggestion is this offset is already hardcoded in json. so we can make use of that, like we do in other places."
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "line": 505,
+                    "reviewer": {
+                        "name": "Santosh Puranik",
+                        "email": "santosh.puranik@in.ibm.com",
+                        "username": "santoshpuranik"
+                    },
+                    "message": "Just like they will know the EEPROM path. This is a lab-only options that should generally be used by developers only.\n\nI think it is reasonable to provide an option to take an offset and document it in the help text."
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "line": 505,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "should we need to have offset parameter in hardware read as well? currently hardware read takes offset from json (line 525 in this file)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 29,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 39,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 4,
+            "revision": "93097f03a345c96b4a70de4fa483b8bc0ee0275e",
+            "parents": [
+                "6b2b53749082f98ee8d23bd10c792c9c88e0ae39"
+            ],
+            "ref": "refs/changes/96/54396/4",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1656587441,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 89,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -7
+                },
+                {
+                    "file": "vpd_tool_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 122,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 5,
+            "revision": "4ac176b9e039bf18c45d92da81cdf4a4a10a0225",
+            "parents": [
+                "6b2b53749082f98ee8d23bd10c792c9c88e0ae39"
+            ],
+            "ref": "refs/changes/96/54396/5",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1656596734,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 580,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Can get rid of this variable. Could be done in-place."
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "line": 580,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd_tool_impl.hpp",
+                    "line": 183,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Please update the description accordingly."
+                },
+                {
+                    "file": "vpd_tool_impl.hpp",
+                    "line": 183,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "vpd_tool_impl.hpp",
+                    "line": 191,
+                    "reviewer": {
+                        "name": "SunnySrivastava",
+                        "email": "sunnsr25@in.ibm.com",
+                        "username": "SunnySrivastava1984"
+                    },
+                    "message": "Please update the description accordingly."
+                },
+                {
+                    "file": "vpd_tool_impl.hpp",
+                    "line": 191,
+                    "reviewer": {
+                        "email": "priyanga24@in.ibm.com",
+                        "username": "PriyangaRamasamy"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -7
+                },
+                {
+                    "file": "vpd_tool_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -2
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 133,
+            "sizeDeletions": 35
+        },
+        {
+            "number": 6,
+            "revision": "3bb20395cffc78be829e3d5153c97fdcc550b438",
+            "parents": [
+                "6b2b53749082f98ee8d23bd10c792c9c88e0ae39"
+            ],
+            "ref": "refs/changes/96/54396/6",
+            "uploader": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "createdOn": 1657207348,
+            "author": {
+                "email": "priyanga24@in.ibm.com",
+                "username": "PriyangaRamasamy"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 100,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd-manager/editor_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "vpd_tool.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": -7
+                },
+                {
+                    "file": "vpd_tool_impl.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -5
+                },
+                {
+                    "file": "vpd_tool_impl.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 144,
+            "sizeDeletions": 38
+        }
+    ]
+}

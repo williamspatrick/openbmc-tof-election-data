@@ -1,0 +1,2081 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "I8be2419783e41e8f529030bb3d05c2e7aa890307",
+    "number": 50415,
+    "subject": "Enable cppcoreguidelines-avoid-goto checks",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/dbus-sensors/+/50415",
+    "commitMessage": "Enable cppcoreguidelines-avoid-goto checks\n\nWe've been pretty good about this one, the only usages seem to be in\nnvme sensor and added recently.  To move to more RAII compliant\ncontainers, this commit creates a FileHandle class, which accepts either\na file path and a mode, or a direct file handle, to be handled via RAII.\nIdeally we wouldn't have to create this ourselves, and could rely on\nsome library, but the alternatives all have compromises that are worse.\n\nboost::asio::random_access_file requires iouring to be enabled, and\nisn't available until boost 0.78, which we haven't rebased to yet.\nhttps://www.boost.org/doc/libs/develop/doc/html/boost_asio/reference/random_access_file.html\nOnce available, this is what I would hope that a bunch of the nvme stuff\nevolves into to be much simpler.\n\nboost::iostream::file_descriptor requires linking against\nboost::iostream, which would bloat our binary size for a lot of things\nwe don't use.  There is a file_descriptor.cpp that we could compile\ndirectly to solve this, but the existing yocto boost project (nor any\nother distro project) installs these files for use, which would\ncomplicate this solution\n\nstd::fstream doesn't allow direct access to the file handle, which would\nbe required for streaming operations.\n\nhttps://www.boost.org/doc/libs/1_35_0/libs/iostreams/doc/installation.html\nhttps://www.boost.org/doc/libs/1_78_0/libs/iostreams/doc/classes/file_descriptor.html#file_descriptor\n\nA very similar class exists within ipmid here:\nhttps://github.com/openbmc/phosphor-host-ipmid/blob/master/user_channel/file.hpp\n\nThis class differs in a couple minor ways, in that it throws exceptions\non open failures (similar to the boost classes), accepts the input by\nstd::filesystem::path, instead of string, and supports std::move, which\nis required for the pipe usage.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I8be2419783e41e8f529030bb3d05c2e7aa890307\n",
+    "createdOn": 1642184962,
+    "lastUpdated": 1644926002,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1642184962,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1642184981,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642184981,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642185000,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35553/ : FAILURE"
+        },
+        {
+            "timestamp": 1642185288,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1642185311,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642185311,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642185525,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35561/ : FAILURE"
+        },
+        {
+            "timestamp": 1642188347,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 3: Patch Set 2 was rebased."
+        },
+        {
+            "timestamp": 1642188364,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642188364,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642188396,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35566/ : FAILURE"
+        },
+        {
+            "timestamp": 1642188824,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 4: Patch Set 3 was rebased."
+        },
+        {
+            "timestamp": 1642188838,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642188839,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642189096,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35573/ : SUCCESS"
+        },
+        {
+            "timestamp": 1642199574,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642290181,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642375616,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642479130,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642528901,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5: Patch Set 4 was rebased"
+        },
+        {
+            "timestamp": 1642528913,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642528913,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642529232,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35667/ : SUCCESS"
+        },
+        {
+            "timestamp": 1642539024,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1642539034,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642539034,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642539062,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35674/ : FAILURE"
+        },
+        {
+            "timestamp": 1642542313,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1642542329,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642542329,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642542356,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35682/ : FAILURE"
+        },
+        {
+            "timestamp": 1642543893,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1642543924,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642543924,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642543977,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35686/ : FAILURE"
+        },
+        {
+            "timestamp": 1642545515,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1642545524,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642545524,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642545552,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35693/ : FAILURE"
+        },
+        {
+            "timestamp": 1642545649,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1642545689,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642545689,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642545905,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35694/ : FAILURE"
+        },
+        {
+            "timestamp": 1642547028,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1642547040,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642547040,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642547249,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35695/ : FAILURE"
+        },
+        {
+            "timestamp": 1642548227,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1642548254,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642548255,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642548281,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35698/ : FAILURE"
+        },
+        {
+            "timestamp": 1642551834,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1642551845,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642551845,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642551895,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35707/ : FAILURE"
+        },
+        {
+            "timestamp": 1642552258,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1642552270,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642552271,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642552735,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35712/ : SUCCESS"
+        },
+        {
+            "timestamp": 1642553189,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642560952,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1642705798,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1642705812,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642705813,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642705814,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1642705863,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/35845/ : FAILURE"
+        },
+        {
+            "timestamp": 1642725218,
+            "reviewer": {
+                "name": "Andrew Jeffery",
+                "email": "andrew@aj.id.au",
+                "username": "amboar"
+            },
+            "message": "Patch Set 15:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642730494,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1642730518,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642730519,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642730776,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35873/ : SUCCESS"
+        },
+        {
+            "timestamp": 1642806266,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 16:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642808340,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17: Published edit on patch set 16."
+        },
+        {
+            "timestamp": 1642808350,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1642808352,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1642808353,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1642808489,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 17: Code-Review+1"
+        },
+        {
+            "timestamp": 1642808620,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/35940/ : SUCCESS"
+        },
+        {
+            "timestamp": 1643239885,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644611617,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1644611629,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644611629,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644611644,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644611706,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1644611718,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644611718,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644611722,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37134/ : ABORTED"
+        },
+        {
+            "timestamp": 1644611915,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37135/ : SUCCESS"
+        },
+        {
+            "timestamp": 1644903663,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 19: Code-Review+2"
+        },
+        {
+            "timestamp": 1644903667,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Change has been successfully rebased and submitted as 73030639a5ba8adfc9d8e54ef66746c95e8958a7"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3f2701ea38e1a758d7d2fb003fa74d1232042f08",
+            "parents": [
+                "12ab035f9b249e2d3ebf18c140ecc18cdcf02169"
+            ],
+            "ref": "refs/changes/15/50415/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642184962,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "f95239593f6eaa7ba30f800ced2dfba8510354fe",
+            "parents": [
+                "51af98fd630d78037164263d8ec2926c18020c47"
+            ],
+            "ref": "refs/changes/15/50415/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642185288,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "607ed075bb8eb0cf701e4156f25d404472e4b3f7",
+            "parents": [
+                "e86a155c5e0ef25aa94f64e46363e8cecf719497"
+            ],
+            "ref": "refs/changes/15/50415/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642188347,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "c6a768ad55a76273d5605f7d3e1863d7ffbcf936",
+            "parents": [
+                "328732136524fbb7551a1bf7f8c76bbb8566ef14"
+            ],
+            "ref": "refs/changes/15/50415/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642188824,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "rather than this, why not rewrite the code so it doesn't use goto? The easiest fix has already been applied in other places, a simple class wrapper around the fd that closes on its destructor. Then a scope change will destroy the file and we can replace the goto with return.\n\nSee https://github.com/openbmc/phosphor-host-ipmid/blob/master/user_channel/file.hpp"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Given I don't really have one of these drives to test with, I took approach of the most minimally invasive change that I could do by best to guarantee didn't break anything.  Everywhere else we have this problem, we use ifstream or similar raii object to manage this, or, when boost 0.78 gets landed on yocto here, we can use https://www.boost.org/doc/libs/develop/doc/html/boost_asio/reference/random_access_file.html\n\nWith all of this said, if someone is willing to test the changes I make, I'm happy to do the invasive thing and rewrite this.\n\nFWIW, this code is also fairly new from Arj, so I'd also be looking at him for pointers on what he wants to do here.  I'm happy either way."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "I'm perpetually puzzled as to why the STL doesn't have an RAII wrapper for FDs? People end up spraying implementations of it all over the place.\n\nAnyway, I'm happy to test a change if you want to do the rewrite Ed."
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I mean, it does with std::fstream, the streaming interface just sucks to use.\n\nACK"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "line": 86,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "63cef361883aa9d57801a5185c751539cb7450cd",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642528901,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "a20be8818efbacb3636faa640944377a54ac5a3b",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/6",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642539024,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 38,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 26,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 41,
+                    "deletions": -78
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 155,
+            "sizeDeletions": 79
+        },
+        {
+            "number": 7,
+            "revision": "a598be64febb648ad05358e8ef06d402513cfae3",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/7",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642542313,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 41,
+                    "deletions": -78
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 160,
+            "sizeDeletions": 79
+        },
+        {
+            "number": 8,
+            "revision": "4c445c43d3d6c589314ff8e63882de31a46ceb0a",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/8",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642543893,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 41,
+                    "deletions": -78
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 160,
+            "sizeDeletions": 79
+        },
+        {
+            "number": 9,
+            "revision": "ac98ae0086550c57540044dbf89afa77636b3a33",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/9",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642545515,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 162,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 10,
+            "revision": "c53ebb03e6c9ae1a017fedc2f5e3ed9f6ec25839",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/10",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642545649,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 162,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 11,
+            "revision": "a803b1da16f1b59ed4e58907c6587b87ab0c4b9a",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/11",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642547028,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 163,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 12,
+            "revision": "e00e3052f9f7d69f4ee113bb191009f9f5fb1b6b",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/12",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642548227,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 13,
+            "revision": "1275804c875ceb9f04fd0af119dfd25ca2fa5a08",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/13",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642551834,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 14,
+            "revision": "0f5883ce0eebb33f6181d6391511dfdb16c411ac",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/14",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642552258,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Looks good, though I'd like to test it. Holding off on scoring until I've done so."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "ACK"
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "close() can fail \ud83d\ude0a Might be helpful to log a message or something. An exception might be a bit heavyweight."
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "line": 38,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 45,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 165,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 15,
+            "revision": "c3ff2c8982c66b19af10389dd6ce802fe4b0eb9f",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/15",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642705798,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Andrew Jeffery",
+                        "email": "andrew@aj.id.au",
+                        "username": "amboar"
+                    },
+                    "message": "Ah,\n\n ../src/FileHandle.cpp: In destructor \u2018FileHandle::~FileHandle()\u2019:\n ../src/FileHandle.cpp:41:18: error: \u2018cerr\u2019 is not a member of \u2018std\u2019\n   41 |             std::cerr << \"Failed to close fd \" << std::to_string(fd);\n      |                  ^~~~\n ../src/FileHandle.cpp:5:1: note: \u2018std::cerr\u2019 is defined in header \u2018<iostream>\u2019; did you forget to  \u2018#include <iostream>\u2019?\n    4 | #include <FileHandle.hpp>\n  +++ |+#include <iostream>\n    5 | "
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 49,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 16,
+            "revision": "8cd4193c6206257c3cad11732341a52a6dab056e",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/16",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642730494,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/FileHandle.cpp",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "0 can be a valid fd"
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 17,
+            "revision": "a004322a32d21027224c7d11cfeb872704e73eb6",
+            "parents": [
+                "39edac3c5c233b448a1ab31b359fd1dbb3a29184"
+            ],
+            "ref": "refs/changes/15/50415/17",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1642808340,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 18,
+            "revision": "cff6e2b8e7dcae607904de62d14a5e7ef9ff5640",
+            "parents": [
+                "99c4409a450383eaf7d198a432ebc18ea56f300a"
+            ],
+            "ref": "refs/changes/15/50415/18",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1644611617,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 22,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 19,
+            "revision": "77c13cb0d930d215de1cb1bb7cdc58758337f18c",
+            "parents": [
+                "99c4409a450383eaf7d198a432ebc18ea56f300a"
+            ],
+            "ref": "refs/changes/15/50415/19",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1644611706,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 82
+        },
+        {
+            "number": 20,
+            "revision": "73030639a5ba8adfc9d8e54ef66746c95e8958a7",
+            "parents": [
+                "8d0fd3c3d4b5ff93ba4c251301285c320cc7ca97"
+            ],
+            "ref": "refs/changes/15/50415/20",
+            "uploader": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "createdOn": 1644903667,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 44,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/FileHandle.cpp",
+                    "type": "ADDED",
+                    "insertions": 50,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/FileHandle.hpp",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/NVMeBasicContext.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 43,
+                    "deletions": -81
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 170,
+            "sizeDeletions": 82
+        }
+    ]
+}

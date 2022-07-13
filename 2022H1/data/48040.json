@@ -1,0 +1,2676 @@
+{
+    "project": "openbmc/phosphor-networkd",
+    "branch": "master",
+    "topic": "dhcpv6-update",
+    "id": "Icd72ad931d82a1a94e821242b784ead1ebd630df",
+    "number": 48040,
+    "subject": "Enhance management of DHCPv6 state",
+    "owner": {
+        "name": "Johnathan Mantey",
+        "email": "johnathanx.mantey@intel.com",
+        "username": "Howitzer105mm"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-networkd/+/48040",
+    "commitMessage": "Enhance management of DHCPv6 state\n\nKeeping track of the current state of DHCPv6 is not as straight\nforward as monitoring the systemd-networkd configuration file DHCP\nconfiguration line.\n\nThe DHCP state for v4 and v6, as assigned in the systemd.network\nconfiguration file, is changed to be reported in a more abstract\nmanner. Phosphor-network now combines the various configuration file\nvalues into D-Bus entries that hide the details of how\nphosphor-network modifies state.\n\nNow Redfish and IPMI can request a DHCP mode of operation and leave\nthe details to phosphor-network.\n\nTested:\nBooted System Under Test (SUT) with DHCPv4 and DHCPv6 enabled\nIterated through all possible configurations of IPv4/IPv6 using\nRedfish.\nConfirmed systemd.network, ip address, and REST state was reported\ncorrectly.\n\nIterated through all possible modes of IPMI state.\nConfirmed systemd.network, ip address, and REST state was reported\ncorrectly. This included correctly handling v6 Stateless modes.\n\nConfirmed Get LAN Config param 56 and 59 reported correct state\ndepending upon DHCP or static address assignment\n\nChange-Id: Icd72ad931d82a1a94e821242b784ead1ebd630df\nSigned-off-by: Johnathan Mantey <johnathanx.mantey@intel.com>\n",
+    "createdOn": 1634827817,
+    "lastUpdated": 1656621932,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1634827817,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1634852259,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1634914881,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nI disagree. My reading of systemd-networkd DHCP= entry is that enabling RA enables DHCPv6.\nI have just assigned DHCP=none for my NIC, and left RA=true.\nRestarting systemd-networkd still results in my NIC being assigned a DHCPv6 address.\nIPv6AcceptRA overrides the DHCP= state for IPv6."
+        },
+        {
+            "timestamp": 1634953749,
+            "reviewer": {
+                "name": "Jonathan Doman",
+                "email": "jonathan.doman@intel.com",
+                "username": "jonathan-doman"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)\n\nI think we need to clarify the meaning of this D-Bus interface. I'm not a phosphor-networkd guru, but it seems to me like DHCPEnabled *should* simply mirror the configuration option. And the xyz.openbmc_project.Network.IP interface on each IP object needs to be fixed to show that the \"Origin\" may be DHCP even if DHCPEnabled=none."
+        },
+        {
+            "timestamp": 1635032250,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1636387951,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1636389382,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nI apologize for the lengthy reply."
+        },
+        {
+            "timestamp": 1636540208,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637231979,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1637232235,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1638300046,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nI finally have bandwidth to get back to this. I need to better understand the comments returned so far in order to consider applying different solutions to the problem."
+        },
+        {
+            "timestamp": 1638309998,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\nRatan,\nI have updated my dhcpdv6.conf file to the following:\n\nhost otherclient {               \n        # This host entry is hopefully matched if the client supplies a DUID-LL\n        # or DUID-LLT containing this MAC address.\n        host-identifier option               \n                dhcp6.client-id 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37;\n                fixed-address6 fd99:86:1040:1928::130;               \n}\n\nsubnet6 fd99:86:1040:1928::/64 {\n        range6 fd99:86:1040:1928::1 fd99:86:1040:1928::3;\n}\n\n\nWhen DHCP=true, and IPAcceptRA=true and DHCPv6Client=true I get the following from my bmcnuc:\nNov 30 14:00:31 bmcnuc dhcpd[925953]: Solicit message from fe80::9875:9fff:fe76:ffb0 port 546, transaction ID 0xC6404A00\nNov 30 14:00:31 bmcnuc dhcpd[925953]: Advertise NA: address fd99:86:1040:1928::130 to client with duid 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37 iaid = 539170353 static\nNov 30 14:00:31 bmcnuc dhcpd[925953]: Sending Advertise to fe80::9875:9fff:fe76:ffb0 port 546\nNov 30 14:00:32 bmcnuc dhcpd[925953]: Request message from fe80::9875:9fff:fe76:ffb0 port 546, transaction ID 0x4BB4700\nNov 30 14:00:32 bmcnuc dhcpd[925953]: Reply NA: address fd99:86:1040:1928::130 to client with duid 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37 iaid = 539170353 static\nNov 30 14:00:32 bmcnuc dhcpd[925953]: Sending Reply to fe80::9875:9fff:fe76:ffb0 port 546"
+        },
+        {
+            "timestamp": 1638314935,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\nI have updated my radvd.conf file and now I seem to have the ability to get both SLAAC and Stateful address assignment:\ninterface enp3s0 {\n        AdvSendAdvert on;\n        AdvManagedFlag on;\n        MinRtrAdvInterval 3;\n        MaxRtrAdvInterval 10;\n        prefix fd99:86:1040:1928::/64 {\n                AdvOnLink on;\n                AdvAutonomous on;\n                AdvRouterAddr on;\n        };\n};\n\nIf I use this setting the the .network file I get an eui64 based addr:\n[IPv6AcceptRA]\nDHCPv6Client=false\n\ninet6 fd99:86:1040:1928:9875:9fff:fe76:ffb0/64 scope global dynamic noprefixroute flags 100\n\nSetting DHCPv6Client=true causes both the SLAAC and a Stateful assignment."
+        },
+        {
+            "timestamp": 1638486667,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 1:\n\nI have spent some time investigating radvd, dhcpv6, and systemd-networkd behavior. My observation concerning DCHP address assignment via the systemd.neworkd config file is:\n1. The [Network] DHCP entry only controls IPv4.\n2. IPv6 Stateless/Stateful DHCP is controlled with a combination of [Network] IPv6AcceptRA and [IPv6AcceptRA] DHCPv6Client\nFor example, I can set DHCP=false, leave IPv6AcceptRA=true/DHCPv6Client=true, and still acquire a Stateful IPv6 address.\nThe gatekeeper for IPv6 address assignment is IPv6AcceptRA, not the DHCP entry.\n\nBased on this I want to propose the following changes:\n\n1. Modify the phosphor-dbus-interfaces to be more abstract. I recommend the following settings:\ntrue: ipv4 DHCP and ipv6 stateful\ntruestateless: ipv4 DHCP and ipv6 stateless\nipv6stateful: ipv6 stateful mode only\nipv6stateless: ipv6 stateless mode only\nipv4: ipv4 dhcp only\nfalse: static address assignment\n\n2. Deprecate the D-Bus IPv6AcceptRA property\n\nUsing these D-Bus definitions allows all of the details of how to write the systemd-networkd configuration file to phosphor-network. It allows clients to ask for the mode they want the NIC to use without having to know implementation details (i.e. IPv6AcceptRA).\n\nUsing this model will allow us to deprecate the IPv6AccetpRA D-Bus interface. In hindsight this interface should not exist because it is an implementation detail of systemd-networkd that clients should not need to know about."
+        },
+        {
+            "timestamp": 1644274086,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1644274095,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644274095,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644274128,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/36764/ : FAILURE"
+        },
+        {
+            "timestamp": 1644274133,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Topic set to dhcpv6-update"
+        },
+        {
+            "timestamp": 1644275355,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Removed reviewer null."
+        },
+        {
+            "timestamp": 1645738453,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1647884020,
+            "reviewer": {
+                "name": "Wiktor Golgowski",
+                "email": "wiktor.golgowski@intel.com",
+                "username": "wgolgowski"
+            },
+            "message": "Patch Set 2: Code-Review+1"
+        },
+        {
+            "timestamp": 1647889548,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 3: Patch Set 2 was rebased"
+        },
+        {
+            "timestamp": 1647889559,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647889560,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647889903,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39360/ : FAILURE"
+        },
+        {
+            "timestamp": 1648062725,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 4: Patch Set 3 was rebased"
+        },
+        {
+            "timestamp": 1648062736,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648062736,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648062773,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39566/ : FAILURE"
+        },
+        {
+            "timestamp": 1648757572,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1648757582,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648757582,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648757628,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40265/ : FAILURE"
+        },
+        {
+            "timestamp": 1648757721,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648757937,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1648757947,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648757947,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648758081,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40266/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648758567,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1648758628,
+            "reviewer": {
+                "name": "Wiktor Golgowski",
+                "email": "wiktor.golgowski@intel.com",
+                "username": "wgolgowski"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        },
+        {
+            "timestamp": 1649073257,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 6:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649108016,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1649108026,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649108026,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649108065,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 6:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1649108160,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40482/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649125123,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649220110,
+            "reviewer": {
+                "email": "prithvi.a.pai@intel.com",
+                "username": "PrithviAPai"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649238120,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7: Code-Review+2"
+        },
+        {
+            "timestamp": 1649238207,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649257024,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649262989,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649319618,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649357554,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649358396,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649359158,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649685752,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650574110,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1651073183,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651073412,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651073588,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7: -Code-Review"
+        },
+        {
+            "timestamp": 1651081208,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1651662873,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1651685056,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651688556,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1651759101,
+            "reviewer": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651788443,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1651803194,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1651820568,
+            "reviewer": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651823822,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651848875,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1651903317,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651922911,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652113284,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1652143048,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 7: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1652172791,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653028905,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1653975356,
+            "reviewer": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1653975401,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1653975401,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1653975421,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44050/ : FAILURE"
+        },
+        {
+            "timestamp": 1653976951,
+            "reviewer": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1653976982,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1653976982,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1653977012,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/44051/ : FAILURE"
+        },
+        {
+            "timestamp": 1653979177,
+            "reviewer": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1653979206,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1653979207,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1653979336,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44054/ : SUCCESS"
+        },
+        {
+            "timestamp": 1653981137,
+            "reviewer": {
+                "name": "Jiaqing Zhao",
+                "email": "jiaqing.zhao@intel.com",
+                "username": "jiaqingz-intel"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1654151493,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 10:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654184316,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 10:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1654244031,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 10:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1654626551,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1654626585,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654626585,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654626674,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 11:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654626682,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/44513/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655415470,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 11: Code-Review+1"
+        },
+        {
+            "timestamp": 1655438857,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 11: Code-Review+1\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1655492054,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 12: Commit message was updated."
+        },
+        {
+            "timestamp": 1655492857,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 12:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1655493201,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1655493247,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 13:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1655493251,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1655493251,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1655493349,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/45265/ : SUCCESS"
+        },
+        {
+            "timestamp": 1655496419,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 13: Code-Review+1"
+        },
+        {
+            "timestamp": 1656047806,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 13: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1656049791,
+            "reviewer": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "message": "Patch Set 13: Code-Review+1"
+        },
+        {
+            "timestamp": 1656498708,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 13:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1656512413,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1656513578,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 13:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1656565473,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1656570923,
+            "reviewer": {
+                "name": "Sunitha Harish",
+                "email": "sunithaharish04@gmail.com",
+                "username": "sunharis"
+            },
+            "message": "Patch Set 13:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1656621932,
+            "reviewer": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "3ed1eb660722cd505769f32db6447b4655609a9c",
+            "parents": [
+                "bd649af91ed1fe74efd745e398d5640f4ab6e5af"
+            ],
+            "ref": "refs/changes/40/48040/1",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1634827817,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "Is it really \"systemd-networkd(5)\" for you? It's systemd.network(5) on my system for the configuration options."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "No, but the repo is called that, and my mind/fingers are trained to using that syntax. I will fix that."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 13,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Jonathan Doman",
+                        "email": "jonathan.doman@intel.com",
+                        "username": "jonathan-doman"
+                    },
+                    "message": "I think \"may\" is the key word. We might get an RA which does not indicate DHCPv6. Or I suppose isn't it possible we may not get an RA at all even if we accept them? So setting IPv6AcceptRA does not mean that we'll use DHCPv6."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I used the word \"may\". The systemd.networkd(5) states that it \"is still active\". Real world testing also shows that DHCPv6 is, in fact, active."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Jonathan, Ipv6acceptRA is for accepting any RA messages(SLAAC configuration.)\n\nIn RA message, if M(managed) flag is set: Then BMC should discard the prefix given by the autoconf router(radvd) and send the solicit message to DHCP server and get the IP from the DHCP server.\n\nRA is needed in both the cases(Stateful/Stateless) either you get the IP from DHCP server or not as it depends on the RA payload.\n\nAre your proposal is to treat both stateless and stateful dhcp should be treated as DHCP."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Can you share your radvd.conf and dhcpv6d.conf? I was trying to test the stateful but BMC is not sending the DHCPv6 solicit messages even if the RA message contains the M flag as true."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Ratan,\nI don't, as yet, understand how Stateless/Stateful are supposed to operate. Right now the OBMC really only performs stateful DHCPv6. \n\nMy radvd.conf:\ninterface enp3s0 {\n        AdvSendAdvert on;\n        AdvManagedFlag on;\n        MinRtrAdvInterval 3;\n        MaxRtrAdvInterval 10;\n        prefix 2112:1020:1::/64 {\n                AdvOnLink on;\n                AdvAutonomous off;\n                AdvRouterAddr on;\n        };\n\n\nMost of my dhcpdv6.conf file is an unmodified isc-dhcpv6-server as created on my Ubuntu 20.04 system. I left the lease times alone. I do not define any name server/domain search lists. The business end of address assignment is done by the lines below:\nhost otherclient {                 \n        # This host entry is hopefully matched if the client supplies a DUID-LL              \n        # or DUID-LLT containing this MAC address.                                           \n        host-identifier option                \n                dhcp6.client-id 00:02:00:00:ab:11:4d:f5:b2:75:58:2a:25:37;                   \n                fixed-address6 2112:1020:1::3;                                               \n}\nsubnet6 2112:1020:1::/64 {                                                                                                                                                                \n        range6 2112:1020:1::2 2112:1020:1::3;                                                \n}\n\nI think this config is technically in error, as the \"host otherhost\" should not have a fixed address inside the dynamically assigned subnet6 range. I also need to change this to a fdxx local address assignment space."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "No, it implies the other way around. You can't do DHCPv6 without parsing RAs, but you can parse RAs and use the information without DHCPv6."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "William,\nHow do you reconcile that statement against this directly from systemd-network:\n'DHCP=\n.....\nNote that DHCPv6 will by default be triggered by Router\nAdvertisement, if that is enabled, regardless of this parameter.'\n\nIf I set DHCP=v4 or DHCP=none, systemd-networkd still performs RA, and assigns a DHCPv6 address. So when RA is enabled, 'none/ipv4' is ignored by systemd-networkd."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "It looks like it would make more sense to just set the value of `IPv6AcceptRA.DHCPv6Client` based on the value of DHCPv6 enablement. This would be less surprising than enabling DHCP when the user enables RA."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I began to look at this William. Fundamentally the issue is still the same. The IPMI API does not have an independent way of controlling the RA vs the DHCP entry. That issue has been discussed internally. The expectation is that an ad-hoc solution to work around the IPMI API limitation may not be accepted upstream. I'd like to get guidance from the maintainers concerning this implementation.\n\nIPMI can directly control enabling RA.\nIPMI can directly control enabling DHCP. It does not have independent control of IPv4 vs IPv6.\n\nThis lack of control leaves odd corner cases to handle implicitly. If I follow your suggestion and use IPMI to enable RA, yet leave DHCPv6Client == false, then IPv6 addrs don't get assigned. What mechanism should be used to assign DHCPv6Client == true? If such a mechanism existed in IPMI now, we could always assign DHCPv6Client == false, and then control the primary DHCP= entry per the rules that the existing code follows now.\n\nI see the following options:\n1. Leave the phosphor-network handling as-is prior to this commit, and don't support IPMI correctly announcing DHCPv6 state.\n2. Implement what I have submitted, and have an ad-hoc solution to the problem.\n3. Create an OEM extension to SetLan, GetLan that controls DHCPv6 explicitly. Which is basically an ad-hoc solution, just in a different repo (i.e. phoshpor-ipmi-host, or intel-ipmi-oem)."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 589,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "My opinion would be to keep these independent options at the dbus level, so that other client can configure them independently but have IPMI set them both to the same value when \"IPv6 Router Address Configuration Control\" is set. It's pretty clear in the IPMI spec that they expect DHCPv6 to be a possible option when dynamic router control is enabled. Having it disabled should then disable DHCPv6 too.\n\nIt would be really nice to decouple DHCPv6 from the DHCPv4 settings in the lan config."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 55,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": -10
+                }
+            ],
+            "sizeInsertions": 88,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 2,
+            "revision": "c16b201aae84b65dd716f9232f6fa9b7bb442368",
+            "parents": [
+                "5dad2aafbc7d8b7f00f56b524c458f5704e7a03f"
+            ],
+            "ref": "refs/changes/40/48040/2",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1644274086,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 51,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 54
+        },
+        {
+            "number": 3,
+            "revision": "667297edec723a19fdfc379784d34c9eb0b976b3",
+            "parents": [
+                "973998472afa32448d6e00124720e13df13c6704"
+            ],
+            "ref": "refs/changes/40/48040/3",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1647889548,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 51,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 54
+        },
+        {
+            "number": 4,
+            "revision": "28ae4dbc81d1d5fd56c6c3196194007a32987709",
+            "parents": [
+                "3397be3ca10310a264ee0ab9c5fb17add9e0307b"
+            ],
+            "ref": "refs/changes/40/48040/4",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1648062725,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 51,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 54
+        },
+        {
+            "number": 5,
+            "revision": "5cd98d4554e19e92354046c0c6fcf18918886e81",
+            "parents": [
+                "3397be3ca10310a264ee0ab9c5fb17add9e0307b"
+            ],
+            "ref": "refs/changes/40/48040/5",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1648757572,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Patchset 5 fixes an issue in the unit tests.\nThe test was trying to read contents from a file that didn't exist.\nThe test needs to create the default file, in the same way as the actual network manager code."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 51,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 175,
+            "sizeDeletions": 54
+        },
+        {
+            "number": 6,
+            "revision": "b1f0c8287336d14ff9d01cc0e319ab13e030be0c",
+            "parents": [
+                "3397be3ca10310a264ee0ab9c5fb17add9e0307b"
+            ],
+            "ref": "refs/changes/40/48040/6",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1648757937,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Thanks Ratan."
+                },
+                {
+                    "file": "src/util.cpp",
+                    "line": 555,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "we don't need to check the dhcpList for Ipv6, only ipv6AcceptRA && dhcpv6Client is sufficient for ipv6."
+                },
+                {
+                    "file": "src/util.cpp",
+                    "line": 555,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/util.cpp",
+                    "line": 560,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Same here."
+                },
+                {
+                    "file": "src/util.cpp",
+                    "line": 560,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 51,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 175,
+            "sizeDeletions": 54
+        },
+        {
+            "number": 7,
+            "revision": "2844d69f26aa3a6df325edb8fdf2c96376429e6b",
+            "parents": [
+                "166b9598ac83db574c4e9b666e770b76f3501b29"
+            ],
+            "ref": "refs/changes/40/48040/7",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1649108016,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "typo"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Not Done. Please edit before merging"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "I am good with the changes, Let william also take a look."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Jonathan, You need to merge this with the following.\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-host-ipmid/+/50987\nhttps://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/509"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "This can, and needs to, precede the BMCWeb and the IPMI commits.\nThe existing BMCWeb and IPMI code will still function correctly with this change in place.\nThe IPMI commit will be approved shortly after I merge this.\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "I'm still not okay with this for the comment I left before. We have use cases where we use DHCP=false and IPv6AcceptRA=true managed by phosphor-netowrkd, so this change can't work for us.\n\nI don't see why we can't fix this in IPMI and redfish layers to smooth out any issues an end user would run into. We should be able to just set both properties when changing the DHCPv6 state."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@william: what are those use cases? \n          stateless DHCP????"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "Just no DHCP at all. SLAAC with RA and we intentionally don't want to send DHCP requests."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Which this commit supports.\nThe D-Bus value v6stateless turns off DHCPv4, and assigns IPv6AcceptRA=t and DHCPv6Client=f. This blocks the BMC from trying to find a DHCPv6 server.\n\nThe current code performs a weird action where IPv6AcceptRA=f, and assigns a value to DHCPv6Client=f, which doesn't do anything. DHCPv6Client only matters when IPv6AcceptRA=t.\n\nDHCP=ipv6 is effectively DHCP=false. I was surprised to see the DHCP=ipv6 even occur in my recent testing. The map is supposed to set it false."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "This is kinda insane at this point. We should probably just fix the d-bus schema to get rid of the enum combinatoric chaos."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@william: We already have the acceptRA property, which can be used to accept only the RA but don't start the DHCP, That can be fixed here to support the stateless IP without DHCP.\n\n> We should probably just fix the d-bus schema to get rid of the enum combinatoric chaos.\n\nWhat is the chaos here? We should support all the enum configuration.\n         - name: both\n          - name: v4v6stateless\n          - name: v6\n          - name: v6stateless\n          - name: v4\n          - name: none"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "William, what is your specific proposal to modify?\n\nThe code change submitted here encapsulates the management of the systemd.network configuration files to be fully controlled by phosphor-network. The prior code change that allowed IPv6AcceptRA leaked implementation details for systemd.network to both IPMI and Redfish.\n\nThe IPMI and Redfish code should request state changes, and allow phosphor-network to achieve those state changes. Performing the task with the enumerations above allows both IPMI and Redfish to request new state without knowledge of the underlying components. The whole of systemd-network could be replaced with some other IP stack and IPMI/Redfish requests would still operate the same.\n\nThe current upstream code can't even properly manage SLAAC.\nIf IPv6 DHCP is on, then DHCPv6Client is true, and thus is not performing SLAAC. \n    stream << \"[IPv6AcceptRA]\\n\";\n    stream << \"DHCPv6Client=\";\n    stream << (dhcpIsEnabled(IP::Protocol::IPv6) ? \"true\" : \"false\");\n\nIf a BMC is getting a SLAAC, then the RA has to be configured in a way to prevent the \"Managed\" bit from being returned to the submitter.\n\nWith the current upstream code there's no way to have IPv6 true and DHCPv6Client assigned false. This is the definition of SLAAC operation.\n\n\nThe changes I've submitted, explicitly control DHCP, IPv6AcceptRA, and DHCPv6Client without relying on, or trying to divine correct operation, from current state.\n\nWith the changes proposed here even with the RA advertising the \"Managed\" bit, assigning IPv6AcceptRA=true, DHCPClientv6=false makes the BMC IP stack self assign."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Maintainers,\nPlease suggest actionable changes, or approve the commit."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@jonathan : What is broken now with this patch:  If user wants only the router published address and don't want any DHCP configuration then it will not work and that is breaking the old code..\n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-networkd/+/48040/7/src/ethernet_interface.cpp#574\n\nYou have stopped allowing the user to change this property and it can be only controlled through DHCP option, which is breaking the old code."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "in the RA message if A bit is set(M and O is not set) then you don't need DHCP, You only need the advertised  prefix from the router and do the SLAAC."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I don't understand your comment:\n'You have stopped allowing the user to change this property and it can be only controlled through DHCP option, which is breaking the old code.'\n\nThis portion of the interface was being used by BMCWeb and phosphor-ipmi-host to directly control IPv6AcceptRA.\n\nI have created two other patches in those repos that perform the correct action.\n\nAre you saying someone may be using a method that invokes this function outside of IPMI and Redfish? This, IMO, validates that we have the incorrect API present on D-Bus.\n\nThe whole point of this change is to eliminate the leak of how systemd.network performs the work of getting DHCPv4 and v6 configured. Making the IPv6AcceptRA element visible on D-Bus was a mistake. It enables only part of the control necessary to correctly manage IPv6 address assignment. It needs to be ditched, IMO.\n\n\"in the RA message if A bit is set(M and O is not set) then you don't need DHCP, You only need the advertised  prefix from the router and do the SLAAC.\"\n\nWhat happens when those bits ARE set and you don't want DHCP? Having the ability to explicitly write DHCPv6Client true/false allows the BMC to choose to accept or to ignore those bits. I've configured my radvd to enable both of those, and with IPv6AcceptRA=true/DHCPv6Client=true you get both DHCPv6 and SLAAC addresses. Using the \"v6stateless\" enum changes the combination to \"true/false\" and the BMC only performs a SLAAC assignment. This seems to me to be the correct operation.\n\nIf the directive from the maintainers is to make the flagged function continue to work, and to keep the technical debt associated, then an actionable recommendation has been provided.\n\nIs keeping that D-Bus entry active and performing some action the direction the maintainers wish?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Thank you for your specific objection/observation."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@jonathan : Before this patch we were having following types of IPv6 addresses supported.\n- DHCP stateful\n- DHCP stateless\n- Auto Configure address(SLAAC).\n\nWith this patch we are losing the third type of address.\n\nSay if user has disabled the DHCP, Can BMC get the SLAAC address (published by radvd where M, O is not set and  A bit is set), If not that is the concern.\n\n\u2018A\u2019 flag set to 1 means a system will derive its IPv6 address based on the prefix information provided by a router  \n\n> What happens when those bits(M & O) ARE set and you don't want DHCP? \n\nThat means disable the DHCP, However if the A bit is also set then BMC should get the SLAAC(Auto Configure address) and you can only get if the AcceptRa is true.\n\nHere is the meaning of certain flags:\n\nManaged (M flag) = \u20181\u2019 means the address is provided by stateful DHCPv6.\n\nOther (O flag) = \u20181\u2019 means that the address is provided by Stateless DHCPv6, useful for providing options when the client is doing SLAAC\u2013Stateless Address Autoconfiguration. (Note, there is no option for a default gateway).\n\nAddress Autoconfiguration (A flag) = \u20181\u2019 means that it suggests the host creates its own IPv6 address using SLAAC."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "What has been lost?\nCurrent upstream behavior:\nDirect enum control of the DHCP entry, with \"none\", \"ipv4\" and \"true\" the only valid values. The \"true\" value only impacts DHCPv4.\nDirect D-Bus control of IPv6AcceptRA\nNo control of DHCPv6Client. If IPv6AcceptRA = true, then DHCPv6Client=true, which only allows \"stateful\" address assignment. If \"stateless\" or \"slaac\" are happening with this setting it is the result of how the RA daemon is configured.\nThis model is \"working\".\n\nMy new code:\nControl of DHCP, IPv6AcceptRA, and DHCPv6Client via defined enums.\nVia the enums DHCP, IPv6AcceptRA, and DHCPv6Client can be set exactly as desired.\nAll 8 possible states are controllable with intent, not due to side-effects.\nThere has only been a gain in capability, not a loss.\n\nAt present BMCWeb does not implement any of the StatelessAddressAutoConfiguration schema. Thus OBMC has no direct way to instruct phosphor-network/systemd-networkd to configure SLAAC with intent."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Ratan,\nThanks for your response.\nPlease see my explanation/defense of the submission below.\nI do not see any loss of capability, only an improvement in capability."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "@William, I do not understand how this will break the network for your requirements. If that is the case, can you be explicit on what part of this change is the problem?\n\nJohnathan created this change because the network configuration is not currently working for our needs. Rather than make a little fix that would probably necessitate further changes in the future, he made this change more complete, filling in all the possibilities.\n\nThe options offered in the patch not only provide a way to put the BMC into any of the dynamic addressing modes (all combinations of DHCPv4, DHCPv6, SLAAC, and NONE), but also does so in a very straightforward interface that is independent of IPMI and Redfish.\n\nSomehow both you and Ratan have come to the conclusion that this does not support v6 stateless (SLAAC). I am not sure how that conclusion was reached, given that this is explicitly one of the options available. If you disagree with that, please let Johnathan know how it does not fulfill your interpretation of this requirement.\n\nIf you are still not convinced, I would invite you to test the code in your environment and provide specific feedback on what is not working so we can move this patch forward."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jason Bills",
+                        "email": "jason.m.bills@linux.intel.com",
+                        "username": "jmbills"
+                    },
+                    "message": "+1\nIt would be good if we can figure out how to move this patch forward.  Thanks!"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@jonathan, Please correct me with the following.\n\n/ tuple elements: DHCP, IPv6AcceptRA, DHCPv6Client\nstd::map<EthernetInterface::DHCPConf,\n         std::tuple<std::string, std::string, std::string>>\n    mapDHCPToSystemd = {\n        {EthernetInterface::DHCPConf::both, {\"true\", \"true\", \"true\"}},\n        {EthernetInterface::DHCPConf::v4v6stateless, {\"true\", \"true\", \"false\"}},\n        {EthernetInterface::DHCPConf::v4, {\"true\", \"false\", \"false\"}},\n        {EthernetInterface::DHCPConf::v6, {\"false\", \"true\", \"true\"}},\n        {EthernetInterface::DHCPConf::v6stateless, {\"false\", \"true\", \"false\"}},\n        {EthernetInterface::DHCPConf::none, {\"false\", \"false\", \"false\"}}};\n\nNow if user has set the DHCP as none, IPV6acceptRA has become false. Is it correct or not?\n\nNow I only want to only enable the acceptRA,but no DHCP client.\n\nCan I do this with this current PATCH?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Ratan, Ravi,\nThank you for your time to help move this commit forward.\nI hope that my explanation of the 'v6stateless' enum puts to rest any concern about SLAAC no being supported.\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Ratan,\nThat is the correct reading of the final entry of the tuple.\n\nThe systemd.networkd \"DHCP=\" only controls IPv4.\nYou can assign the \"DHCP=\" to \"ipv6\" and nothing changes in the IPv6 network stack. Thus there are only two states for \"DHCP=\", and they only control IPv4.\n\nThe only time the IPv6 network stack performs any auto-config is when the \"IPv6AcceptRA=\" entry is \"true\". The default behavior is for systemd.network to automatically enable \"DHCPv6Client=true\", which is \"stateful\" operation.\n\nTo achieve \"stateless\" operation the systemd.network configuration file has to explicitly set \"DHCPv6Client=false\" to prevent the stack from searching for a DHCPv6 server on the local network segment.\n\nTo get into the state you are requesting the D-Bus \"v6stateless\" state is sent. I've mentioned this, and Vernon mentioned this yesterday. This assigns:\n\"DHCP=false\"  # IPv4 DHCP is inactive\n\"IPv6AcceptRA=true\" # IPv6 DHCP is enabled because you can't \"DHCP\" without a Routing Advertisement server on the local segment.\n\"DHCPv6Client=false\" # Prevent the BMC network stack from searching the local segment for a DHCPv6 server (ala isc-dhcp-server6)\n\nI tested this before submitting this commit. \nMy SUT has this in the systemd.network config file:\nDHCP=false\nIPv6AcceptRA=true\n[IPv6AcceptRA]\nDHCPv6Client=false\n\nMy SUT has the following behavior as a result:\neth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000\n    link/ether a4:xx:xx:xx:xx:cf brd ff:ff:ff:ff:ff:ff\n\n# No IPv4 DHCP address, this is Link Local\n    inet 169.254.105.183/16 brd 169.254.255.255 scope link eth1\n       valid_lft forever preferred_lft forever\n\n# IPv6 self assigned address\n    inet6 fd54:2112:1812:0:a6xx:xxf:fexx:xxcf/64 scope global dynamic noprefixroute flags 100 \n       valid_lft 86397sec preferred_lft 14397sec\n\n# Link Local IPv6 address\n    inet6 fe80::a6xx:xxf:fexx:xxcf/64 scope link \n       valid_lft forever preferred_lft forever\n\n\n\nChanging DHCPv6Client to true gets the following:\n\neth1: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000\n    link/ether a4:xx:xx:xx:xx:cf brd ff:ff:ff:ff:ff:ff\n# No change to IPv4 state\n    inet 169.254.105.183/16 brd 169.254.255.255 scope link eth1\n       valid_lft forever preferred_lft forever\n\n# Stateful IPv6 DHCP address assignment from the RA and DHCPv6 servers\n    inet6 fd54:2112:1812::4130/128 scope global dynamic noprefixroute \n       valid_lft 2591972sec preferred_lft 604772sec\n\n# Link local IPv6 address\n    inet6 fe80::a6xx:xxf:fexx:xxcf/64 scope link \n       valid_lft forever preferred_lft forever"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Jonathan, Now while we are discussing, I see one more issue here.\ntuple elements: DHCP, IPv6AcceptRA, DHCPv6Client\n\n1)  {EthernetInterface::DHCPConf::v6stateless, {\"false\", \"true\", \"false\"}}\n\nThat means for the DHCPv6 stateless IP we are not starting the DHCPv6 client and as per me it is not correct, we should start the DHCPv6 client. Why?\n\nBecause for DHCPv6 stateless,  BMC will get the IP from the router but the other info like NTP,DNS details will be taken from the DHCP server.\n\nPlease refer the link below.\nhttps://www.networkacademy.io/ccna/ipv6/stateless-dhcpv6#:~:text=Stateless%20DHCPv6%20is%20used%20by,some%20other%20mechanism%20usually%20SLAAC.\n\n2) Now say I don't need DHCP at all, however I need the stateless auto config address.\n\nSay user has disabled DHCP by following busctl cmd(cmd may be syntactically wrong).\n\nbusctl call  xyz.openbmc_project.Network/xyz/openbmc_project/network/eth0 org.freedesktop.DBus.Properties Set ss xyz.openbmc_project.Network.EthernetInterface DHCP EthernetInterface::DHCPConf::none.\n\nNow user still want the SLAAC address, What should he do?\n\nWe don't want the DHCP API here, as we don't need to start the DHCP client here.\n\nIn all other cases of DHCP v6(Stateful or Stateless) we need to start the DHCpV6 client.\n\nDHCPv6 stateless(we still need dhcp client here) is different than autoconfigured address(we don't need DHCP at all)."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "More Info:\n\nFollowing is a list of the typical combinations of address configuration bits set within the RA message sent by the local router.\n\nA=1, M=0, O=0\n\nEnd host uses stateless auto-configuration(NO DHCP)\n\nA=1, M=0, O=1\n\nEnd host uses SLAAC and stateless DHCPv6, autoconfigured address but DNS and other information is added from DHCPv6 server.\n\nA=0, M=1, O=1\no   End host uses DHCPv6 for all information"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Extensive reply."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Ratan,\n\nYou're proving that my configuration is correct.\n\n>1)  {EthernetInterface::DHCPConf::v6stateless, {\"false\", \"true\", \"false\"}}\n> That means for the DHCPv6 stateless IP we are not starting the DHCPv6 client \n> and as per me it is not correct, we should start the DHCPv6 client. Why?\n\nStateless operation, by definition is configuration based solely on the Routing Advertisment Server on the local link. A DHCPv6 Server on the local link is **not** to be consulted.\n\nThe link you provided states the \"Routing Advertisement Server\" on the local link can send an \"O=1\" response. This tells the BMC IPv6 stack to go find the \"Other\" source for DNS/NTP. This is \"Stateless with DHCPv6\" mode **forced** by the RA Server on the local link. It is a network infrastructure choice, made by the network link admin. The RA is specifically saying \"I don't care if you've turned off DHCPv6 locally, do some/all of the RFC compliant DHCPv6 actions\".\n\n>2) Now say I don't need DHCP at all, however I need the stateless auto config\n> address.\n\nYou don't send \"none\". That explicitly tells the BMC networking stack you don't want IPv4 or any form of IPv6 address auto-config.\n\nThe Routing Advertisement Server on the local link has to be configured to not send the \"O=1\" bit. You still have to have IPv6AcceptRA asserted to have any IPv6 \"auto configuration\" action to occur, whether Stateful, or Stateless. \n\nThis is, once again, a network infrastructure choice made by the network admin for the local link.\n\nIf IPv6AcceptRA is false, all IPv6 address assignment has to be done using static assignment. If IPv6AcceptRA is false it doesn't matter what you set DHCPv6Client to, it is ignored.\n\nIf the BMC has IPv6AcceptRA=true and DHCPv6Client=true then V6 Stateful operation is being performed. This is the \"v6\" enumeration. What happens still depends on how the RA Server and the DHCPv6 server are configured. In my testing, even if I had both of these values active, if the DHCPv6 server was misconfigured you still would not get a **stateful** assignment.\n\nFor this to work **ALL** of the individual servers and configuration variables must be set correctly.\n\nThat we are having this kind of detailed discussion of the guts of the OBMC IPv6 configuration leaves me to believe that exposing the individual pieces of the configuration options will lead to many users being unable to correctly configure their IPv6 OBMC/RA/DHCPv6 stack. The consensus will quickly build that OBMC cannot perform dynamic IPv6 address assignment. The defects will be filed in due time.\n\n\n>Following is a list of the typical combinations of address configuration bits\n> set within the RA message sent by the local router.\n\n>A=1, M=0, O=0\n>End host uses stateless auto-configuration(NO DHCP)\nIPv6Stateless w/o DHCPv6. DHCPv6Client must be false.\n\n>A=1, M=0, O=1\n>End host uses SLAAC and stateless DHCPv6, autoconfigured address but DNS and\n> other information is added from DHCPv6 server.\nIPv6Stateless RA forcing DHCPv6 override.  DHCPv6Client must be false.\n\n>A=0, M=1, O=1\n> End host uses DHCPv6 for all information\nIPv6 Stateful, DHCPv6Client must be true. RA is explicitly stating SLAAC is not being used."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "To me, it sounds like you have covered all of the commonly used cases.\n\nI am going to give this a +1, because I think the content is correct.\n\nIt needs to be rebased for a conflict, but I also think the comment on line ethernet_interface.cpp line #186 needs to be addressed as well."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Sorry, we are not in agreement here, We should have the configuration for all.\n\n- DHCP stateless: Where BMC have to start the DHCPv6client for the other info(i.e DHCPv6 stateless)\n\n- DHCP Stateful : Where IP as well as other DHCP info BMC will be getting through the DHCP server, BMC have to start the DHCP client.\n \n- Stateless AutoConf IP: where BMC will not start the DHCP Client, only router advertised prefix will be used to address \n\nIf we have the configuration for all , we are good, otherwise not."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Stateless AutoConf IP (A=1, M=0, O=0)\n==> this is covered with below options\n{EthernetInterface::DHCPConf::v6stateless, {\"false\", \"true\", \"false\"}},\n{EthernetInterface::DHCPConf::v4v6stateless, {\"true\", \"true\", \"false\"}}\n\nDHCP stateless (A=1, M=0, O=1)\n==> Not covered\n@Johnathan, Is this because, when you enable the DHCPv6 client, it overrides the RA provided IP and BMC gets the IP from DHCPv6 server?\n\nDHCP Stateful (A=0, M=1, O=1)\n==> this is covered with below option\n{EthernetInterface::DHCPConf::v6, {\"false\", \"true\", \"true\"}},"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": ">DHCP stateless (A=1, M=0, O=1)\n>==> Not covered\n\nNot covered is vague. What explicitly did not work?\nDid you confirm the RA and DHCPv6 servers on the local link were properly configured?\nWhat is the expected outcome?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "This combination should assign the ip address from RA, and the DNS etc from the DHCP server. \n\nAt our setup, we got the DHCPv6 server's assigned IP which overrid the RA's IP. \nSo question is how did this get combination work with this commit ?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "I think we can get this going now. More tests on this will reveal if some combinations are left or not. If they are left-out, we can work on them with a new commit."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Hi Ratan, your latest question relates to this thread. When we tested, we were not able to see this combination of (A=1, M=0, O=1) working. Seems like this needs more investigations and tests. \n\nI believe that should not stop this commit to go ahead, as this commit has major functionalities which are needed for multiple other usecases and they work fine."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Any views on this Ratan?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 186,
+                    "reviewer": {
+                        "email": "prithvi.a.pai@intel.com",
+                        "username": "PrithviAPai"
+                    },
+                    "message": "It would be good if we break before default case."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 186,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 236,
+                    "reviewer": {
+                        "name": "Ravi Teja",
+                        "email": "raviteja28031990@gmail.com",
+                        "username": "raviteja-b"
+                    },
+                    "message": "I think we need to identify specific origin for SLAAC/DHCP v6 addresses to map with right redfish enum and display correct AddressOrigin \nfor SLAAC address displaying as \"AddressOrigin\": \"DHCPv6\" does not look correct to me."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 236,
+                    "reviewer": {
+                        "name": "Vernon Mauery",
+                        "email": "vernon.mauery@linux.intel.com",
+                        "username": "vmauery"
+                    },
+                    "message": "This is networking code, not Redfish code. The network configuration daemon should provide an interface that is independent of all the clients that would call into it. The interfaces should work for IPMI and Redfish, but should not have anything specific to either of them."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 236,
+                    "reviewer": {
+                        "name": "Jason Bills",
+                        "email": "jason.m.bills@linux.intel.com",
+                        "username": "jmbills"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 236,
+                    "reviewer": {
+                        "name": "Ravi Teja",
+                        "email": "raviteja28031990@gmail.com",
+                        "username": "raviteja-b"
+                    },
+                    "message": "I get that, but Networkd should be able to identify DHCP address IP vs SLAAC IP and populate  correct origin enum on D-bus object right?\nThere is a enum defined for SLAAC but Networkd does not use.\nhttps://github.com/openbmc/phosphor-dbus-interfaces/blob/master/yaml/xyz/openbmc_project/Network/IP.interface.yaml#L65"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 236,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "There is a commit that William has pending. One that I'd like to see merged. It uses netlink to query the assignment source for each address on the NIC. IMO using netlink is the superior method for detecting how the IP address was actually assigned. Inferring assignment based on DHCP enablement is flawed.\n\nIPv6 can have multiple IP addresses on the NIC. One could be statically assigned, one SLAAC, and one Stateful. Using the current logic all of these instances would be flagged \"DHCP\" assigned, when there's at least one that is statically assigned.\n\nThe results from netlink only announce \"static\" and \"dynamic\". There's only a single bit. IMO this is enough. Stateful and Stateless/SLAAC required no human interaction on the client to acquire an IPv6 address. This is DHCP. If, on the other hand, you used a UI, and explicitly typed in an IPv6 address, and all the other IPv6 network configuration data, you've used a static assignment.\n\nAs to the D-Bus interfaces entry. Sometimes entries get made that ultimately turn out to be an \"appendix\". Nobody can figure out what the human appendix is good for, but it's there anyway.\n\nAdditionally, the two reporting/control protocols OBMC uses, IPMI and Redfish, up to this point have not had an interface providing visibility/control over IPv6 SLAAC.\n\nSo far as I can determine, there's no way other than parsing IPv6 addresses for a specific pattern to determine if an address is SLAAC. The netlink API won't tell you. Inferring from the systemd.network configuration won't tell you, and parsing IPv6 addresses is a marginal idea to figure it out. Without a reliable method of identifying the IP address assignment mode I don't expect anyone is going to go out of their way to announce an IPv6 address as SLAAC assigned when, in the majority of use cases, reporting DHCP is enough."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1101,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "From the networkd file DHCP option can have below values.\n------------------------------------------------------------------\nDHCP=\nEnables DHCPv4 and/or DHCPv6 client support. Accepts \"yes\", \"no\", \"ipv4\", or \"ipv6\". Defaults to \"no\".\n\nNote that DHCPv6 will by default be triggered by Router Advertisement, if that is enabled, regardless of this parameter. By enabling DHCPv6 support explicitly, the DHCPv6 client will be started regardless of the presence of routers on the link, or what flags the routers pass. See \"IPv6AcceptRA=\".\n\nFurthermore, note that by default the domain name specified through DHCP is not used for name resolution. See option UseDomains= below.\n\nSee the [DHCPv4] or [DHCPv6] sections below for further configuration options for the DHCP client support.\n\n------------------------------------------------------------------\n\nWhy are the mapped values set to true/false in this commit? This should take ipv4/ipv6 as well correct? Are you considering this flag only for IPv4DHCP enablement?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1101,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "See my comments in https://gerrit.openbmc.org/c/openbmc/phosphor-networkd/+/54112\nI've discussed all of this in the prior review comments.\nIn short: DHCP= only controls IPv4, IPv6AcceptRA only controls SLAAC/DHCPv6.\nThis commit gave full, explicit control over the DHCP/IPv6AcceptRA/DHCPv6Client entries. Current code can't even turn off DHCPv6Client and have IPv6AcceptRA active, due to an erroneous implicit state check."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 1101,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Should this also go under ENABLE_IPV6_ACCEPT_RA compiler flag?"
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "line": 41,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -2
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 54
+        },
+        {
+            "number": 8,
+            "revision": "019a829c199a434645d5c63401f86e6ab7db5070",
+            "parents": [
+                "315b19bba7525d2bd655f41322b4dbc1de705d35"
+            ],
+            "ref": "refs/changes/40/48040/8",
+            "uploader": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "createdOn": 1653975356,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 171,
+            "sizeDeletions": 53
+        },
+        {
+            "number": 9,
+            "revision": "2f95610739bf4f0cccd001d7a1b42f77c0d256da",
+            "parents": [
+                "315b19bba7525d2bd655f41322b4dbc1de705d35"
+            ],
+            "ref": "refs/changes/40/48040/9",
+            "uploader": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "createdOn": 1653976951,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 171,
+            "sizeDeletions": 53
+        },
+        {
+            "number": 10,
+            "revision": "29cf64226e12695b7b70bd4ffcef14423eb41d41",
+            "parents": [
+                "315b19bba7525d2bd655f41322b4dbc1de705d35"
+            ],
+            "ref": "refs/changes/40/48040/10",
+            "uploader": {
+                "name": "Ravi Teja",
+                "email": "raviteja28031990@gmail.com",
+                "username": "raviteja-b"
+            },
+            "createdOn": 1653979177,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jiaqing Zhao",
+                        "email": "jiaqing.zhao@intel.com",
+                        "username": "jiaqingz-intel"
+                    },
+                    "message": "https://gerrit.openbmc.org/c/openbmc/phosphor-networkd/+/54112"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "@Johnathan - Can you please reply to the questions which i had? We are also willing to consume this commit for our systems and we are looking for your thoughts on our questions "
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "See below"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Jiaqing Zhao",
+                        "email": "jiaqing.zhao@intel.com",
+                        "username": "jiaqingz-intel"
+                    },
+                    "message": "Please refer to https://gerrit.openbmc.org/c/openbmc/phosphor-networkd/+/54112"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "See my review comments. I believe 54112 makes no functional change to the DHCP behavior. I will incorporate the changes here, plus some, in an attempt to make intent more clear."
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Sure"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Ack"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -4
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 78,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 171,
+            "sizeDeletions": 56
+        },
+        {
+            "number": 11,
+            "revision": "bf9c5f6ecfebf38db55e9af53e83ba0093bc76d8",
+            "parents": [
+                "315b19bba7525d2bd655f41322b4dbc1de705d35"
+            ],
+            "ref": "refs/changes/40/48040/11",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1654626551,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Updated to merge a portion of commit 54112."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -4
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 89,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 182,
+            "sizeDeletions": 56
+        },
+        {
+            "number": 12,
+            "revision": "a872f5d9334c751aa1555678af32ba8f1c040468",
+            "parents": [
+                "315b19bba7525d2bd655f41322b4dbc1de705d35"
+            ],
+            "ref": "refs/changes/40/48040/12",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1655492054,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Commit to fix typo only."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -4
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 89,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 182,
+            "sizeDeletions": 56
+        },
+        {
+            "number": 13,
+            "revision": "4c6505631c9bb0c0e5c3d42cfad447e3dc3c5ce8",
+            "parents": [
+                "315b19bba7525d2bd655f41322b4dbc1de705d35"
+            ],
+            "ref": "refs/changes/40/48040/13",
+            "uploader": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "createdOn": 1655493201,
+            "author": {
+                "name": "Johnathan Mantey",
+                "email": "johnathanx.mantey@intel.com",
+                "username": "Howitzer105mm"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Added the missing 'break' prior to the 'default:\" in the switch statement as requested."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "Looks good"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": ">A=1, M=0, O=1\nEnd host uses SLAAC and stateless DHCPv6, autoconfigured address but DNS and\nother information is added from DHCPv6 server.\n\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "I've spent some time over the last few days performing more tests on this commit. I still have additional testing to perform, primarily around the 'O' bit."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "Ratan,\nYou agree v6 and both enable the necessary IPv6 features.\nWhat is blocking approval of this commit?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "DHCP stateless (A=1, M=0, O=1): Outcome of this is get the IP address from the autoconf router and other info should get from the DHCP server.\n\nWhich combination from the above table, which will work here?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Johnathan Mantey",
+                        "email": "johnathanx.mantey@intel.com",
+                        "username": "Howitzer105mm"
+                    },
+                    "message": "This case is covered by \"both\", and \"v6\", which is the state the current BMC configures the IPv6 behavior when IPv6AcceptRA=true. The current implementation of BMC has no ability to disable DHCPv6Client.\n\nWhat appears to be the sticking point now is the naming of the enums?"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Yes agree"
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "line": 68,
+                    "reviewer": {
+                        "name": "Sunitha Harish",
+                        "email": "sunithaharish04@gmail.com",
+                        "username": "sunharis"
+                    },
+                    "message": "> This case is covered by \"both\", and \"v6\"\nYes. This is correct. The flags corresponding to ipv6 DHCP stateful and stateless should be true to achieve this.\n\nThis combination of A=1, M=0, O=1 can not be controlled at the BMC side. This is a setup to be done at the radvd and dhcpd6 configuration files. The radvd.conf should mention 'AdvOtherConfigFlag on' + 'AdvManagedFlag off'"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 37,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/network_config.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -4
+                },
+                {
+                    "file": "test/mock_network_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/util.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 49,
+                    "deletions": -6
+                },
+                {
+                    "file": "src/ethernet_interface.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 90,
+                    "deletions": -46
+                }
+            ],
+            "sizeInsertions": 183,
+            "sizeDeletions": 56
+        }
+    ]
+}

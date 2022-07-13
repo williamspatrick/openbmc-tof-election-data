@@ -1,0 +1,124 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "If2a955868647d9dd5f76cba4984bba8183340391",
+    "number": 35456,
+    "subject": "Move login state machine to bmcweb",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/35456",
+    "commitMessage": "Move login state machine to bmcweb\n\nThis commit attempts to move the handling of login/logout out of\njavascript, and into more basic forms.  This simplifies login handling\noverall, and means that no javascript is executing until a user is\nlogged in, which means that a large number of files can be \"hidden\"\nbehind 401 return codes.\n\nAdvantages:\n1. A number of people have complained about a \"bug\" in bmcweb, where\nlack of phosphor-webui causes an infinite redirect.  This is a problem,\nas bmcweb contains its own redfish rendering UI, yet relies on the\nphosphor-webui login page.  At one point, there was an effort to move\nthis UI into phosphor-webui, but it was deemed a mediocre idea, as\nredfish is an API, and can exist without any UI (as some users wish to\ndo).  This patch fixes the whole scope of the issue, by having one\ncommon login form for all routes, including the webui, and breaks the\ndependency to require phosphor-webui to be installed.\n\n2. The routes list in webassets.hpp is a hack, and causes an\narchitectural problem, as individual routes now have to be aware of\nother routes existence, as well as adds the possibily that someone could\ninject a nefarious route through the filesystem, that allows things\nthrough the whitelist.  In practice, this is handled, but requires a\nvery complex state machine that combines logic in the router, and the\nwebassets to function properly.  THis patchset moves the allow list to\nsomething much simpler, easier to audit for correctness, and something\nthat very likely optimizes better.\n\n3. We are no longer running ANY javascript in an unauthenticated\ncontext.  This means that our whole javascript packages is almost\nentirely out of scope for any sort of pre-auth attack.  This is good, as\nbmcweb is already a place we have to do this.\n\n4. This unifies the mutual TLS and webui auth mechanisms into a single\nspot, so the \"IsAuthenticated\" header is used everywhere.  Not special\ncasing mtls seems like a good idea.\n\n5. It clears the way for an OAUTH login type, which would likely require\na similar handshake with bmcweb.  (note, this is conjecture based on\nexperience.  I have not built an oauth patch to verify this yet)\n\n6. Lack of javascript and static files will mean that bmcweb is less able to be\nfingerprinted to determine its version, especially in the case where\nRedfish static files are hidden behind an auth mechanism.\n\nDownsides:\n1. It adds a couple branches to the webui login routines, for handling\nboth the case where this is installed in bmcweb, and the case where it's\nnot.  This is somewhat already split, given mutual TLS auth, but this\nmakes some of the routes more different.  The old routes have been left\nso remote development should still work, and given that this branch is\nnever used in a \"real\" deployment anymore, and only adds about 4 lines\nof \"dead\" code in the final product, it seems reasonable.\n\n2. It gives bmcweb more ownership of css (it already had some) than it\npreviously had.  This seems like a reasonable compromise.\n\nDetails:\nThis patch tries to pull the openbmc login page style \"as-is\" as much as\npossible to avoid the conflict, and to make the change invisible to\nusers.  If any significant differences are\nseen, please point them out, as that is not the intent, with the\nexception of the empty validation, which was previously done in\njavascript.  This is now done server-side.\n\nTODO:\nThe \"bad password\" redirect isn't quite working as intended.  This needs\ntriaged.\nThe next handler in the /login route needs to be adjusted to check for\nvalid routes before it redirects, similar to what javascript has done.\n\nTested:\nThis requires an accompanying phosphor-webui patch.\nhttps://gerrit.openbmc-project.xyz/c/openbmc/phosphor-webui/+/35453\n\nLoaded the webui patch, and logged in, logged out.  Observed proper\nbehavior of the UI.\n\nStill to test:\nRedfish unauthenticated routes still work\nfavicon still works\nCSS is 1:1\n\nSigned-off-by: Ed Tanous <ed@tanous.net>\nChange-Id: If2a955868647d9dd5f76cba4984bba8183340391\n",
+    "createdOn": 1597006882,
+    "lastUpdated": 1641444701,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1597006882,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1641444701,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Abandoned\n\nduplicate"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "4da44b2ed3afaab7413f66755228dbc57c8ed2c7",
+            "parents": [
+                "ab0acc8bfc74bf56339a5cdeac70c5d4fba589f7"
+            ],
+            "ref": "refs/changes/56/35456/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1597006882,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 92,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/login/index.html",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/authorization.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -8
+                },
+                {
+                    "file": "static/login/logo.svg",
+                    "type": "ADDED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.h",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "static/login/login.css",
+                    "type": "ADDED",
+                    "insertions": 324,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/login_routes.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -11
+                },
+                {
+                    "file": "http/http_connection.h",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": -26
+                },
+                {
+                    "file": "include/webassets.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "include/webroutes.hpp",
+                    "type": "DELETED",
+                    "insertions": 0,
+                    "deletions": -13
+                }
+            ],
+            "sizeInsertions": 520,
+            "sizeDeletions": 63
+        }
+    ]
+}

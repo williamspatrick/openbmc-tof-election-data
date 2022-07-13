@@ -1,0 +1,856 @@
+{
+    "project": "openbmc/openbmc",
+    "branch": "master",
+    "id": "I69c640c70ee3e9d1133b7d61d391501616c229d6",
+    "number": 52857,
+    "subject": "meta-phosphor/obmc-init.sh: fix panic when rwfs is full",
+    "owner": {
+        "name": "Heyi Guo",
+        "email": "guoheyi@linux.alibaba.com",
+        "username": "iwishguo"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/openbmc/+/52857",
+    "commitMessage": "meta-phosphor/obmc-init.sh: fix panic when rwfs is full\n\nmkdir -p $work will fail if rwfs partition is full, and then it will\ncause overlayfs mount fail as well. Finally it cause kernel panic and\nbmc fails to boot:\n\nrofs = mtd4 squashfs rwfs = mtd5 jffs2\n[    3.841846] jffs2: notice: (103) jffs2_build_xattr_subsystem: complete building xattr subsystem, 21 of xdatum (19 unchecked, 2 orphan) and 45 of xref (1 dead, 1 orphan) found.\nmkdir: can't create directory 'run/initramfs/rw/work': No space left on device\n[    9.022304] overlayfs: failed to resolve 'run/initramfs/rw/work': -2\nmount: mounting cow on /root failed: No such file or directory\nchroot: can't execute '/bin/sh': No such file or directory\n\nUnable to confirm /sbin/init is an executable non-empty file\nin merged file system mounted at /root.\n\nChange Root test failed!\nFatal error, triggering kernel panic!\n[    9.141777] Kernel panic - not syncing: Attempted to kill init! exitcode=0x00000100\n[    9.142489] CPU: 0 PID: 1 Comm: init Not tainted 5.10.36-60b3c9d #1\n[    9.142667] Hardware name: Generic DT based system\n[    9.142949] Backtrace:\n[    9.144308] [<80915100>] (dump_backtrace) from [<809153a4>] (show_stack+0x20/0x24)\n[    9.144623]  r7:80b08ed4 r6:60000093 r5:00000000 r4:80d71c9c\n[    9.144816] [<80915384>] (show_stack) from [<80919b54>] (dump_stack+0x9c/0xb0)\n[    9.144982] [<80919ab8>] (dump_stack) from [<80915824>] (panic+0x114/0x33c)\n[    9.145136]  r7:80b08ed4 r6:80d0a970 r5:00000000 r4:80dbe378\n[    9.145271] [<80915710>] (panic) from [<80126c14>] (do_exit+0x99c/0xa0c)\n[    9.145426]  r3:00000001 r2:00000000 r1:00000100 r0:80b08ed4\n[    9.145552]  r7:ffffe000\n[    9.145632] [<80126278>] (do_exit) from [<80127cf0>] (do_group_exit+0x50/0xc8)\n[    9.145787]  r7:000000f8\n[    9.145863] [<80127ca0>] (do_group_exit) from [<80127d88>] (__wake_up_parent+0x0/0x30)\n[    9.146034]  r7:000000f8 r6:00000004 r5:00000004 r4:010fd190\n[    9.146185] [<80127d68>] (sys_exit_group) from [<80100060>] (ret_fast_syscall+0x0/0x54)\n[    9.146425] Exception stack(0x810c5fa8 to 0x810c5ff0)\n[    9.146745] 5fa0:                   010fd190 00000004 00000001 00000000 00000001 010fd190\n[    9.147049] 5fc0: 010fd190 00000004 00000004 000000f8 00000000 00000000 004e4a84 00000000\n[    9.147295] 5fe0: 004e4b40 7ec93a04 00474048 76df4a54\n[    9.147959] CPU1: stopping\n[    9.148650] CPU: 1 PID: 0 Comm: swapper/1 Not tainted 5.10.36-60b3c9d #1\n[    9.148957] Hardware name: Generic DT based system\n[    9.149264] Backtrace:\n[    9.150182] [<80915100>] (dump_backtrace) from [<809153a4>] (show_stack+0x20/0x24)\n[    9.150598]  r7:00000001 r6:60070193 r5:00000000 r4:80d71c9c\n[    9.150878] [<80915384>] (show_stack) from [<80919b54>] (dump_stack+0x9c/0xb0)\n[    9.151149] [<80919ab8>] (dump_stack) from [<8010f1f4>] (do_handle_IPI+0x2f8/0x32c)\n[    9.151430]  r7:00000001 r6:0d15a000 r5:00000001 r4:80dbe278\n[    9.151649] [<8010eefc>] (do_handle_IPI) from [<8010f250>] (ipi_handler+0x28/0x30)\n[    9.151925]  r9:810f6000 r8:81080800 r7:00000001 r6:0d15a000 r5:81084b80 r4:00000014\n[    9.152205] [<8010f228>] (ipi_handler) from [<80184754>] (handle_percpu_devid_fasteoi_ipi+0x80/0x154)\n[    9.152536] [<801846d4>] (handle_percpu_devid_fasteoi_ipi) from [<8017dce4>] (__handle_domain_irq+0x8c/0xe0)\n[    9.152911]  r7:00000001 r6:00000000 r5:00000000 r4:80c6fbdc\n[    9.153147] [<8017dc58>] (__handle_domain_irq) from [<80101348>] (gic_handle_irq+0x7c/0x90)\n[    9.153508]  r9:810f6000 r8:8f80200c r7:80c6fbe8 r6:8f802000 r5:810f7f38 r4:80d0541c\n[    9.153819] [<801012cc>] (gic_handle_irq) from [<80100b0c>] (__irq_svc+0x6c/0x90)\n[    9.154168] Exception stack(0x810f7f38 to 0x810f7f80)\n[    9.154541] 7f20:                                                       00000000 000195e0\n[    9.154993] 7f40: 8ddcb144 8011ba00 810f6000 00000001 80d04d10 80d04d4c 80d9dfdc 80b0b4f0\n[    9.155402] 7f60: 00000000 810f7f94 810f7f98 810f7f88 80108fd4 80108fd8 60070013 ffffffff\n[    9.155762]  r9:810f6000 r8:80d9dfdc r7:810f7f6c r6:ffffffff r5:60070013 r4:80108fd8\n[    9.156070] [<80108f90>] (arch_cpu_idle) from [<80926c68>] (default_idle_call+0x38/0x108)\n[    9.156382] [<80926c30>] (default_idle_call) from [<80159894>] (do_idle+0xdc/0x148)\n[    9.156676] [<801597b8>] (do_idle) from [<80159bd0>] (cpu_startup_entry+0x28/0x2c)\n[    9.156974]  r9:410fc075 r8:8000406a r7:80dbe280 r6:10c0387d r5:00000001 r4:00000091\n[    9.157275] [<80159ba8>] (cpu_startup_entry) from [<8010f7c0>] (secondary_start_kernel+0x15c/0x180)\n[    9.157614] [<8010f664>] (secondary_start_kernel) from [<8010182c>] (__enable_mmu+0x0/0x14)\n[    9.157919]  r5:00000051 r4:810e006a\n\nFix this by not removing workdir directly, but keeping the directory\nand removing all entires under it. We will still get below warning,\nbut it can boot to shell and provide ssh access to give a chance of\nrecovery.\n\n[    9.519053] overlayfs: failed to create directory run/initramfs/rw/work/work (errno: 28); mounting read-only\n\nAlso update related patch file in meta-google to avoid build failure.\n\nSigned-off-by: Heyi Guo <guoheyi@linux.alibaba.com>\nChange-Id: I69c640c70ee3e9d1133b7d61d391501616c229d6\n",
+    "createdOn": 1649774707,
+    "lastUpdated": 1655900065,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1649774707,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1649774762,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1649798150,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649798198,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649813968,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649816760,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649883990,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649900334,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649911060,
+            "reviewer": {
+                "name": "Milton D. Miller II",
+                "email": "miltonm@us.ibm.com",
+                "username": "mdmillerii"
+            },
+            "message": "Patch Set 1: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653143215,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1653143239,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1653143300,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653262029,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1653298149,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Uploaded patch set 3: New patch set was added with same tree, parent, and commit message as Patch Set 2."
+        },
+        {
+            "timestamp": 1653298201,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1653298201,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1653298210,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/10917/"
+        },
+        {
+            "timestamp": 1653298858,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/10917/ : FAILURE"
+        },
+        {
+            "timestamp": 1653432158,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653488967,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1653489019,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1653489019,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1653489028,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/10980/"
+        },
+        {
+            "timestamp": 1653489038,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1653489737,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1653490077,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/10980/ : FAILURE"
+        },
+        {
+            "timestamp": 1653508891,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653589760,
+            "reviewer": {
+                "name": "Brandon Kim",
+                "email": "brandonkim@google.com",
+                "username": "brandonkimbk"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653590094,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654735066,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654736623,
+            "reviewer": {
+                "name": "Brandon Kim",
+                "email": "brandonkim@google.com",
+                "username": "brandonkimbk"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1654787958,
+            "reviewer": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1654788002,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1654788002,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1654788011,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5:\n\nBuild Started https://jenkins.openbmc.org/job/ci-openbmc/11242/"
+        },
+        {
+            "timestamp": 1654789512,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-openbmc/11242/ : SUCCESS"
+        },
+        {
+            "timestamp": 1654794467,
+            "reviewer": {
+                "name": "Brandon Kim",
+                "email": "brandonkim@google.com",
+                "username": "brandonkimbk"
+            },
+            "message": "Patch Set 5: Code-Review+1"
+        },
+        {
+            "timestamp": 1655799602,
+            "reviewer": {
+                "name": "Zev Weiss",
+                "email": "zev@bewilderbeest.net",
+                "username": "zevweiss"
+            },
+            "message": "Patch Set 5: Code-Review+1"
+        },
+        {
+            "timestamp": 1655834936,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5: Code-Review+1\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1655847102,
+            "reviewer": {
+                "name": "Milton D. Miller II",
+                "email": "miltonm@us.ibm.com",
+                "username": "mdmillerii"
+            },
+            "message": "Patch Set 5: Code-Review+1\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1655900062,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 5: Code-Review+2"
+        },
+        {
+            "timestamp": 1655900065,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Change has been successfully rebased and submitted as 2168adb3697432994e2fa39a520380c1a74fe9c0"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "8123b57350b9fc52caff41be3f947c0dec19458b",
+            "parents": [
+                "1da8306113bde5207b98af534f702322919ca1fd"
+            ],
+            "ref": "refs/changes/57/52857/1",
+            "uploader": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "createdOn": 1649774707,
+            "author": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Please also remove links to internal issues."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 9,
+                    "reviewer": {
+                        "name": "Heyi Guo",
+                        "email": "guoheyi@linux.alibaba.com",
+                        "username": "iwishguo"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "@Heyi, you're not currently listed on the Alibaba CLA.  Can you ask to have this updated?\n\nhttps://drive.google.com/drive/folders/1Cti2aNQTJxMyZx80mj7cagNdR9_Dh_NH"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Adding Milton for feedback."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Heyi Guo",
+                        "email": "guoheyi@linux.alibaba.com",
+                        "username": "iwishguo"
+                    },
+                    "message": "Shall we update the whole documentation? Or can we just ask our CLA manager to add more employees? The original CLA manager Yongbing Yang is still in our team; the only change is that we have more members \ud83d\ude0a"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Generally you can have one of the existing CLA managers send out a new \"Schedule A\".  You don't need to send the full new document."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Heyi Guo",
+                        "email": "guoheyi@linux.alibaba.com",
+                        "username": "iwishguo"
+                    },
+                    "message": "Thanks; we'll do that later.\n\nPS: I had also contributed several patches for other communities, like kernel, qemu, Tianocore EDKII, ARM Trusted Firmware, but none of them required such formal documentation for patch contribution. Is our contribution process a little too tedious that may stop more people for contributing?"
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "line": 419,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I think shellcheck is going to complain about this once CI runs.  I don't think we should parse the output of `ls` like this.  Is there some other invocation we can do that is safer?"
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "line": 419,
+                    "reviewer": {
+                        "name": "Milton D. Miller II",
+                        "email": "miltonm@us.ibm.com",
+                        "username": "mdmillerii"
+                    },
+                    "message": "Yes this needs to be based on\n find -0 | xargs -0\nif it's going to look at individual paths.   I don't know if those need additional work to enable in busybox.\n\nalso consider using a parentheses to isolate the needed pipeline with a temporary current directory.   (cd xxx && find ...)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 95,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "bd5c16791a0488ba7aab3b8f48d4d5495608f14a",
+            "parents": [
+                "0b4423959f383d67b4ad855ecf26c9788646f36d"
+            ],
+            "ref": "refs/changes/57/52857/2",
+            "uploader": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "createdOn": 1653143215,
+            "author": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 84,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 91,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "c931dea097238e77c32a1439c78418b4a25568e2",
+            "parents": [
+                "0b4423959f383d67b4ad855ecf26c9788646f36d"
+            ],
+            "ref": "refs/changes/57/52857/3",
+            "uploader": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "createdOn": 1653298149,
+            "author": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "kind": "NO_CHANGE",
+            "comments": [
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "line": 418,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "I'm not clear on what `(cd $work && find . ...)` is achieving over a plain `find $work ...`.\n\nAlso, using `+` instead of `\\;` should be slightly more efficient if there are multiple entries to remove."
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "line": 418,
+                    "reviewer": {
+                        "name": "Heyi Guo",
+                        "email": "guoheyi@linux.alibaba.com",
+                        "username": "iwishguo"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "line": 418,
+                    "reviewer": {
+                        "name": "Milton D. Miller II",
+                        "email": "miltonm@us.ibm.com",
+                        "username": "mdmillerii"
+                    },
+                    "message": "what's this exec + ??\n\nOh, it appears to be POSIX taking some SVR4 to avoid the GNU print0 in 1003.2 in 1992 (I learned BSD 86-91).\n\nIt's in both busybox (under a config) and toybox so I'm fine with it."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 84,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 91,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "9ed20868c2a1875da2f56efa7cc67bd6907e399f",
+            "parents": [
+                "b112144582b32ceb2dbe8af6ec52f86c772e081c"
+            ],
+            "ref": "refs/changes/57/52857/4",
+            "uploader": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "createdOn": 1653488967,
+            "author": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Heyi Guo",
+                        "email": "guoheyi@linux.alibaba.com",
+                        "username": "iwishguo"
+                    },
+                    "message": "Also add single quotes around {}"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Zev Weiss",
+                        "email": "zev@bewilderbeest.net",
+                        "username": "zevweiss"
+                    },
+                    "message": "Sigh, and bitten by in-tree patch-application failure from meta-google/recipes-phosphor/initrdscripts/obmc-phosphor-initfs/rwfs-clean-dev.patch (code looks OK to me though).\n\nGuess that patch will need to be updated, unless there's some nice way we could get rid of it now?  (+Brandon)"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Brandon Kim",
+                        "email": "brandonkim@google.com",
+                        "username": "brandonkimbk"
+                    },
+                    "message": "Apologies, I was out for the last couple of days due to medical reasons. The particular patch was originally written by William, let me see if he's able to provide a good answer."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "I suspect no one else really wants that functionality as-is? It's specific to our update process, as our RoT device update process has no way of enforcing the whitelist until we boot up. So we do whitelist processing in the initrd prior to depending on any data in the rwfs."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Heyi Guo",
+                        "email": "guoheyi@linux.alibaba.com",
+                        "username": "iwishguo"
+                    },
+                    "message": "Shall I update the related google patch as well? I think the 2 changes should be compatible.\n\nThanks."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Brandon Kim",
+                        "email": "brandonkim@google.com",
+                        "username": "brandonkimbk"
+                    },
+                    "message": "That'd be great thank you"
+                },
+                {
+                    "file": "meta-google/recipes-phosphor/initrdscripts/obmc-phosphor-initfs/rwfs-clean-dev.patch",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "@Brandon, what is the timeline for getting this patch removed?  We don't really allow patches anymore.  If this is a feature you want we should figure out how to integrate it into the base-level scripts and possibly enabled/disabled with a PACKAGECONFIG."
+                },
+                {
+                    "file": "meta-google/recipes-phosphor/initrdscripts/obmc-phosphor-initfs/rwfs-clean-dev.patch",
+                    "line": 1,
+                    "reviewer": {
+                        "name": "Milton D. Miller II",
+                        "email": "miltonm@us.ibm.com",
+                        "username": "mdmillerii"
+                    },
+                    "message": "The init script has options including the ability to add defaults via a file and lock the options (ignoring command line and firmware environment) from a different file that can be added at boot time.\n\nMy reading of the patch is that it is forcing the update script to be called when the initramfs contents changes because the platform doesn't guarantee the update script will have executed before an update.\n\nHaving a method to (conditionally and maybe unconditonally) clearing to known files at boot seems reasonable."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 84,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 91,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 5,
+            "revision": "209e0bc65e5ede266b74e6a6ad8528d830d9a930",
+            "parents": [
+                "ccabc569f5899abf3878d8816e78db20faacc5c8"
+            ],
+            "ref": "refs/changes/57/52857/5",
+            "uploader": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "createdOn": 1654787958,
+            "author": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I'll give 24 more hours for Milton to confirm he sees no issue here."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Milton D. Miller II",
+                        "email": "miltonm@us.ibm.com",
+                        "username": "mdmillerii"
+                    },
+                    "message": "Even all these years one can still learn details."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-google/recipes-phosphor/initrdscripts/obmc-phosphor-initfs/rwfs-clean-dev.patch",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 99,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 6,
+            "revision": "2168adb3697432994e2fa39a520380c1a74fe9c0",
+            "parents": [
+                "ed9dc72863e9e5ebeccd5314abc089992ec0ef41"
+            ],
+            "ref": "refs/changes/57/52857/6",
+            "uploader": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "createdOn": 1655900065,
+            "author": {
+                "name": "Heyi Guo",
+                "email": "guoheyi@linux.alibaba.com",
+                "username": "iwishguo"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "meta-google/recipes-phosphor/initrdscripts/obmc-phosphor-initfs/rwfs-clean-dev.patch",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "meta-phosphor/recipes-phosphor/initrdscripts/files/obmc-init.sh",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 99,
+            "sizeDeletions": 7
+        }
+    ]
+}

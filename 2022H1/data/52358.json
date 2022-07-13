@@ -1,0 +1,848 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I3389b2ba98bf1276e1cb2d9c5954437b924f2d94",
+    "number": 52358,
+    "subject": "Implement etag headers",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/52358",
+    "commitMessage": "Implement etag headers\n\nThis commit implements a limited support for the production of etags on\njson resources.  It is intended to cause two things:\n\n1. To get bmcweb to pass the PROTO_ETAG_ON_GET_ACCOUNT check, as well as\n   the redfish spec, which states: \"Implementations shall support the\n   return of ETag headers for GET requests of ManagerAccount resources.\"\n\n2. Begin discussions on what client-facing caching could look like in\n   the future, and to implement the fewest lines of code this author\n   could think of, with the hope of extending it later.\n\nAs written, it injects into the Response class a method that, for json\nresponses, uses std::hash<json> to generate an etag.  This was chosen\nunder the assumption that it caused the least binary impact, and is\nalready a function provided by nlohmann, so required minimal\nimplementation effort to get something that functioned to the standard:\nhttps://json.nlohmann.me/api/basic_json/std_hash/#version-history\n\nI'm open to discussions if this should be improved in the future to\ninclude more entropy, or to be a \"weak\" etag, but I think starting\nwith std::hash is a good first step.\n\nThis patchset intentionally does notimplement handling of the\nIf-None-Match, or If-Match headers that a caching client would likely\nsend that implements this.  That is not explicitly required by the spec,\nrelatively complex, and probably has consequences that this author\ndoesn't want to write the test cases for (yet).  This lack of support\nmakes this patchset largely only \"useful\" in passing the tests, and\nimplementing the spec to the letter, it does not generalize a caching\nclient feature that improves performance.\n\nTested:\ncurl -vvvv --insecure --user root:0penBmc  https://192.168.7.2/redfish/v1\n\nContains in the response:\nETag: \"765E4548\"\n\nThe redfish protocol validator now passes the PROTO_ETAG_ON_GET_ACCOUNT\ntest, which increases our passing test count by 4 compared to previously.\n\nCurrent counts are 352 passing, 30 failing, 36 not tested.\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: I3389b2ba98bf1276e1cb2d9c5954437b924f2d94\n",
+    "createdOn": 1648173610,
+    "lastUpdated": 1651783362,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1648173610,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1648173626,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648173627,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648174209,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39702/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648241160,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 2: Patch Set 1 was rebased."
+        },
+        {
+            "timestamp": 1648241183,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648241184,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648241551,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 3: Patch Set 2 was rebased."
+        },
+        {
+            "timestamp": 1648241596,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648241596,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648241604,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39762/ : ABORTED"
+        },
+        {
+            "timestamp": 1648241695,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39772/ : FAILURE"
+        },
+        {
+            "timestamp": 1648242293,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 4: Patch Set 3 was rebased."
+        },
+        {
+            "timestamp": 1648242315,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648242315,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648242917,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39776/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648244076,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 5: Patch Set 4 was rebased."
+        },
+        {
+            "timestamp": 1648244104,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648244104,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648244627,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39784/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648486415,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 6: Patch Set 5 was rebased."
+        },
+        {
+            "timestamp": 1648486437,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648486437,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648486469,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39929/ : FAILURE"
+        },
+        {
+            "timestamp": 1648488571,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 7: Patch Set 6 was rebased."
+        },
+        {
+            "timestamp": 1648488607,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648488607,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648488748,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39939/ : FAILURE"
+        },
+        {
+            "timestamp": 1648491588,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 8: Patch Set 7 was rebased."
+        },
+        {
+            "timestamp": 1648491618,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648491619,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648492194,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39945/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649336290,
+            "reviewer": {
+                "name": "dekriea",
+                "username": "dekreia"
+            },
+            "message": "Patch Set 8: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649364068,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649414376,
+            "reviewer": {
+                "name": "dekriea",
+                "username": "dekreia"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649433779,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649439916,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 9: Patch Set 8 was rebased."
+        },
+        {
+            "timestamp": 1649439933,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649439933,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649440874,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40830/ : SUCCESS"
+        },
+        {
+            "timestamp": 1650586044,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651783352,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9: Code-Review+2\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1651783362,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully rebased and submitted as 89f180089bce9cc431d0b1053410f262f157b987"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "0b23affc5f814473e05b9f6480f5ccc2531b105b",
+            "parents": [
+                "b00fdffa886615ebbc1e35072e14523cabd45607"
+            ],
+            "ref": "refs/changes/58/52358/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648173610,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "228301a23def7b835a95a76d0b5550b6fd654d40",
+            "parents": [
+                "634efe8f15db75ff4258f7f0e11a3b2c02ceee1d"
+            ],
+            "ref": "refs/changes/58/52358/2",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648241160,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 3,
+            "revision": "22858c695b04be2a81abafa893182ee0e60fe412",
+            "parents": [
+                "f5c7df8695ef890cbed75d5438abaf08614851e7"
+            ],
+            "ref": "refs/changes/58/52358/3",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648241551,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 4,
+            "revision": "030db801eb4b65092007ef1fb379d17f47abdedd",
+            "parents": [
+                "6509989ecc3e45181aae91ea068e0deb074c3cb5"
+            ],
+            "ref": "refs/changes/58/52358/4",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648242293,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 5,
+            "revision": "8a39b8ce015b9b834e5ab1f428262b30ca2c105a",
+            "parents": [
+                "efa4a711baed8d5d32b1f57b57a5143427f2a0de"
+            ],
+            "ref": "refs/changes/58/52358/5",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648244076,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 6,
+            "revision": "b98b9a97c18c3001b13f12f3bd51efdf8cc84303",
+            "parents": [
+                "643a7c3bff261c609b4ec1011638aeb791fa4217"
+            ],
+            "ref": "refs/changes/58/52358/6",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648486415,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 7,
+            "revision": "ac369721547e3113aad40a829512dfacd3f9c5ea",
+            "parents": [
+                "c46c3a5032a7caffaa5d24c7d0313f425c8acfb4"
+            ],
+            "ref": "refs/changes/58/52358/7",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648488571,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 8,
+            "revision": "367a8e0ffb08ecd239e2098a0dc2fa7fb359d881",
+            "parents": [
+                "96cc7f5b4a5982c0f9f6804476c1d45c30138e81"
+            ],
+            "ref": "refs/changes/58/52358/8",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1648491588,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "dekriea",
+                        "username": "dekreia"
+                    },
+                    "message": "Good first step IMO.\n\nI noticed with this change, that the Manager resource will always get a new hash (because of DateTime changing every second). Shouldn't the ETag indicate no change in cases like these? Because otherwise it kind of loses it's purpose on such resources.\nMaybe erase properties named \"DateTime\" from the json before calculating the hash? "
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Thanks for the review!\n\n> Maybe erase properties named \"DateTime\" from the json before calculating the hash?\n\nPer the definition of etags, I don't think we're allowed to do that, because the content of the payload has actually changed.  if we removed DateTime, the user would get an incorrect datetime if they asked for the Managers resource.\n\nI think the overall intent of the standard is that if users only care about fields that aren't temporal (ie not DateTime) they would add a $select statement to their request, so they could request the Managers resource without the DateTime in it, and therefore improve their caching potential.\n\nAdmittedly, we don't support $select yet, but we're getting there, and I think when that support lands, we'll have a way to handle it."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "dekriea",
+                        "username": "dekreia"
+                    },
+                    "message": "Also, I didn't have any measurable difference in repose times for the ManagerAccount resource on my AST2500 with this change. However, I can imagine if you request a larger resource (e.g. something containing hundreds of logs or similar) there might be more of a difference?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "dekriea",
+                        "username": "dekreia"
+                    },
+                    "message": "> Per the definition of etags, I don't think we're allowed to do that, because the content of the payload has actually changed.  if we removed DateTime, the user would get an incorrect datetime if they asked for the Managers resource.\n\nI think the ETag is allowed to do that, but it would need to be declared as \"weak\" instead of \"strong\": https://datatracker.ietf.org/doc/html/rfc7232#section-2.3\n\nIf we would use the $select statement, does it still \"reduce unnecessary RESTful accesses\"? (http://redfish.dmtf.org/schemas/DSP0266_1.8.0.html#etags)\n\nOverall I think I'm ok with the ETag changing constantly in resources that include properties like the current time. I just think it would be unfortunate if we don't use the benefit/purpose of ETags on such resources. "
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Also, I didn't have any measurable difference in repose times for the ManagerAccount resource on my AST2500 with this change.\n\n\nYep, that is expected, and pointed out in the commit message.   We don't have an implementation of the headers that would allow response time improvements.\n\n> However, I can imagine if you request a larger resource (e.g. something containing hundreds of logs or similar) there might be more of a difference?\n\nNot at this point in time with this patch."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is definitely worth discussing more, but I suspect not in the context of this patchset (given that this doesn't implement any of the efficiency improvements).\n\nWith that said, I don't think weak etags are the answer here;  Weak etags are supposed to be where the payload might not be byte-for-byte identical, but is semantically the same.  In this case, the DateTime field is actually different.\n\n> If we would use the $select statement, does it still \"reduce unnecessary RESTful accesses\"? \n\nYes, I believe it does, because the payload for the select query wont have changed.\n\n> I just think it would be unfortunate if we don't use the benefit/purpose of ETags on such resources.\n\nAgreed, but I think select gets us both, so long as the client correctly forms their query."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "FYI, I put together a quick (untested) patch to improve the performance.\n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/52921/1"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 9,
+            "revision": "69b13fe58497ce7a74ba4e82198418878463c9a0",
+            "parents": [
+                "bacb216228c45ca715163f4c81717b1af39889ab"
+            ],
+            "ref": "refs/changes/58/52358/9",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1649439916,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As always, happy to discuss further, but this has been in review for a few weeks and is relatively simple.  Merging."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 10,
+            "revision": "89f180089bce9cc431d0b1053410f262f157b987",
+            "parents": [
+                "031514fb7798057bbe0261a92b6c368cd5a35f66"
+            ],
+            "ref": "refs/changes/58/52358/10",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1651783362,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/http_response.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 64,
+            "sizeDeletions": 0
+        }
+    ]
+}

@@ -1,0 +1,1471 @@
+{
+    "project": "openbmc/entity-manager",
+    "branch": "master",
+    "id": "Ia2006df2d84fcd16301f5dce26d19976f32cff46",
+    "number": 50649,
+    "subject": "entity-manager: Allow exposing Inventory.Item",
+    "owner": {
+        "name": "Sui Chen",
+        "email": "suichen@google.com",
+        "username": "quadpixels"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/entity-manager/+/50649",
+    "commitMessage": "entity-manager: Allow exposing Inventory.Item\n\nCurrently, the Exposes section only produces\nxyz.openbmc_project.Configuration interfaces. This change allows\nxyz.openbmc_project.Inventory.Item interfaces to be populated by the\nExposes directive. Only root-level JSONs can Expose items; Expose\ndirectives nested in other Exposes will be ignored.\n\nThis change does not replace the practice of splitting a large inventory\ninto multiple .json files, because a BMC cannot become a separate .json\nfile (explained below).\n\nThe only use case so far is to enable phosphor-health-monitor to report\nthe BMC's ManagerDiagnosticData through Redfish. The reasons are:\n\n1) bmcweb should make DBus calls to collect data needed for filling\n   in the ManagerDiagnosticData response, rather than fetching the\nreadings (such as CPU/memory/RWFS usage, boot time, process list) by\nitself. Data for ManagerDiagnosticData should be already made available\non DBus similarly to sensor readings by phospohr-health-monitor so that\nbmcweb does not need to perform too much processing. This is discussed\nin change 46081.\n\n2) bmcweb should have a way to differentiate the DBus objects used for\n   populating ManagerDiagnosticData against the sensor DBus objects.\nThis distinction cannot be made solely by the name of the DBus object,\nbut rather, they should be obtained through Association definitions,\nsimilarly to how sensors are found by their chassis objects.  This is\nalso discussed in change 46081.\n\n3) We need a DBus object for the DBus objects created by\n   phosphor-health-monitor to link to using the Association definitions.\nThis object should be able to represent the BMC itself. Some\npossibilities that have been considered are:\n   a) An xyz.openbmc_project.Software object\n      This object exists on most OpenBMC systems but a Software object\n      was considered not to be of the right type.\n   b) An xyz.openbmc_project.Configuration.Bmc object\n      Although this object can be created easily using the existing\n      Exposes clause in Entity Manager, it is again not considered an\n      ideal choice.\n   c) An xyz.openbmc_project.Inventory.Item.Bmc object\n      Although whether or not a BMC is an Inventory remains to be\ndebated and the existence of the Inventory.Item.Bmc dbus interface\nitself appears to be a result of some historical tech debt, it appears\nto be the most sensical DBus interface to use for representing the BMC\nitself.\n\n4) There naturally comes the question of which daemon should be\n   responsible for creating the BMC object. Several possible ways of\ncreating and using choices b) and c) with their pros and cons listed:\n\n   1) phosphor-health-monitor creates an Item.Bmc object and the DBus\n      objects used to populate ManagerDiagnosticData are associated with\nthe object.\n      Pros: does not involve E-M, simple to implement.\n      Cons: we lose the opportunity to capture the relationship between\nthe BMC and the board it's physically located on, and are violating the\n\"inventory items should be hosted by E-M\" rule.\n\n   2) A Configuration.Bmc item is added by Exposing the BMC\n      configuration in its corresponding board .json E-M configuration.\nThen, upon seeing the Configurtion.Bmc object, phosphor-health-monitor\ncreates an Item.Bmc object for the ManagerDiagnosticData objects to be\nassociated with.\n      Pros: feasible with existing E-M functionalities.\n      Cons: this approach feels too redundant and still violates the\n\"inventory items should be hosted by E-M\" rule.\n\n   3) A Configuration.Bmc item is added similarly to 2), but the\n      ManagerDiagnosticData objects are associated directly to the\nConfiguration object.\n      Pros: feasible with existing E-M functionalities.\n      Cons: associating ManagerDiagnosticData DBus objects with a\nConfiguration.Bmc object is not a good approach from bmcweb's view.\n\n   4) The BMC is added as the property of its Board in the board\n      configuraion .json E-M config, and the ManagerDiagnosticData\nobjects are associated with the Board object.\n      Pros: same as 3) above\n      Cons: same as 3) above\n\n   5) Add a new .json object for the BMC itself to create an Item.Bmc\n      object. The ManagerDiagnosticData objects are associated to the\nItem.Bmc object.\n      Pros: looks reasonable\n      Cons: first, the BMC does not have an FRU that can be detected.\nThere is no suitable \"Probe:\" field to fill in for its .json\nconfiguration. Second and more importantly the BMC is not an Inventory,\ni.e. a physical object one can hold in hand. This means this approach is\nviolating the rationale of E-M.\n\n   6) Modify E-M so it can Expose an Inventory.Bmc item from within the\n      BMC's board's .json E-M config\n      Pros: fulfills the \"inventory must be hosted by E-M\" rule\n      Cons: need to modify E-M\n\nThe discussion for approaches 1~5, and a suggestion about modifying E-M\nto enable approach 6 was captured on the #inventory channel on Discord\non January 18, 2022.\n\nImplementation-wise, this change experiments with 3 methods for adding\nan Exposed item:\n1) Declare an exposed item with type (\"Exposes\": [...])\n   \"xyz.openbmc_project.Inventory.Item.Bmc\", using either of the two\nfollowing formats:\n    a) { \"Type\": \"T\", \"Name\": \"X\", ... }\n    b) { \"T\": { \"Name\": \"X\", ... } }\n2) Declare a SubItem (\"SubItems\": [...]) with type \"BMC\", using either\n   of the two formats shown above.\n3) Add a \"HasThisBMC\" field in a board's .JSON file.\n\nTested: ASRock_E3C246D4I.json includes example changes demonstrating the\nmethods shown above. All 3 ways of adding a BMC item are included. With\nthose changes, the resultant DBus objects are:\n\nA resultant DBus object under SuperBoard is created as expected.\n\nroot@bmc:/tmp# busctl tree xyz.openbmc_project.EntityManager\n ...\n\u251c\u2500/xyz/openbmc_project/inventory/system/board/ASRock_E3C246D4I\n\u2502 \u251c\u2500/xyz/openbmc_project/inventory/system/board/ASRock_E3C246D4I/Method_1_for_adding_a_BMC_Item_to_the_board_JSON\n\u2502 \u251c\u2500/xyz/openbmc_project/inventory/system/board/ASRock_E3C246D4I/Method_3_for_adding_a_BMC_Item_to_the_board_JSON\n\u2502 \u251c\u2500/xyz/openbmc_project/inventory/system/board/ASRock_E3C246D4I/BMC\n\nAll 3 objects can be found by the exposed Item.Bmc object via\nObjectMapper:\n\nroot@BMC:/tmp# busctl call xyz.openbmc_project.ObjectMapper \\\n/xyz/openbmc_project/object_mapper xyz.openbmc_project.ObjectMapper \\\nGetSubTree sias \"/xyz/openbmc_project/inventory\" 0 1\n\"xyz.openbmc_project.Inventory.Item.Bmc\" a{sa{sas}} 3\n\"/xyz/openbmc_project/inventory/system/board/ASRock_E3C246D4I/BMC\" 1\n\"xyz.openbmc_project.EntityManager\" 1\n\"xyz.openbmc_project.Inventory.Item.Bmc\"\n\"/xyz/openbmc_project/inventory/system/board/ASRock_E3C246D4I/Method_1_for_adding_a_BMC_Item_to_the_board_JSON\"\n1 \"xyz.openbmc_project.EntityManager\" 1\n\"xyz.openbmc_project.Inventory.Item.Bmc\"\n\"/xyz/openbmc_project/inventory/system/board/ASRock_E3C246D4I/Method_3_for_adding_a_BMC_Item_to_the_board_JSON\"\n1 \"xyz.openbmc_project.EntityManager\" 1\n\"xyz.openbmc_project.Inventory.Item.Bmc\"\n\nSigned-off-by: Sui Chen <suichen@google.com>\nChange-Id: Ia2006df2d84fcd16301f5dce26d19976f32cff46\n",
+    "createdOn": 1643102690,
+    "lastUpdated": 1650907097,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1643102690,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1643102704,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643102704,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643102731,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/36034/ : FAILURE"
+        },
+        {
+            "timestamp": 1643103361,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1643103373,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643103373,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643103419,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/36035/ : FAILURE"
+        },
+        {
+            "timestamp": 1645573715,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1645573726,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645573726,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645573929,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37820/ : FAILURE"
+        },
+        {
+            "timestamp": 1645575543,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1645575571,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645575571,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645575845,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37821/ : SUCCESS"
+        },
+        {
+            "timestamp": 1647630951,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1647630961,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647630961,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647631160,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39270/ : FAILURE"
+        },
+        {
+            "timestamp": 1647638547,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1647638566,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647638566,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647638839,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39273/ : SUCCESS"
+        },
+        {
+            "timestamp": 1647640796,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1647640807,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1647640807,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1647640821,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Set Ready For Review"
+        },
+        {
+            "timestamp": 1647641091,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39275/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648493604,
+            "reviewer": {
+                "email": "ofery@google.com",
+                "username": "oferye"
+            },
+            "message": "Removed cc null."
+        },
+        {
+            "timestamp": 1648494463,
+            "reviewer": {
+                "name": "Willy Tu",
+                "email": "wltu@google.com",
+                "username": "wltu"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648504526,
+            "reviewer": {
+                "name": "John Wedig",
+                "email": "johnwedig@google.com",
+                "username": "johnwedig"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649723320,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1649723328,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649723328,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649723603,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40952/ : FAILURE"
+        },
+        {
+            "timestamp": 1649724238,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1649724253,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649724254,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649724489,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 10: Commit message was updated."
+        },
+        {
+            "timestamp": 1649724511,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649724529,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40953/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649794761,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 10:\n\n(12 comments)"
+        },
+        {
+            "timestamp": 1649957100,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Patch Set 10:\n\n(11 comments)"
+        },
+        {
+            "timestamp": 1649971000,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 10:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1650314233,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1650314247,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650314252,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650314270,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41479/ : FAILURE"
+        },
+        {
+            "timestamp": 1650314498,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Patch Set 10:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1650314898,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1650314917,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650314917,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650314940,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/41480/ : FAILURE"
+        },
+        {
+            "timestamp": 1650906804,
+            "reviewer": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1650906816,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650906816,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650907097,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41936/ : SUCCESS"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "6811405f02dd7fceb701e83a1af9fbf65d32bc94",
+            "parents": [
+                "6bf41588abf5048da5764f2a809f3841bcbef761"
+            ],
+            "ref": "refs/changes/49/50649/1",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1643102690,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 31,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 34,
+                    "deletions": -5
+                }
+            ],
+            "sizeInsertions": 65,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 2,
+            "revision": "de3f9b83f8f89dc1fc7cb9f5992e493fc4f6d2ae",
+            "parents": [
+                "c62cc009b7bbe6ead59dfc5cdab4b743245b30a4"
+            ],
+            "ref": "refs/changes/49/50649/2",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1643103361,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 31,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 63,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 3,
+            "revision": "72f98227ff41745c2a9ba02f539ea2fe904a0011",
+            "parents": [
+                "c62cc009b7bbe6ead59dfc5cdab4b743245b30a4"
+            ],
+            "ref": "refs/changes/49/50649/3",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1645573715,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 31,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 81,
+                    "deletions": -23
+                }
+            ],
+            "sizeInsertions": 112,
+            "sizeDeletions": 23
+        },
+        {
+            "number": 4,
+            "revision": "df5e919209ada83416abba33c47b171be71ae3d6",
+            "parents": [
+                "c62cc009b7bbe6ead59dfc5cdab4b743245b30a4"
+            ],
+            "ref": "refs/changes/49/50649/4",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1645575543,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 31,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 83,
+                    "deletions": -23
+                }
+            ],
+            "sizeInsertions": 114,
+            "sizeDeletions": 23
+        },
+        {
+            "number": 5,
+            "revision": "7dce162105e7c372d07db1278b1b9e10c4864fc0",
+            "parents": [
+                "c62cc009b7bbe6ead59dfc5cdab4b743245b30a4"
+            ],
+            "ref": "refs/changes/49/50649/5",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1647630951,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 55,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 192,
+                    "deletions": -70
+                }
+            ],
+            "sizeInsertions": 247,
+            "sizeDeletions": 70
+        },
+        {
+            "number": 6,
+            "revision": "0a01c8f64afccf289a5cdbb99a03ec4ff5169e45",
+            "parents": [
+                "c62cc009b7bbe6ead59dfc5cdab4b743245b30a4"
+            ],
+            "ref": "refs/changes/49/50649/6",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1647638547,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 114,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 89,
+                    "deletions": -30
+                }
+            ],
+            "sizeInsertions": 203,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 7,
+            "revision": "23e80a8baaea3ad4ffa89638dce3934aaec3550e",
+            "parents": [
+                "c62cc009b7bbe6ead59dfc5cdab4b743245b30a4"
+            ],
+            "ref": "refs/changes/49/50649/7",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1647640796,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "John Wedig",
+                        "email": "johnwedig@google.com",
+                        "username": "johnwedig"
+                    },
+                    "message": "nit: missing space"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 10,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please add more details on how this change effects all platforms (ideally making the required changes to the config files for the mainboards effected).  Considering that EVERY system has a BMC, how would a user use this?  Where would the user add it?  How does it get used by other services?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Added some more description."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can you please check a \"full\" example, including a baseboard, dcscm module, and this content into an EM review somewhere.  It doesn't have to be complete, but given that this is non-trivial, we need to figure out how to model it."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Ack\n\nWill also try to come up with some example that cover the different possible fields (\"HasBMC\", \"SubItem\")"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not sure what the FRU EEPROM has to do with things?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "They are only included here to show that existing Configurations can be exposed together with the newly-introduced Inventory.Item's."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Gotcha.  Lets omit it for the moment."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Type, as a field should not include the dbus interface.  If you look at the dbus interface this produces, this would produce something like:\n\nxyz.openbmc_project.Configuration.xyz.openbmc_project.Inventory.Item.BMC, which is I don't think it what you intended."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "This change allows a user to expose a `Configuration` as well as an `Item` and requires the user to fully-qualify the `Item` (thus the check in line 727.)\n\nI'm not sure about what a better solution should look like .."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Type: \"BMC\"\n\nwould be generally how we would model it."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "I see, so with the current code structure, checking the name \"BMC\" would be in step 6) of the traversal process with some refactoring in this change due to how 6) calls the other 2 functions (populateInterfaceFromJson and postValuesToDbus):\n\n```\n1) postToDBus\n2) for (auto& [boardId, boardConfig] : newConfiguration.items())\n3)   populateInterfaceFromJson populates json::{number,string}\n4)   postValuesToDbus populates json::object\n5)     for (auto& item : *exposes)\n6)       postExposedItemToDbus\n7)         (If applicable to the \"expose an Inventory.Item\" hack)\n8)           populateInterfaceFromJson populates json::{number, string}\n9)           postValuesToDbus populates json::object\n10)        (Otherwise, treat as exposing a Configuration)\n11)          populateInterfaceFromJson populates json::{number, string}\n  \n```\n\nFor \"HasThisBMC\", it would be inserted to 3) as it is a property of the board .json.\n\nThis is assuming most of the possibilities fall into the scope of the postToDBus function.\n\n(note: phosphor-dbus-interfaces uses \"Bmc\" rather than \"BMC\")"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not sure what this is trying to represent.  The BMC is not on a slot, and on the DC-SCM system you're working on, I would expect the \"BMC\" node to be on the DC-SCM board itself, not on the \"superboard\""
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "This line is purely for showing that \"a property can be added to the exposed `Inventory.Item` object and its contents do not carry any meaning."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Lets just omit this for the moment.  As-written, it doesn't look right for any system, and I suspect that will confuse people."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Willy Tu",
+                        "email": "wltu@google.com",
+                        "username": "wltu"
+                    },
+                    "message": "can't you just do\n\n```\n\"xyz.openbmc_project.Inventory.Item.Bmc\":{\n  \"CCC\": \"DDD\",\n}\n```\n\nand such?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "John Wedig",
+                        "email": "johnwedig@google.com",
+                        "username": "johnwedig"
+                    },
+                    "message": "Something like that would be nice, since \"CCC\" is meant to be a property under the Item.Bmc interface."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Added a code path to allow an entry like this in the Exposes directive:\n```\n{\n  \"T\": {\n    \"Key1\": \"Value1\",\n    \"Key2\": \"Value2\",\n    ...\n  }\n}\n```\n\nIt's essentially identical to the following:\n```\n{\n  \"Type\": \"T\",\n  \"Key1\": \"Value1\",\n  \"Key2\": \"Value2\",\n  ...\n}\n```\n(Notably, the type of \"Exposes\" is a json::array so each entry has to be its own object, thus the \"dictionary in dictionary\" in the new method)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Exposes record in an exposes record?  Please takea  look, this doesn't seem like it's what you intended, and I can't tell if it's just a copy/paste error or what the deal is.  I'm would assume a name of \"Invalid\" isn't what you intended."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "This is just a contrived wrong configuration for showing that such configurations are rejected by the code in this change list."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "In examples, lets try to focus on things that we would expect to see.  Yes, error handling is important, but lets keep the error handling examples relegated to unit tests if we can, so people don't make the same mistake I did and think they're a valid example."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "????"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 45,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "This is a random property for showing the existing functionality of E-M works normally. It's now removed to avoid confusion."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 91,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "?  The nested field shouldn't really exist.  We have patterns for having \"sub\" objects using the Found() probe type, that lets us split stuff up.  This looks like it's duplicating that?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 91,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "It looks like the Found() probe type doesn't create sub-objects; the object created and the object that serves as the Found() probe are on the same level (board/boardA and board/boardB, rather than \"board/boardA/boardB\").\n\nThe intent of Exposing an Inventory.Item does not supersede the practice of splitting items into multiple .json files, for example in the intended use case, the Exposed item (BMC) usually cannot be split from its board using regular methods."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 91,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> probe are on the same level (board/boardA and board/boardB, rather than \"board/boardA/boardB\").\n\nYou mean the dbus interfaces?  Yes, all entities are flat on dbus;  That's the intent so that entities can be removed and added without their child objects being added or removed.\n\n\n> The intent of Exposing an Inventory.Item does not supersede the practice of splitting items into multiple .json files, for example in the intended use case, the Exposed item (BMC) usually cannot be split from its board using regular methods.\n\nThis detail would've been really helpful in your commit message."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 91,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Added to the commit message (difference between this change and splitting into 2 json files)."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "One thing I wonder a little is if we can automatically detect any of this.  Presumably, everything running OpenBMC has a BMC, so does it make sense to make edits to every single mainboard file to add a BMC inventory item?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "I think it depends on the viewpoint.\nFrom the conciseness point of view, editing every file is too redundant and doesn't make sense.\nFrom the completeness point of view, we're just describing the boards in a bit more detail, so it makes sense.\n\nI think if the BMC cannot autonomously determine its physical location (I am not sure with my current knowledge), this information needs to be injected in some form, maybe by adding a BMC entry to the .json configs or some other methods."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> I think it depends on the viewpoint.\n> From the conciseness point of view, editing every file is too redundant and doesn't make sense.\n> From the completeness point of view, we're just describing the boards in a bit more detail, so it makes sense.\n> \n> I think if the BMC cannot autonomously determine its physical location (I am not sure with my current knowledge), this information needs to be injected in some form, maybe by adding a BMC entry to the .json configs or some other methods.\n\nAgreed.  I wonder if we need to promote \"This is the config this bmc lives on\" to a higher scope so we can do stuff like this without having to edit every baseboard file."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 112,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "To avoid having to edit every baseboard file, it would be good if the BMC has some way to localize itself. A few ways that I know about:\n\nOne possibility is to examine the existing association graph. I took a look at some existing systems, this method doesn't guarantee a 100% precise result, since it appears association edges may be arbitrarily specified:\n\n* For some platform without a DC-SCM module that comes with multiple boards: the board that has the BMC also has a few BMC margin sensors associated with it, while the other boards do not.\n\n* For some platform with a DC-SCM module: A sensor appears to be including the DC-SCM module's name and \"bmc\" (the snapshot was obtained a while back, I'm not sure the meaning in the names ..)\n\nAnother possibility ... if the BMC can tell the interface used by the BMC<->host IPMI communication, it may be easier to guess which inventory the BMC is contained in. \"ipmipci\" probably indicates the BMC is on a DC-SCM module; \"ipmilpc\" probably indicates the BMC is on the motherboard. This, plus the association graph, may give some heuristics for the BMC to figure out its own location.\n\nSo the conclusion is I don't yet have a very good idea on how to enable the BMC to localize itself with what I currently know, but I can take a closer look at the \"association graphs\" or add a small program to test the \"heuristics\"."
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "line": 283,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please avoid default parameters in this case, it makes it less clear what all the other calling code does."
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "line": 283,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "line": 739,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'd really prefer we not special case hardcoded names in the config.  This makes me wonder if we modeled the config files properly."
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "line": 739,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "How about:\n\n1. Add a new flag \"HasBMC\" for board .json's that indicate the board has a BMC on it (it effectively replaces the \"Exposes:[{\"Type\":\"Bmc\",\"Name\":\"Bmc\"}]\" snippet in the Exposes field)\n\n2. Add a new flag \"SubItems\" to differentiate from the \"Exposes\" field (all objects in SubItems are prepended with \"xyz.openbmc_project.Inventory.Item.\" while all objects in Exposes are still prepended with \"xyz.openbmc_project.Configuration.\""
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "line": 739,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> How about:\n> \n> 1. Add a new flag \"HasBMC\" for board .json's that indicate the board has a BMC on it (it effectively replaces the \"Exposes:[{\"Type\":\"Bmc\",\"Name\":\"Bmc\"}]\" snippet in the Exposes field)\n\nCan you post an example somewhere?  Also, can we make the parameter \"HasThisBMC\" or something that indicates that it's not just \"a\" bmc, but literally the bmc we're running on (systems commonly have multiple bmcs).\n\nAssuming I'm visualizing what you're talking about, this seems like the way I would go.\n\n> \n> 2. Add a new flag \"SubItems\" to differentiate from the \"Exposes\" field (all objects in SubItems are prepended with \"xyz.openbmc_project.Inventory.Item.\" while all objects in Exposes are still prepended with \"xyz.openbmc_project.Configuration.\"\n\nIf this is a route you want to go down, lets talk through it, but it seems like a case where we would want multiple files (or maybe multiple definitions in one file) with associations between them to denote their connectedness, but, lets scope out what you're thinking and see if we can come to something similar."
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "line": 739,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "I added the following snippets in the JSON file \"ASRock_E3C246D4I\" as an example for the different ways to add a BMC:\n\n* Method 1: An \"xyz.openbmc_project.Inventory.Item\" entry in the \"Exposes\" stanza (this is going to be removed per the comments ..)\n* Method 2: A \"HasThisBMC\" flag in the board JSON\n* Method 3: A \"SubItems\" stanza allowing the user to create sub-items that exist as children DBus objects. Same as Exposes except that all items created will be Inventory.Item's rather than Configurations.\n\nI'm not sure which one is the best or if this change is to be considered together with other proposals such as 52487 (association interfaces for cables), and the discussion on Discord on April 15 (PhysicalLocation's). Please advise?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 114,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 87,
+                    "deletions": -30
+                }
+            ],
+            "sizeInsertions": 201,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 8,
+            "revision": "f9cdeeb640869756518d76d23dc5e6c52e34d1a7",
+            "parents": [
+                "e35d0acb7ee1eca993964fec39ca04e4ebc96ce1"
+            ],
+            "ref": "refs/changes/49/50649/8",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1649723320,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 132,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 218,
+                    "deletions": -120
+                }
+            ],
+            "sizeInsertions": 350,
+            "sizeDeletions": 120
+        },
+        {
+            "number": 9,
+            "revision": "2114b9be8835cea3b1ee092ad3ca8488961094c9",
+            "parents": [
+                "e35d0acb7ee1eca993964fec39ca04e4ebc96ce1"
+            ],
+            "ref": "refs/changes/49/50649/9",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1649724238,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 132,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 220,
+                    "deletions": -120
+                }
+            ],
+            "sizeInsertions": 352,
+            "sizeDeletions": 120
+        },
+        {
+            "number": 10,
+            "revision": "1ee1007405a33abed7c57340ea48d3a05c7f6f8a",
+            "parents": [
+                "e35d0acb7ee1eca993964fec39ca04e4ebc96ce1"
+            ],
+            "ref": "refs/changes/49/50649/10",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1649724489,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Sorry about this;  I had draft comments that have been in draft since march 21st.  If they no longer apply, please let me know."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Sui Chen",
+                        "email": "suichen@google.com",
+                        "username": "quadpixels"
+                    },
+                    "message": "Updated examples of the 3 possible methods in ASRock_E3C246D4I.json and some description in the change log."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 132,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 220,
+                    "deletions": -120
+                }
+            ],
+            "sizeInsertions": 352,
+            "sizeDeletions": 120
+        },
+        {
+            "number": 11,
+            "revision": "f7ba13a4886829f25aaa97367fc5828a0e69f0c9",
+            "parents": [
+                "e35d0acb7ee1eca993964fec39ca04e4ebc96ce1"
+            ],
+            "ref": "refs/changes/49/50649/11",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1650314233,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 150,
+                    "deletions": 0
+                },
+                {
+                    "file": "schemas/global.json",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 276,
+                    "deletions": -136
+                },
+                {
+                    "file": "configurations/ASRock_E3C246D4I.json",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 458,
+            "sizeDeletions": 136
+        },
+        {
+            "number": 12,
+            "revision": "71fc423ad813cec02b06dacecc0ca44d9f9af8fc",
+            "parents": [
+                "e35d0acb7ee1eca993964fec39ca04e4ebc96ce1"
+            ],
+            "ref": "refs/changes/49/50649/12",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1650314898,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 150,
+                    "deletions": 0
+                },
+                {
+                    "file": "schemas/global.json",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 271,
+                    "deletions": -134
+                },
+                {
+                    "file": "configurations/ASRock_E3C246D4I.json",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 453,
+            "sizeDeletions": 134
+        },
+        {
+            "number": 13,
+            "revision": "e57cc981e443ce4d7a4a3a8ec9a16bcc5bf1556a",
+            "parents": [
+                "e35d0acb7ee1eca993964fec39ca04e4ebc96ce1"
+            ],
+            "ref": "refs/changes/49/50649/13",
+            "uploader": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "createdOn": 1650906804,
+            "author": {
+                "name": "Sui Chen",
+                "email": "suichen@google.com",
+                "username": "quadpixels"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 150,
+                    "deletions": 0
+                },
+                {
+                    "file": "schemas/global.json",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/EntityManager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 271,
+                    "deletions": -134
+                },
+                {
+                    "file": "configurations/ASRock_E3C246D4I.json",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 453,
+            "sizeDeletions": 134
+        }
+    ]
+}

@@ -1,0 +1,1813 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "topic": "progress codes",
+    "id": "I6405833ec1bfc2336bc7c7ef1544eb8a729c005d",
+    "number": 41058,
+    "subject": "Add new Message registry with ASCII post code place holder",
+    "owner": {
+        "name": "ManojKiran Eda",
+        "email": "manojkiran.eda@gmail.com",
+        "username": "manojkiraneda"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/41058",
+    "commitMessage": "Add new Message registry with ASCII post code place holder\n\n- In the current state, the BIOS Post code message registry\n  has a place holder to only display a hex based post code.\n\n- Since Power 5 series of servers, IBM progress codes are ASCII\n  based character codes as mentioned in the below link:\n(https://www.ibm.com/support/knowledgecenter/POWER5/ipha6_p5/progcodesmain.htm)\n\n- These progress codes are displayed in multiple places like\n  BMC GUI, Operator Panel , Hardware Management Console e.t.c, and\n  most of the customers of power are well accustomed to seeing these\n  character based codes. And in the current infrastructure we display\n  the hex form of uint64 value, which can lead to misses where some\n  customer does not know how to look up the code & translate it to\n  ASCII and last thing we would want is for a service rep to do the\n  translation.\n\n- For most of the systems where we don't have the ASCII convertible\n  progress codes, it should not be an issue as we still display the\n  hex codes, but in addition we just display empty string in the ASCII place\n  holder.\n\n- Clients like management console, GUI(probably needs an OEM code),\n  Operator Panel can probably do this conversion of hex to ASCII,\n  but its the customers that we are really concerned about & also\n  by adding this additional field in a new message registry we can probably\n  share a common GUI code (that displays both the hex codes as well as ASCII codes).\n\n- Redfish experts suggestion is, instead of changing the existing\n  message registry which can break clients, we have to add a new message registry with\n  almost the similar name like BIOSPOSTCodeASCII with the new argument\n  set and bump up the minor version of the Message registry.\n\n(https://redfishforum.com/thread/447/bumping-message-registry-backward-compatability)\n\nTested By :\n\n- The base function that does the hex to ASCII conversion is unit tested.\n- IBM systems does not a snooping port, so i could not test this on a real machine\n  that generates the post codes, but I did the functional test by patching the snoopd\n  daemon & the post-code-manager daemon.\n- PATCH the Raw Post Code property\n\n $ busctl call xyz.openbmc_project.State.Boot.Raw /xyz/openbmc_project/state/boot/raw0\n org.freedesktop.DBus.Properties Get ss xyz.openbmc_project.State.Boot.Raw Value\n v t 2330967143279055955\n\n- GET on the Post Code Entry should give the Post code in Ascii Format\n\n{\n \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/PostCodes/Entries/B1-2\",\n \"@odata.type\": \"#LogEntry.v1_4_0.LogEntry\",\n \"Created\": \"2021-03-04T06:29:35+00:00\",\n \"EntryType\": \"Event\",\n \"Id\": \"B1-2\",\n \"Message\": \"Boot Count: 1: TS Offset: 56.4424; POST Code: 0x205942444e415453; POST Code in Ascii: STANDBY \",\n \"MessageArgs\": [\n    \"1\",\n    \"56.4424\",\n    \"0x205942444e415453\",\n    \"STANDBY \"\n  ],\n  \"MessageId\": \"OpenBMC.0.2.BIOSPOSTCodeASCII\",\n  \"Name\": \"POST Code Log Entry\",\n  \"Severity\": \"OK\"\n }\n\nFill the post code property with a hex value that is non-ascii convertable\n$ busctl call xyz.openbmc_project.State.Boot.Raw /xyz/openbmc_project/state/boot/raw0\n  org.freedesktop.DBus.Properties Get ss xyz.openbmc_project.State.Boot.Raw Value\n  v t 18446744073709551615\n\n{\n  \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/PostCodes/Entries\",\n  \"@odata.type\": \"#LogEntryCollection.LogEntryCollection\",\n  \"Description\": \"Collection of POST Code Log Entries\",\n  \"Members\": [\n    {\n      \"@odata.id\": \"/redfish/v1/Systems/system/LogServices/PostCodes/Entries/B1-1\",\n      \"@odata.type\": \"#LogEntry.v1_4_0.LogEntry\",\n      \"Created\": \"2021-03-07T10:43:36+00:00\",\n      \"EntryType\": \"Event\",\n      \"Id\": \"B1-1\",\n      \"Message\": \"Boot Count: 1: TS Offset: 0.0000; POST Code: 0xffffffffffffffff; POST Code in Ascii: \",\n      \"MessageArgs\": [\n        \"1\",\n        \"0.0000\",\n        \"0xffffffffffffffff\",\n        \"\"\n      ],\n      \"MessageId\": \"OpenBMC.0.2.BIOSPOSTCodeASCII\",\n      \"Name\": \"POST Code Log Entry\",\n      \"Severity\": \"OK\"\n    }\n  ],\n  \"Members@odata.count\": 1,\n  \"Members@odata.nextLink\": \"/redfish/v1/Systems/system/LogServices/PostCodes/Entries?$skip=1000\",\n  \"Name\": \"BIOS POST Code Log Entries\"\n}\n\nSigned-off-by: Manojkiran Eda <manojkiran.eda@gmail.com>\nChange-Id: I6405833ec1bfc2336bc7c7ef1544eb8a729c005d\n",
+    "createdOn": 1614847012,
+    "lastUpdated": 1651074547,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1614847012,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1614847028,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614847287,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Topic set to progress codes"
+        },
+        {
+            "timestamp": 1614847364,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/13307/ : FAILURE"
+        },
+        {
+            "timestamp": 1614848076,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1614848093,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1614849025,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13309/ : SUCCESS"
+        },
+        {
+            "timestamp": 1614900910,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1615114162,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1615114175,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615114309,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1615115105,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13446/ : SUCCESS"
+        },
+        {
+            "timestamp": 1615152619,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1615256807,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1615306881,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1615306906,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615307841,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13551/ : SUCCESS"
+        },
+        {
+            "timestamp": 1615307944,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1615309166,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 4:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1615451933,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1615451948,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615452252,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1615452278,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1615452280,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/13634/ : ABORTED"
+        },
+        {
+            "timestamp": 1615452872,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 6:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1615453218,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/13635/ : SUCCESS"
+        },
+        {
+            "timestamp": 1615455751,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 7: Commit message was updated."
+        },
+        {
+            "timestamp": 1615498158,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1615700317,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1615701444,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616166664,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616170546,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1616170653,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616172257,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 7:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1616173179,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1616176473,
+            "reviewer": {
+                "name": "Jason Bills",
+                "email": "jason.m.bills@linux.intel.com",
+                "username": "jmbills"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616220999,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616262130,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(3 comments)\n\nOne thing this review is somewhat starting to poke at is the question \"How do we have system-specific, BIOS-specific, or processor-specific string representations of POST codes?\"  This question and solution space is much bigger than this commit makes it appear to be at first glance, and I suspect needs a design doc so we can sort out how to make these APIs look sane to external clients for the various processors we support.\n\nI would like to see a solution that:\n1. Doesn't break existing clients, or expect them to change their code.\n2. Revisions the message registry properly.\n3. Allows a client to differentiate between a post code that's human readable, and a post code that is not.\n4. Ideally, would also lay the foundation for having free-form post codes in the future."
+        },
+        {
+            "timestamp": 1616302166,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 7:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1616382367,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1616382386,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616382461,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14102/ : FAILURE"
+        },
+        {
+            "timestamp": 1616383410,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1616383423,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1616384093,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14106/ : SUCCESS"
+        },
+        {
+            "timestamp": 1616434678,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1616594660,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1618337113,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1618812397,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1625060502,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1625060520,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625060614,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/21128/ : FAILURE"
+        },
+        {
+            "timestamp": 1625105229,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 11: Patch Set 10 was rebased"
+        },
+        {
+            "timestamp": 1625105244,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1625105815,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/21198/ : SUCCESS"
+        },
+        {
+            "timestamp": 1651074547,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Abandoned\n\nPlease reopen if this is still being worked.  Current patchset still has compatibility issues mentioned previously."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "d86aa6c57a7c667215079246b0cbca23ee4bf472",
+            "parents": [
+                "15124765dad8076bdfae224b5463e0aa3c26b6a7"
+            ],
+            "ref": "refs/changes/58/41058/1",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1614847012,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 104,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 2,
+            "revision": "7582a2308b2c90bac8b80723d825fc233711fbfd",
+            "parents": [
+                "15124765dad8076bdfae224b5463e0aa3c26b6a7"
+            ],
+            "ref": "refs/changes/58/41058/2",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1614848076,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Please also test and show the output when the code can't be converted to ascii"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "nit: may want to remove spaces"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "The space is coming because of ascii conversion of the hex 20"
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "line": 592,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "There could be better way to do it. But, here is my suggestion:\nif (std::count_if(bytearray.begin(), bytearray.end(), \n                         [](unsigned char c){ return !std::isprint(c); } \n                        )\n{\n      return {}\n}\nreturn std::string(bytearray.begin(), bytearray.end());"
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "line": 592,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "This logic is optimized than mine. Thanks."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 21,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 97,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 3,
+            "revision": "8de03821b05be924b325ed3c014bf69384121b1e",
+            "parents": [
+                "15124765dad8076bdfae224b5463e0aa3c26b6a7"
+            ],
+            "ref": "refs/changes/58/41058/3",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1615114162,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please familiarize yourself with how message registry versioning works.  The patchset you describe here doesn't seem to abide by the general rules in the specification for how registries work.  Feel free to look at the base registries as examples of how versioned api like this works."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "The base registry and other Redfish registries Redfish bump the minor version of the registry when they do something like this (e.g. 1.8.0 to 1.9.0) \nSee https://redfish.dmtf.org/registries/ \n\nIs that what you are suggesting here?\nThat seems reasonable to me.. bump to 0.2.0."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "That's part of it, also, once entries are created and versioned, they can't really be changed easily.  I suspect if this is something you really want to do, we'll have to research how redfish would recommend doing it in a backward compatible way."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Asked redfish forum , and the suggestion is to add a new registry and bump the minor version.\nhttps://redfishforum.com/thread/447/bumping-message-registry-backward-compatability"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not really following why this is needed?  This is an API, if the consumer wants to change how this is interpreted (int/hex/ascii), they certainly can, that's why MessageArgs exists, and is strongly typed.\n\nCan you please add some more details in your commit message on why we need to duplicate this information.  Some questions I'd like to see answered:\n1. Most systems don't have ascii convertable post codes, (at least not directly) what impacts will this have on those systems?\n2. Why aren't clients capable of doing this conversion, considering the data already exists in the message format.\n3. Aforementioned question above about versioning in the schemas.  Please find some kind of statement within the redfish spec about this kind of thing."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 15,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Addressed all 3 points and updated the commit message."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please talk to the backward compatibility guarantees for systems that use this API already."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "As far as i understood, the redfish clients would parse the message registry based on the version right.\n\nSo, adding a new registry & bumping the version would not break the existing clients, any old clients would now get a different version of the Message registry which they would have to parse for."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Excellent."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please test in a more real scenario, ie, on a system that's producing post codes."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "I could not test it because in IBM systems we don't have a snoop port at all, and the progress codes comes down from host via pldm.I did test it via pldm though. Can some one help me on this ? probably from intel ? I think i can rely on Zhikui for a +1 on this ?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "?  Extra space looks incorrect?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 44,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "No, its not an extra space, out of 8 hex words, the last hex word when converted to ascii became a \"space\"."
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "bump this version?"
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "And this one?"
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "I have also bumped this version in couple of other places where we are using 0.1.0."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 85,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 125,
+            "sizeDeletions": 5
+        },
+        {
+            "number": 4,
+            "revision": "b88b4c72a5db1c71aacfe65f2bfda4b09885b903",
+            "parents": [
+                "cd1f3920ac3ec6605bcc3e7e45bab18e235bd33a"
+            ],
+            "ref": "refs/changes/58/41058/4",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1615306881,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 85,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 131,
+            "sizeDeletions": 11
+        },
+        {
+            "number": 5,
+            "revision": "eda5e194534787187737e2d7ed3532c1ce5c8c80",
+            "parents": [
+                "0daf14e053114a8e3b6da669a5240556ced9184a"
+            ],
+            "ref": "refs/changes/58/41058/5",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1615451933,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 10
+        },
+        {
+            "number": 6,
+            "revision": "6774cae35fa753ef93a714a02890be064133132d",
+            "parents": [
+                "0daf14e053114a8e3b6da669a5240556ced9184a"
+            ],
+            "ref": "refs/changes/58/41058/6",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1615452252,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 163,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 7,
+            "revision": "c796e1660bf25ec362b6e7ce478a683923cb8352",
+            "parents": [
+                "0daf14e053114a8e3b6da669a5240556ced9184a"
+            ],
+            "ref": "refs/changes/58/41058/7",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1615455751,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "spelling"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "apologies gunnar, i hate to see you correcting my spelling mistakes.\n\nI have enabled a spell checking plugin in my vim configuration ,will not repeat these in my upcoming patch-sets."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "Random thought , Do you think,its a good idea to add some plugin to the CI scripts to check for spelling mistake in commit message & score a -1 if it is bad ?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Yeah, I know redfish does something similar for their PRs. \nI think it is just,  no one has had the time."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 16,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Seems like it would be high value and low effort if you wanted to implement that ManojKiran.  Feel free to propose something to the list.\n\nMy only concern would be making sure that the openbmc-specific dictionary is easily editable, and has someone maintaining it, as there are lots of acronyms that we might have to add."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is an API.  It is not meant for \"customers\" in the normal sense, it is meant for automation."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "The Redfish API is meant to be human readable and machine consumable why they use JSON."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I would agree the message portion is intended to be human readable, the message args really is only meant for automation.\n\nWith that said, my main concern is the comment on line 26;  If we can get that solved, I really have no problem with this, but I don't really see a path forward here that doesn't break non-ascii post codes."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not sure how you came to this conclusion;  When systems that use hex post codes (with no asicc) publish anything in the ascii range, it will be converted incorrectly.  This seems like an issue."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "hmm, i sort off agree. I did thought about it but Would that be a big problem as such, because customers/automation can look at only the field they are interested in ? \n\nLike u said in other comments, Then the only way i see to solve this issue to go by compile time flag and switch registries based on machine that the code is compiled for."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> hmm, i sort off agree. I did thought about it but Would that be a big problem as such, because customers/automation can look at only the field they are interested in ? \n\nAnd how would clients know to ignore the ascii post code on IBM systems?  How would clients know to switch 0.2 version of the post codes?  Wouldn't all the clients that were written against the 0.1 version of post codes now be broken?\n\n> \n> Like u said in other comments, Then the only way i see to solve this issue to go by compile time flag and switch registries based on machine that the code is compiled for.\n\nI said nothing about a compile time flag, and I don't really like that, as it really means that our dbus interfaces aren't expressive enough for this kind of thing, and they need improved.  I personally don't think this commit (as-written) is needed at all, because it's trying to build a standards based API, while creating an IBM-specific message, which seems like something we should be very careful about, and do with eyes open to compatibility between systems.\n\nIf we want to have human-readable text versions of post codes, that's a much bigger problem, and something we should sort out."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "> And how would clients know to ignore the ascii post code on IBM systems?  How would clients know to switch 0.2 version of the post codes?  Wouldn't all the clients that were written against the 0.1 version of post codes now be broken?\n\nHow is any other schema different ? for example take the logservice schema - it has added CollectDiagnosticData property recently ? then how does the old redfish clients parse this ? is it not the similar case here ? Client first introspects the version number and then based on it , it will understand what items are expected.\n\nis this not the same thing , that we are trying to do here ?\n\n> I said nothing about a compile time flag, and I don't really like that, as it really means that our dbus interfaces aren't expressive enough for this kind of thing, and they need improved.\n\n> Maybe \"if the CPU type is POWER\" would be a good strawman to use client side?  I'm not a huge fan of that, but woudl get you what you're looking for.\n\napologies,probably i did not understood it correct, did you meant that we need to look at a dbus property(CPU) and switch registries here ? rather than a compile time flag ?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > And how would clients know to ignore the ascii post code on IBM systems?  How would clients know to switch 0.2 version of the post codes?  Wouldn't all the clients that were written against the 0.1 version of post codes now be broken?\n> \n> How is any other schema different ? for example take the logservice schema - it has added CollectDiagnosticData property recently ?\n\nKey word here is added, not replaced.  Clients coded against the standard allow for new parameters to be added to schemas.  That's how this has been handled in the past.  Your code completely replaces things.\n\n> then how does the old redfish clients parse this ? is it not the similar case here ?\n\nConsidering this will break clients, no, I don't think it's similar.\n\n> Client first introspects the version number and then based on it , it will understand what items are expected.\n\nClients will generally be coded against a specific messageID.  The fact that you've changed the messageId now breaks clients.\n\n> \n> is this not the same thing , that we are trying to do here ?\n> \n> > I said nothing about a compile time flag, and I don't really like that, as it really means that our dbus interfaces aren't expressive enough for this kind of thing, and they need improved.\n> \n> > Maybe \"if the CPU type is POWER\" would be a good strawman to use client side?  I'm not a huge fan of that, but woudl get you what you're looking for.\n> \n> apologies,probably i did not understood it correct, did you meant that we need to look at a dbus property(CPU) and switch registries here ? rather than a compile time flag ?\n\nI'm not really sure what to do here;  What you're trying to accomplish seems kind of incompatible with having a vendor-agnostic Redfish API, unless there was some way to switch between the implementations, or only add an extra message entry in the case of IBM systems, but considering dbus is manufacturer agnostic today, and doesn't define the interface in the way you're using it, this patchset is kind of dead in the water.\n\n\nI would recommend writing up some designs for a human readable post-code implementation, and see if we can get some community agreement on that.  I realize this is probably a lot more work than you were hoping for, but I don't see any way around it."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "> Key word here is added, not replaced.  Clients coded against the standard allow for new parameters to be added to schemas.  That's how this has been handled in the past.  Your code completely replaces things.\n\nNo Ed, i think you misunderstood or did not catch up with my latest patch-set probably,My initial patch replaced the Message registry, but later i changed it to add new registry as per the redfish experts suggestion mentioned in the below link.\n\nhttps://redfishforum.com/thread/447/bumping-message-registry-backward-compatability\n\nIn the above link, i also asked on how existing clients are NOT broken by doing the said implementation.\n\nWith that said, the real concern that you rightly mentioned is displaying some junk ascii codes on Intel machines which might be misleading. Agree that this needs to be thought through & probably needs a bigger discussion and I would try to come up with a design document or change the existing document."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > Key word here is added, not replaced.  Clients coded against the standard allow for new parameters to be added to schemas.  That's how this has been handled in the past.  Your code completely replaces things.\n> \n> No Ed, i think you misunderstood or did not catch up with my latest patch-set probably,My initial patch replaced the Message registry, but later i changed it to add new registry as per the redfish experts suggestion mentioned in the below link.\n\nI've pointed out where you replaced an implementation.  I could still be misunderstanding, but I don't think so.  While you've done the right thing in the message registry, you've done a backward incompatible thing in the implementation itself.\n\nWhat I would recommend is:\n1. write a quick python script to dump POST codes using the current mechanism.  Make sure it checks MessageRegistry IDs (like a conforming implementation should).  Bonus points for checking this script in as an example in scripts.\n2. Apply your patch.\n3. Rerun your script and make sure it still works.  Today, it won't.\n\n> \n> https://redfishforum.com/thread/447/bumping-message-registry-backward-compatability\n> \n> In the above link, i also asked on how existing clients are NOT broken by doing the said implementation.\n> \n> With that said, the real concern that you rightly mentioned is displaying some junk ascii codes on Intel machines which might be misleading.\n\nThis is one concern, the lack of backward compatibility is a larger concern.\n\n> Agree that this needs to be thought through & probably needs a bigger discussion and I would try to come up with a design document or change the existing document.\n\n\ud83d\udc4d"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 26,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "> I've pointed out where you replaced an implementation.  I could still be misunderstanding, but I don't think so.  While you've done the right thing in the message registry, you've done a backward incompatible thing in the implementation itself.\n\nI thought that not breaking the redfish clients is same as having backward compatibility.I think i am wrong now.\n\nI have addressed all these concerns in the design doc mentioned below, please have a look at it.\n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/docs/+/41660"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 31,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "spelling"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This is an API surface, \"customers\" ie humans aren't really our concern at this level."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "\"customers\" sound specific to companies that sell hardware, e.g. IBM. \nMaybe human clients?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm less worried about the vernacular in this case, more worried about the idea that we're providing multiple interpretations of a code from an API surface.  \"humans\" would be fine for vernacular, but the point still exists that we're duplicating information in the API."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "How does this impact clients that used the old message code?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "+1"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "I think that standard redfish clients will only parse the data based on the Message registry version number.\n\nthe moment the client see the version number mismatch , it should not attempt to parse it right ? that way i dont think the clients are broken & they can upgrade to a newer version of the message registry and parse the new set of arguments.\n\nAnyways, i just asked this question as well in the redfish forum to get their view."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> I think that standard redfish clients will only parse the data based on the Message registry version number.\n> \n> the moment the client see the version number mismatch , it should not attempt to parse it right ?\n\nThat's in no way how that works.  Message registry entries are supposed to be immutable and forward compatible.  If we want to make a breaking change, we can, but I don't really think this use case warrants it, or is worth breaking all the clients of this API to switch to another registry type.\n\n> that way i dont think the clients are broken & they can upgrade to a newer version of the message registry and parse the new set of arguments.\n\nWe still haven't answered the question of how a client knows that the ascii version of the post code is useful.  I think how we determine that is going to drive more of this discussion.  Today I don't think we have any way to determine that either within OpenBMC or externally, and it's a non-trivial problem.\n\n> \n> Anyways, i just asked this question as well in the redfish forum to get their view.\n\nCool.  I appreciate you reaching out.  If you could link the discussion somewhere in this review (either a comment or commit message) it would help others to track the discussion."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 37,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "> Cool.  I appreciate you reaching out.  If you could link the discussion somewhere in this review (either a comment or commit message) it would help others to track the discussion.\n\nI have already mentioned that in the commit message line number 41."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 40,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This doesn't really answer the question i posed earlier.  This is an API, and the data is available, there's no reason to interpret it two different ways when the client is perfectly capable of doing the same conversion."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 40,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "How does the client know to translate this to ASCII?\nFrom the current API, how would the webui know to translate this to ASCII?\nThis patch set presents the data in a more human readable fashion and solves the problem of the client knowing to translate this. I think it is fair that the API expose this as ASCII. I am not sure it should really be bmcweb doing the translation, but I think it is reasonable the API displays this in ASCII."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 40,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> How does the client know to translate this to ASCII?\n> From the current API, how would the webui know to translate this to ASCII?\n\nI don't have a great answer to this, but it'll definitely need answered, and this patchset doesn't answer the question either, it just blindly converts things.  Maybe \"if the CPU type is POWER\" would be a good strawman to use client side?  I'm not a huge fan of that, but woudl get you what you're looking for.\n\nAn alternative would be to come up with a message type specific to Power CPUs, and leave the old message types alone.  That doesn't seem great either, but might be better than pushing this problem onto clients.\n\n> This patch set presents the data in a more human readable fashion and solves the problem of the client knowing to translate this.\n\nWith respect, no, it doesn't.  It only \"solves\" it for systems that have ascii post codes.  It breaks things for systems that don't have ascii post codes, which is the majority of systems at this point.\n\n> I think it is fair that the API expose this as ASCII. I am not sure it should really be bmcweb doing the translation, but I think it is reasonable the API displays this in ASCII.\n\nI have no problem with publishing ASCII, but in that case it should be the ONLY thing we publish.  We shouldn't publish both arguments, as it implies that the data is unique."
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "We have not been bumping the registry when we add new entries but I think we should like Redfish does for their registries. \n\n\nRedfish only adds new entries / releases new registry versions every release ( 3 months) so they would only bump 4 times a year at max, we would many more times a year.\n\nI will let Ed weigh in here but I like the idea of bumping every time we add an entry although Ideally we would store old versions of the registry as well and not have to bump things like sendTestEventLog every time. \n\nMaybe for your commit, it is probably easier to remove these bumps and we can figure that out later."
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "I think i am okay with either way. If Ed is also okay with it i can remove the bump & just change the message registry used by the post code log service to the new one."
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I vote let's just remove the bump."
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Jason Bills",
+                        "email": "jason.m.bills@linux.intel.com",
+                        "username": "jmbills"
+                    },
+                    "message": "This version is part of the \"MessageId\" field that gets added to every Redfish LogEntry. \n Unfortunately, in a lot of the backend implementation, this version string is hardcoded in the MessageId.  I think keeping the old versions in place will keep those implementations working, but I wanted to make sure we are aware of that issue when we decide to bump this revision."
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "line": 24,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The reason I bring it up here, is that we're modifying something in a backward incompatible way (changing the definition of an existing ID).  Not reving the version means that clients have no way to handle both cases, and have no indication that the registry has changed.\n\nTechnically we should be reving this every time we change this file in any way, or at minimum every time we do an official release.  I realize we haven't done that, but if we're only adding things, there's an almost zero chance that we break existing client code.\n\nJason does bring up a good point, it's too bad we weren't more DRY about the explicit MessageId version.  I wonder if that can be fixed, and only encode the messageId, and not the version in the backend log messages, so we can rev this when we change it.\n\nThoughts?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 163,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 8,
+            "revision": "e0b5fbc622f0743e96e19b75dc9ad460bbd61421",
+            "parents": [
+                "c951448acb5c81a69569326c080b1a50e5678cbf"
+            ],
+            "ref": "refs/changes/58/41058/8",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1616382367,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 163,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 9,
+            "revision": "b1e0b4818e4912faf030ecdfe940ffe0ba0b8a86",
+            "parents": [
+                "c951448acb5c81a69569326c080b1a50e5678cbf"
+            ],
+            "ref": "refs/changes/58/41058/9",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1616383410,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "line": 3117,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "When I say you replaced things, this is what I mean."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/event_service_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 164,
+            "sizeDeletions": 9
+        },
+        {
+            "number": 10,
+            "revision": "1a6ac7e4476ae424afb0ad44be97c8920e3ca6f0",
+            "parents": [
+                "af61db10fb40c7beb91a70f0b3ff28cb8e6c1704"
+            ],
+            "ref": "refs/changes/58/41058/10",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1625060502,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 161,
+            "sizeDeletions": 6
+        },
+        {
+            "number": 11,
+            "revision": "24f261948190df8a1473353c3dad32a8430c2210",
+            "parents": [
+                "729f55fe555e07821626aba322f42ca783652928"
+            ],
+            "ref": "refs/changes/58/41058/11",
+            "uploader": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "createdOn": 1625105229,
+            "author": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 109,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/ut/utility_test.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "http/utility.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/src/error_messages.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/include/registries/openbmc_message_registry.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 12,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 161,
+            "sizeDeletions": 6
+        }
+    ]
+}

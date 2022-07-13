@@ -1,0 +1,884 @@
+{
+    "project": "openbmc/dbus-sensors",
+    "branch": "master",
+    "id": "Id435d198d6427e3141517ea517a8fa6f946c5dd5",
+    "number": 50885,
+    "subject": "Serialize sensor polling in cpusensor",
+    "owner": {
+        "name": "Arun P M",
+        "email": "arun.p.m@linux.intel.com",
+        "username": "arun-pm"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/dbus-sensors/+/50885",
+    "commitMessage": "Serialize sensor polling in cpusensor\n\nSerialize sensor polling to fix nonresponsive cpusensor daemon on peci\ntimeout.\nSay we have 100 cpusensor objects, there will be 100 reads made\nto peci driver. And in peci driver, if a read fails, it will keep\ntrying again till timeout. Timeout is 0.7 sec. Which means, under peci\nerror state, cpusensor daemon will make 100 calls to peci driver.\nAnd each of that call will take 0.7 sec. This ultimately result in\ncpusensor io having a queue of 100 request at the same time.\nAnd since we only has one thread for io (and peci can only do one read\nat a time) these calls will make cpusensor nonresponsive.\nAs cpusensor is busy:\n1) busctl tree or introspect to xyz.openbmc_project.CPUSensor will fail.\n2) phosphor-pid-control will try to get data from cpusensor,\nand after trying for 5 times, phosphor-pid-control will gracefully exit.\n\nFix for this is to serialize the requests made to peci from cpusensor daemon.\nThis is done via single poll loop for all cpu sensors using coroutine.\nThis basically avoid overloading the cpusensor io with flooding of requests.\nAlso, the polling frequency of individual sensors are modified to small\ndelay between 2 sensor reads.\n\nTested:\nNegative test case: On Intel system which has peci error.\n1. By giving busctl tree or introspect to xyz.openbmc_project.CPUSensor\nand made sure busctl tree command is getting response.\n2. phosphor-pid-control gracefull exit is not observed.\n\nPositive test case: On Intel system which does not have peci error.\n1. By giving command ipmitool sensor list and making sure CPU sensors\nshow values as expected.\n\nSigned-off-by: Arun P. Mohanan <arun.p.m@linux.intel.com>\nSigned-off-by: Arun Lal K M <arun.lal@intel.com>\nChange-Id: Id435d198d6427e3141517ea517a8fa6f946c5dd5\n",
+    "createdOn": 1643882876,
+    "lastUpdated": 1652729077,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1643882876,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1643882921,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643882921,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643883174,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/36527/ : SUCCESS"
+        },
+        {
+            "timestamp": 1643907076,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1643910472,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1643910492,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643910492,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643910500,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1643910745,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/36551/ : SUCCESS"
+        },
+        {
+            "timestamp": 1643960868,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1643960891,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1643960891,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1643961140,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/36590/ : SUCCESS"
+        },
+        {
+            "timestamp": 1644001627,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1645530783,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1645530793,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645530793,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645530860,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Patch Set 4:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1645531040,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37778/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645575316,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1645575456,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650784434,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1650784444,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650784444,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650784700,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41916/ : SUCCESS"
+        },
+        {
+            "timestamp": 1650788346,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1650793309,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1650793331,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1650793331,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1650793337,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Set Ready For Review"
+        },
+        {
+            "timestamp": 1650793345,
+            "reviewer": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "message": "Patch Set 6:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1650793579,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41917/ : SUCCESS"
+        },
+        {
+            "timestamp": 1652729077,
+            "reviewer": {
+                "name": "Zhikui Ren",
+                "email": "zhikui.ren@intel.com",
+                "username": "ZhikuiRen"
+            },
+            "message": "Patch Set 6: Code-Review+1"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "683b56001df3a36e694d22b124cb074f33d73157",
+            "parents": [
+                "07e87141464578cf87cb5831284c677d04910dc1"
+            ],
+            "ref": "refs/changes/85/50885/1",
+            "uploader": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "createdOn": 1643882876,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Change looks good to me. Just one minor question."
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "with 50ms and 100 sensors, it means for a given sensor it is polled every 5 seconds. Can this be reduced to 10ms?"
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "I tried with 10ms delay. It seems working fine.\nUpdated to 10ms."
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 55,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Maybe this is the minimum. See comments later"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 56,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -40
+                }
+            ],
+            "sizeInsertions": 118,
+            "sizeDeletions": 46
+        },
+        {
+            "number": 2,
+            "revision": "2ab42275df4139b451aa97a9cc55d4703f62fac3",
+            "parents": [
+                "07e87141464578cf87cb5831284c677d04910dc1"
+            ],
+            "ref": "refs/changes/85/50885/2",
+            "uploader": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "createdOn": 1643910472,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 56,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -40
+                }
+            ],
+            "sizeInsertions": 118,
+            "sizeDeletions": 46
+        },
+        {
+            "number": 3,
+            "revision": "223ce5e87df778ad3605369df312119b1a257e5f",
+            "parents": [
+                "85bb529ccf6190212b1ef3b2fd93c274386be2d2"
+            ],
+            "ref": "refs/changes/85/50885/3",
+            "uploader": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "createdOn": 1643960868,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 393,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Prefer move it to line 387. It may not be an issue as long as we are still a single threaded."
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 393,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 438,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Can this delay be max (10ms, 1second/size of gCpuSensors).\nThis will make the sensor polling at about once per second as before when peci works correctly. \nWhen peci fails, it is ok if the loop takes longer. It just need to be responsive."
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 438,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "Updated to calculate delay based on number of sensors.\nKept minimum value as 10ms to avoid overloading peci/io."
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 438,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Please reflect this in commit messages also - polling period stays about once per second except when there is more than 100 sensors, it would be 10ms * number of sensors."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 56,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -40
+                }
+            ],
+            "sizeInsertions": 119,
+            "sizeDeletions": 46
+        },
+        {
+            "number": 4,
+            "revision": "c372dddd1a567f93ba41d0cc22003e7dd8d70104",
+            "parents": [
+                "0891e2bdddc0b4568599b4e592577ccd9214d1a4"
+            ],
+            "ref": "refs/changes/85/50885/4",
+            "uploader": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "createdOn": 1645530783,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Please reword the issue description so it is clear and concise. No need to have 3 separate paragraphs either."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "Did you verify phosphor-pid-control service runs successfully without crashing"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "yes. It was verified."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "show"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 442,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "This does not get re-calculated for every sensor. Move it outside the for loop."
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 442,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 446,
+                    "reviewer": {
+                        "name": "Zhikui Ren",
+                        "email": "zhikui.ren@intel.com",
+                        "username": "ZhikuiRen"
+                    },
+                    "message": "What will cause this fail? Can it be recovered without crashing?"
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "line": 446,
+                    "reviewer": {
+                        "name": "Arun P M",
+                        "email": "arun.p.m@linux.intel.com",
+                        "username": "arun-pm"
+                    },
+                    "message": "The only possibility here is if some one cancel the timer. I think that is also a valid case even though we don't do that.\n\nRemoved throwing exception."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 62,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -39
+                }
+            ],
+            "sizeInsertions": 124,
+            "sizeDeletions": 45
+        },
+        {
+            "number": 5,
+            "revision": "d0c0d76deaac5555bb2eec0ca75238c389d2503d",
+            "parents": [
+                "8454571297812c51ae120812d245bbe88d697191"
+            ],
+            "ref": "refs/changes/85/50885/5",
+            "uploader": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "createdOn": 1650784434,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 51,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -39
+                }
+            ],
+            "sizeInsertions": 112,
+            "sizeDeletions": 45
+        },
+        {
+            "number": 6,
+            "revision": "77d80944d54358bbeecd536eecc806dcd958d277",
+            "parents": [
+                "8454571297812c51ae120812d245bbe88d697191"
+            ],
+            "ref": "refs/changes/85/50885/6",
+            "uploader": {
+                "name": "Arun P M",
+                "email": "arun.p.m@linux.intel.com",
+                "username": "arun-pm"
+            },
+            "createdOn": 1650793309,
+            "author": {
+                "name": "Arun Lal K M",
+                "email": "arun.lal@intel.com",
+                "username": "arunlalkm-intel"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": ".clang-tidy",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "include/CPUSensor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/CPUSensorMain.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 55,
+                    "deletions": -1
+                },
+                {
+                    "file": "src/CPUSensor.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": -39
+                }
+            ],
+            "sizeInsertions": 116,
+            "sizeDeletions": 45
+        }
+    ]
+}

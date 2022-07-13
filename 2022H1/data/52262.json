@@ -1,0 +1,883 @@
+{
+    "project": "openbmc/phosphor-state-manager",
+    "branch": "master",
+    "id": "I739c62707bb805e7c25f399a2fea06beee5543a0",
+    "number": 52262,
+    "subject": "phosphor-state-manager: Support multi-host for persist files",
+    "owner": {
+        "name": "Allen.Wang",
+        "email": "Allen_Wang@quantatw.com",
+        "username": "Allen-Hsu-Wang"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-state-manager/+/52262",
+    "commitMessage": "phosphor-state-manager: Support multi-host for persist files\n\nphosphor-host-state-manager and phosphor-chassis-state-manager store\ninformations in files then restore that on service starting.\nSince state-managers already change to multi-host now, information\nshould store into different files from each service instance.\n\nforbackward capability, if there are legacy persist file exist,\nrename it to the new file format of instance ;0',i.e, rename files:\n'requestedHostTransition' to 'host0-PersistData',\n'POHCounter' to 'chassis-POHCounter',\n'chassisStateChangeTime' to 'chassis0-StateChangeTime'\n\nChanges:\na.phosphor-host-state-manager:\n'/var/lib/phosphor-state-manager/requestedHostTransition'\nthis file not only store requestedHostTransition now,\nrename to PersistData and add host-N prefix for each service.\nFor example, bus xyz.openbmc_project.State.Host1 store data to\n'/var/lib/phosphor-state-manager/host1-PersistData'\n xyz.openbmc_project.State.Host2 store date to\n'/var/lib/phosphor-state-manager/host2-PersistData'\n\nb.phosphor-chassis-state-manager:\n\nThere are two files to store informations\n'/var/lib/phosphor-state-manager/POHCounter',\n'/var/lib/phosphor-state-manager/chassisStateChangeTime'\nchange to:\n'/var/lib/phosphor-state-manager/chassis1-POHCounter',\n'/var/lib/phosphor-state-manager/chassis2-POHCounter'\n...\n'/var/lib/phosphor-state-manager/chassis1-StateChangeTime'\n'/var/lib/phosphor-state-manager/chassis2-StateChangeTime'\n...  for each service.\n\nTested on Bletchley HW,\n\nset xyz.openbmc_project.State.Host1 RequestedHostTransition to On\n'busctl set-property xyz.openbmc_project.State.Host1 /xyz/openbmc_project/state/host1\n\txyz.openbmc_project.State.Host RequestedHostTransition s \"xyz.openbmc_project.State.Host.Transition.On\"'\n\nThis request will store in file:\n'cat /var/lib/phosphor-state-manager/host1-PersistData'\n{\n    \"value0\": {\n        \"cereal_class_version\": 1,\n        \"value0\": \"xyz.openbmc_project.State.Host.Transition.On\",\n        \"value1\": \"xyz.openbmc_project.State.Boot.Progress.ProgressStages.Unspecified\",\n        \"value2\": \"xyz.openbmc_project.State.OperatingSystem.Status.OSStatus.Inactive\"\n    }\n\nrestart xyz.openbmc_project.State.Host1~Host6 or reboot BMC, 'RequestedHostTransition' for host1 still \"On\"\n'busctl get-property xyz.openbmc_project.State.Host1 /xyz/openbmc_project/state/host1\n\txyz.openbmc_project.State.Host RequestedHostTransition'\ns \"xyz.openbmc_project.State.Host.Transition.On\"\n'RequestedHostTransition' of the rest 5 Hosts are default value  \"xyz.openbmc_project.State.Host.Transition.Off\"\n\nAlso, set POHCounter of xyz.openbmc_project.State.Chassis2\n'busctl set-property xyz.openbmc_project.State.Chassis2\t/xyz/openbmc_project/state/chassis2\n\txyz.openbmc_project.State.PowerOnHours POHCounter u 5'\nit will restore after service restart or BMC reboot,\n'busctl get-property  xyz.openbmc_project.State.Chassis2 /xyz/openbmc_project/state/chassis2\n\txyz.openbmc_project.State.PowerOnHours POHCounter'\nu 5\n\nChange-Id: I739c62707bb805e7c25f399a2fea06beee5543a0\nSigned-off-by: Allen.Wang <Allen_Wang@quantatw.com>\n",
+    "createdOn": 1648036050,
+    "lastUpdated": 1650655603,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1648036050,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1648036062,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648036062,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648036196,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39515/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648134578,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1648137133,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1648457979,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1648458274,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1648458283,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648458283,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648458417,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39810/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648459285,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1648459293,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648459294,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648459431,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39811/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648461742,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1648478444,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3: Code-Review+1"
+        },
+        {
+            "timestamp": 1648495600,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648518984,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648600177,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648603553,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648653020,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648758261,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648780891,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649260675,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 3:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649702092,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 3: -Code-Review\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649751771,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1649757170,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1649757187,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649757187,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649757333,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/41016/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649757964,
+            "reviewer": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1650033622,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1650629701,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1650642181,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 4: Code-Review+1"
+        },
+        {
+            "timestamp": 1650655600,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 4: Code-Review+2"
+        },
+        {
+            "timestamp": 1650655603,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Change has been successfully rebased and submitted as ba182f0c14791f244fb5468d640c0fa75b7e08da"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "df98cce38488bea4b3145976158271f5e56933eb",
+            "parents": [
+                "c0895627ee171360ad6737634ebd05894d263453"
+            ],
+            "ref": "refs/changes/62/52262/1",
+            "uploader": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "createdOn": 1648036050,
+            "author": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "nit: exceeds 72 char"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "nit: from"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 12,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "line": 475,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Shouldn't the serializePOH/deserializePOH code handle this new detail?  It seems leaky to have every caller know that they need to replace the `id` when those functions can get access to the member just as easily.\n\nYou changed the StateChangeTime functions in this same file so it seems inconsistent."
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "line": 475,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "host_state_manager.cpp",
+                    "line": 410,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Seems like serialize should handle this detail too here, but currently those functions take a fully formed path and I'm not really certain why.\n\nAndrew, do you have opinions?  It seems like we're bleeding this id construct all over instead of having it focused in the serialize functions."
+                },
+                {
+                    "file": "host_state_manager.cpp",
+                    "line": 410,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "I updated Patchset3 which modify all serialize/deserialize related functions to remove path parameter and do format file path in function like serialize/deserializeStateChangeTime does,this will keep function behavior consistent and no need to do format at every caller, but this also makes caller can not change the path, will you concern about that?"
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 54,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "We might want to reword this slightly to be clear that it is a pattern and not a literal anymore.  ie. {} is replaced with the instance-id.  (Same comment for the other meson-option changes here.)"
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 54,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": -4
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 81,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 2,
+            "revision": "2fc98f0777ab099b337e326907172b2aa546c512",
+            "parents": [
+                "d59006aec9b402eee63c56f6f480f95d96096283"
+            ],
+            "ref": "refs/changes/62/52262/2",
+            "uploader": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "createdOn": 1648458274,
+            "author": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "host_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -5
+                },
+                {
+                    "file": "chassis_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 93,
+            "sizeDeletions": 28
+        },
+        {
+            "number": 3,
+            "revision": "249c24c2094ab0ea930e2b0d53da08fb2051ca84",
+            "parents": [
+                "d59006aec9b402eee63c56f6f480f95d96096283"
+            ],
+            "ref": "refs/changes/62/52262/3",
+            "uploader": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "createdOn": 1648459285,
+            "author": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Why did this become \"PersistData\" vs. just \"RequestedHostTransition\"?"
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "This file now stores three data ,RequestedHostTransition, boot progress and os status ,so I think \"RequestedHostTransition\" can not describe this file purpose preciously."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "Good point. This does bring up another good point in that we're breaking backwards compatibility in general here (not just with the name change but with the instance concept). I think that's ok. If someone were to have shipped a system with the previous level of code, moving to this would cause some of the function that relies on the persisted values, to not work. I'll have to think about that for our products. If we wanted to be fancy we could have some migration built in (look for old file, if found, move to new file). But I'm not going to say that's required."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "Oh,I understand, the persist values will disappear after upgrade BMC image on a running machine,I was not notice that but it is really a problem.\nThe previous code only support single-host,so I think I must consider how to sync persist value from old file to new file of instance '0'."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "@Andrew, do we have any generic way to do migrations already?  I looked briefly at Yocto and they have `pkg_postinst_ontarget` but in my quick testing it seems like that doesn't apply on the rootfs but only when using `opkg` to install the package."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "No, I know of no way to do this generically. As a community we've seemed to go back and forth a bit on whether we have to support situations like this. In some cases I've heard, it's master and you can break things like this there. In some cases, I've heard you need logic to handle it. Seems to depend on the severity of the issue that results in not supporting it. I don't see anything to severe here. I guess we'd lose the POHcounter info, which isn't ideal."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "Maybe we can just rename files before restore values if old file exist? \n\n'/var/lib/phosphor-state-manager/requestedHostTransition'\n=>'/var/lib/phosphor-state-manager/host0-PersistData'\n'/var/lib/phosphor-state-manager/POHCounter'\n=>'/var/lib/phosphor-state-manager/chassis0-POHCounter'\n'/var/lib/phosphor-state-manager/chassisStateChangeTime'\n=>'/var/lib/phosphor-state-manager/chassis0-StateChangeTime'\n\nI will try if this way can restore old file values."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I've created an TOF issue to start a discussion on setting a policy for backwards compatibility.  https://github.com/openbmc/technical-oversight-forum/issues/13"
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "It does seem the TOF direction is pointing to supporting compatibility going forward, so it's look like you'll need something here Allen."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 53,
+                    "reviewer": {
+                        "name": "Allen.Wang",
+                        "email": "Allen_Wang@quantatw.com",
+                        "username": "Allen-Hsu-Wang"
+                    },
+                    "message": "@Andrew\nPatchset4 rename old files before Objects create ,backwards compatibility seems OK, if upgrade BMC FW form old to new version, service can deserialize persist value which store in old file name.\n\nBTW, is forward compatibility necessary? \nIf yes ,maybe I can also make symlink  to old file name, \ne.g.\n'requestedHostTransition' -> '/var/lib/phosphor-state-manager/host0-PersistData'\n\nthen if downgrade from new BMC FW to old one, old FW can deserialize persist values via symlink 'requestedHostTransition'"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 68,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "host_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -7
+                },
+                {
+                    "file": "chassis_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 93,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 4,
+            "revision": "43c033bb02e5a0e8495fc58e31e2c43eb2ef3945",
+            "parents": [
+                "f9938711b297158a44f7aafef7c2e18a4965e296"
+            ],
+            "ref": "refs/changes/62/52262/4",
+            "uploader": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "createdOn": 1649757170,
+            "author": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "You good here Patrick?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "chassis_state_manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -7
+                },
+                {
+                    "file": "chassis_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 151,
+            "sizeDeletions": 30
+        },
+        {
+            "number": 5,
+            "revision": "ba182f0c14791f244fb5468d640c0fa75b7e08da",
+            "parents": [
+                "106152c64631979b04cdb624ae32755ea1802603"
+            ],
+            "ref": "refs/changes/62/52262/5",
+            "uploader": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "createdOn": 1650655603,
+            "author": {
+                "name": "Allen.Wang",
+                "email": "Allen_Wang@quantatw.com",
+                "username": "Allen-Hsu-Wang"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 20,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -5
+                },
+                {
+                    "file": "chassis_state_manager.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": -5
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -6
+                },
+                {
+                    "file": "chassis_state_manager_main.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 32,
+                    "deletions": 0
+                },
+                {
+                    "file": "host_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -7
+                },
+                {
+                    "file": "chassis_state_manager.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": -7
+                }
+            ],
+            "sizeInsertions": 151,
+            "sizeDeletions": 30
+        }
+    ]
+}

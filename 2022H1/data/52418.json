@@ -1,0 +1,2556 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "I745a31d6fe8d0aac08d532ea976bfc1a4a40b19c",
+    "number": 52418,
+    "subject": "sensor collection: implement efficient expand handler",
+    "owner": {
+        "name": "Nan Zhou",
+        "email": "nanzhoumails@gmail.com",
+        "username": "FighterNan"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/52418",
+    "commitMessage": "sensor collection: implement efficient expand handler\n\nThis change adds an efficient expand handler for $levels=1 expand at the\nsensors collection.\nInstead of Query one sensor at time, it reuses existing codes for\nThermal and Power (which has AutoExpand), and queries the whole sensor at\none query. It's more efficient than the default expand handler as well\nsince the default handler stills query all the sensors and filter other\nsensors when querying a single sensor.\n\nPerformance improves dramatically on a real hardware with 220+ sensors:\n\nBefore this change,\ntime wget -qO-\n'http://localhost/redfish/v1/Chassis/xxx/Sensors?$expand=.($levels=1)'\n> /tmp/log_slow.json\n\nreal\t0m33.786s\nuser\t0m0.000s\nsys\t0m0.000s\n\nAfter this change\ntime wget -qO-\n'http://localhost/redfish/v1/Chassis/xxx/Sensors?$expand=.($levels=1)'\n> /tmp/log_fast.json\n\nreal\t0m0.769s\nuser\t0m0.010s\nsys\t0m0.010s\n\nTESTED::\n1. QEMU Redfish/IPMI passed\n2. Validator passed (though it doesn't support query paramters)\n3. Tested on real hardware.\n\n{\n  \"@odata.id\": \"/redfish/v1/Chassis/xxx/Sensors\",\n  \"@odata.type\": \"#SensorCollection.SensorCollection\",\n  \"Description\": \"Collection of Sensors for this Chassis\",\n  \"Members\": [\n     {\n      \"@odata.id\": \"/redfish/v1/Chassis/xxx/Sensors/abc\",\n      \"@odata.type\": \"#Sensor.v1_0_0.Sensor\",\n      \"Id\": \"abc\",\n      \"Name\": \"abc\",\n      \"Reading\": 3.133,\n      \"ReadingRangeMax\": 5.8500060148599005,\n      \"ReadingRangeMin\": 0.0,\n      \"ReadingType\": \"Voltage\",\n      \"ReadingUnits\": \"V\",\n      \"Status\": {\n        \"Health\": \"OK\",\n        \"State\": \"Enabled\"\n      },\n      \"Thresholds\": {\n        \"LowerCritical\": {\n          \"Reading\": 2.205\n        },\n        \"UpperCritical\": {\n          \"Reading\": 3.507\n        }\n      }\n    },\n  ],\n  \"Members@odata.count\": 225,\n  \"Name\": \"Sensors\"\n}\n\nSigned-off-by: Nan Zhou <nanzhoumails@gmail.com>\nChange-Id: I745a31d6fe8d0aac08d532ea976bfc1a4a40b19c\n",
+    "createdOn": 1648483084,
+    "lastUpdated": 1649786977,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1648483084,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1648483101,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648483101,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648483694,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39915/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648484592,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1648485534,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 2:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1648490740,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3: Patch Set 2 was rebased"
+        },
+        {
+            "timestamp": 1648490756,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648490756,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648490955,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39942/ : FAILURE"
+        },
+        {
+            "timestamp": 1648516328,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1648516336,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 3:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1648516343,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648516343,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648516381,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/39971/ : FAILURE"
+        },
+        {
+            "timestamp": 1648516544,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1648516558,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648516558,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648517247,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/39972/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648573794,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 6: Patch Set 5 was rebased"
+        },
+        {
+            "timestamp": 1648573808,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648573808,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648574478,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40061/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648760341,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1648760361,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1648760361,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1648761029,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40270/ : SUCCESS"
+        },
+        {
+            "timestamp": 1648761888,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648837544,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1648838667,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1648854675,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649105543,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649107663,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1649107684,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649107684,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649108102,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40481/ : FAILURE"
+        },
+        {
+            "timestamp": 1649109489,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 9: Patch Set 8 was rebased"
+        },
+        {
+            "timestamp": 1649109504,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649109504,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649109608,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649109638,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649109750,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40487/ : FAILURE"
+        },
+        {
+            "timestamp": 1649112161,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 10: Patch Set 9 was rebased"
+        },
+        {
+            "timestamp": 1649112228,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649112228,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649112251,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 11: Published edit on patch set 10."
+        },
+        {
+            "timestamp": 1649112267,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649112267,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649112307,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 11:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649115313,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40493/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649176923,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 11:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1649289679,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1649289698,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649289698,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649289802,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 11:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1649289825,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649290289,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40667/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649297681,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1649371868,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 13."
+        },
+        {
+            "timestamp": 1649371884,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649371884,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649371920,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 13:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1649372483,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40785/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649375187,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1649378670,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649383623,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649442523,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 14."
+        },
+        {
+            "timestamp": 1649442543,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649442543,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649442922,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 13:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649442966,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 15: Patch Set 14 was rebased"
+        },
+        {
+            "timestamp": 1649442978,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649442978,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649442983,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40832/ : ABORTED"
+        },
+        {
+            "timestamp": 1649442988,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 16: Patch Set 15 was rebased"
+        },
+        {
+            "timestamp": 1649443003,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649443004,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649443009,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40833/ : ABORTED"
+        },
+        {
+            "timestamp": 1649443655,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 17: Commit message was updated."
+        },
+        {
+            "timestamp": 1649443717,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40835/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649443748,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1649443763,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649443763,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649443775,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 19: Patch Set 18 was rebased"
+        },
+        {
+            "timestamp": 1649443788,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649443788,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649443793,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40836/ : ABORTED"
+        },
+        {
+            "timestamp": 1649444472,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40837/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649448002,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 19:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649458247,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 20: Patch Set 19 was rebased."
+        },
+        {
+            "timestamp": 1649458270,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649458270,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649458333,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Uploaded patch set 21: Patch Set 20 was rebased."
+        },
+        {
+            "timestamp": 1649458354,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649458355,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649458358,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40857/ : ABORTED"
+        },
+        {
+            "timestamp": 1649458395,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 22: Patch Set 21 was rebased"
+        },
+        {
+            "timestamp": 1649458408,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649458408,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649458413,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/40859/ : ABORTED"
+        },
+        {
+            "timestamp": 1649458991,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40861/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649636734,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Removed cc George Liu."
+        },
+        {
+            "timestamp": 1649637746,
+            "reviewer": {
+                "name": "zhanghaicheng",
+                "email": "zhanghch05@inspur.com",
+                "username": "zhanghch05"
+            },
+            "message": "Patch Set 22:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649642477,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 22:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649660630,
+            "reviewer": {
+                "name": "zhanghaicheng",
+                "email": "zhanghch05@inspur.com",
+                "username": "zhanghch05"
+            },
+            "message": "Patch Set 22:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649691648,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 22:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649691751,
+            "reviewer": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "message": "Patch Set 23: Patch Set 22 was rebased"
+        },
+        {
+            "timestamp": 1649691765,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1649691765,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1649692614,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 23: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/40899/ : SUCCESS"
+        },
+        {
+            "timestamp": 1649693093,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649722859,
+            "reviewer": {
+                "name": "zhanghaicheng",
+                "email": "zhanghch05@inspur.com",
+                "username": "zhanghch05"
+            },
+            "message": "Patch Set 23: Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1649786968,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 23: Code-Review+2"
+        },
+        {
+            "timestamp": 1649786977,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Change has been successfully merged"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "2aff0f1d5e79f64ea275dc48ef5a7a77005c421d",
+            "parents": [
+                "65e0413427f347825ff063b6c5966b3385b2e938"
+            ],
+            "ref": "refs/changes/18/52418/1",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648483084,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 74,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 140,
+                    "deletions": -50
+                }
+            ],
+            "sizeInsertions": 214,
+            "sizeDeletions": 50
+        },
+        {
+            "number": 2,
+            "revision": "515e077fccda19d77cf85dedc3b2d4907a9e0380",
+            "parents": [
+                "65e0413427f347825ff063b6c5966b3385b2e938"
+            ],
+            "ref": "refs/changes/18/52418/2",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648484592,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Looking like a great start!"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2974,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You don't need to check this here.  ParseParameters can't return an expression that can't be done.\n\n\nAlso, how do you see this function evolving as we add other query param types? (filter, select, ect)  Considering those functions chain, it's not clear to me how that would work in the model that you've done here.  Can you elaborate a little on what you're thinking?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2974,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "> You don't need to check this here.  ParseParameters can't return an expression that can't be done.\n\nDone.\n\n> Also, how do you see this function evolving as we add other query param types? (filter, select, ect)  Considering those functions chain, it's not clear to me how that would work in the model that you've done here.  Can you elaborate a little on what you're thinking?\n\nGot an idea. Please see the unit test. If people add new parameters to the struct, the |isEfficientExpandAvailable| will get revisited.\n\nFilter and Select can be implemented efficiently in the future (e.g., when assembling sensors' JSONs, we add some Query parameter context so some attributes/sensors are omitted/selected).\n\n\nGlad to see if you have better ideas."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2974,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> > You don't need to check this here.  ParseParameters can't return an expression that can't be done.\n> \n> Done.\n> \n> > Also, how do you see this function evolving as we add other query param types? (filter, select, ect)  Considering those functions chain, it's not clear to me how that would work in the model that you've done here.  Can you elaborate a little on what you're thinking?\n> \n> Got an idea. Please see the unit test.\n\nIt might be because it's friday, but I'm not seeing the code you're talking about.  Sorry to ask for this, but can you point to the specific line?\n\n> If people add new parameters to the struct, the |isEfficientExpandAvailable| will get revisited.\n\n\n\nI'm not quite  following this statement, in this context, isEfficientExpandAvailable is sensors::isEfficientExpandAvailable, so are you trying to say that, once we have, say a dozen or so efficient expanders in bmcweb, every time we add a new query parameter, we'll have to go look at each one and make sure it handles the new parameters?  That doesn't seem like it scales (or maybe I'm completely misunderstanding what you're proposing).\n\n> \n> Filter and Select can be implemented efficiently in the future (e.g., when assembling sensors' JSONs, we add some Query parameter context so some attributes/sensors are omitted/selected).\n\nSure, but how does the core KNOW that this implements an efficient filter?  You're returning the entire query in this case, how does the core know that say, this one handles $expand, and another handler handled $top?\n\nI wonder if this conversation would be more productive with a quick implementation of say, $top (picked because I think it's the most trivial of the remaining query params), so we can example what would break if someone wanted to implement a custom $top efficient handler, but not an efficient $expand.  I can add this to my list, unless you get there first.\n\n> \n> \n> Glad to see if you have better ideas.\n\n\nOff the top of my head, I had imagined that you'd basically move the Query struct to a shared_ptr (so it would be shared between the instances) then each step could tag the Query structure with \"expand handled\" = true, \"filter handled\" ect.  Then when the core runs as the last step, it would know that expand was already covered, and didn't need to run again.  Does that makes sense?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2974,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Thanks for your reply. Let's skip other comments for now and focus on how injecting efficient handler is possible in the current implementation.\n\n> Off the top of my head, I had imagined that you'd basically move the Query struct to a shared_ptr (so it would be shared between the instances) then each step could tag the Query structure with \"expand handled\" = true, \"filter handled\" ect.  Then when the core runs as the last step, it would know that expand was already covered, and didn't need to run again.  Does that makes sense?\n\nMy initial idea about this now is that \"setUpRedfishRoute\" takes a lambda (which takes a query and set whether it can handle certain steps efficiently). Then when query codes run at the end, it skips steps which are already handled by redfish-core codes. \n \nIf we accept this, then we can limit the \"check of whether redfish-core supports efficient expand\" to \"expand\" only, which solves the problem \"every time we add a new query parameter, we'll have to go look at each one and make sure it handles the new parameters\"."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2974,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As a matter of priority, considering we already have implementations that do handler-defined $top, and handler-defined $skip, I wonder if that would be a good place to experiment in a way that has handlers that are conflicting (ie $top + $expand), but also aren't adding new functionality at the same time so we can evaluate how hard it is to do without having to have a patchset that also adds new functionality.\n\nWDYT?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2974,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Please take a look at https://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/52604/2, which adds a way to delegate any parameter.\n\nWhat about getting $top later but merge this expand delegation first? It's a proof of concept of delegation and doesn't make things worse now (regarding $top + $expand)."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2974,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Moved the conversation to discord"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2979,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, can you please do this code move in another patchset?  it doesn't have much to do with the work being done here."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 2979,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3023,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This shouldn't be called directly, as when the other patches for setupRedfishRoute are merged, it's going to bypass protocol checks.  I suspect we need another overload of setupRedfishRoute that allows returning the query struct"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3023,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3023,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This got changed, but still isn't done, but lets track that in the new comment."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3030,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit, no need for an intermediate variable here if it doesn't get used later."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3030,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3038,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "See above.  This isn't going to handle parameters (like odata.version) properly."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3038,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Not fully understand your concerns, but this should be resolved if we get the overload version of setUpRedfishRoute, right?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3038,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Specifically, this patch (see its tested statement for exactly what would have problems) now breaks if you fork off the method at this level.\n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/52357/9"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 140,
+                    "deletions": -50
+                }
+            ],
+            "sizeInsertions": 218,
+            "sizeDeletions": 50
+        },
+        {
+            "number": 3,
+            "revision": "91222fa75b424ebabddb4adb0103909ac9e34f4c",
+            "parents": [
+                "7c918c7d57e5cf9e104944b9ed6224022ac6931f"
+            ],
+            "ref": "refs/changes/18/52418/3",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648490740,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 140,
+                    "deletions": -50
+                }
+            ],
+            "sizeInsertions": 218,
+            "sizeDeletions": 50
+        },
+        {
+            "number": 4,
+            "revision": "cb6479a3253f3cde339f8286c674247a66d4d245",
+            "parents": [
+                "22ded10bd9fc579f50a6533779ff6a7948ff8e19"
+            ],
+            "ref": "refs/changes/18/52418/4",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648516328,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 104,
+                    "deletions": -18
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 202,
+            "sizeDeletions": 19
+        },
+        {
+            "number": 5,
+            "revision": "39ff27de3c815c2e215c0f12ed2ed0a07f4acd8e",
+            "parents": [
+                "22ded10bd9fc579f50a6533779ff6a7948ff8e19"
+            ],
+            "ref": "refs/changes/18/52418/5",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648516544,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/sensors_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 104,
+                    "deletions": -18
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 254,
+            "sizeDeletions": 19
+        },
+        {
+            "number": 6,
+            "revision": "6431060ed9957efc84b1fb26c8024fa624d3e8b0",
+            "parents": [
+                "d7fa1cd0863e9d4d21486421aae7cbd7ba0a54d7"
+            ],
+            "ref": "refs/changes/18/52418/6",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648573794,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -1
+                },
+                {
+                    "file": "redfish-core/ut/sensors_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 104,
+                    "deletions": -18
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 254,
+            "sizeDeletions": 19
+        },
+        {
+            "number": 7,
+            "revision": "b8bb16c65c724d264524b660879a50393393dd80",
+            "parents": [
+                "80153b6d1816255b186090149bf3e472ab8c6a9c"
+            ],
+            "ref": "refs/changes/18/52418/7",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1648760341,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "PTAL"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "PTAL"
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You've duplicated some logic here that's going to break if the whole query patch series is merged.  Maybe start by basing your patch on:\nhttps://gerrit.openbmc-project.xyz/c/openbmc/bmcweb/+/52359/9\n\nand try to deduplicate some of this code so we can retain the behavior of that series for the \"custom expand\" handlers."
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "line": 25,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. Not an issue anymore."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/ut/sensors_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 104,
+                    "deletions": -18
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 253,
+            "sizeDeletions": 18
+        },
+        {
+            "number": 8,
+            "revision": "2e64179f7df70fa45d94c69c9cdb9147221240eb",
+            "parents": [
+                "d3217ae7f28021d5c673d3463ce8a9a176599041"
+            ],
+            "ref": "refs/changes/18/52418/8",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649107663,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/ut/sensors_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -53
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 274,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 9,
+            "revision": "125ceb8a6bd28285ddae72834efdbbd66efdea37",
+            "parents": [
+                "9e748abec5e36626e3edb97bdaee0485cb34e623"
+            ],
+            "ref": "refs/changes/18/52418/9",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649109489,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/ut/sensors_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -53
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 274,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 10,
+            "revision": "f8757b97df316b0032abd6fbdd76c667c6327948",
+            "parents": [
+                "56eb65877ff2a747863e530cb639625aabf6e282"
+            ],
+            "ref": "refs/changes/18/52418/10",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649112161,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/ut/sensors_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 52,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -53
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 274,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 11,
+            "revision": "65c4088b09060014cd06e5bb1165d9c6d5fff64a",
+            "parents": [
+                "56eb65877ff2a747863e530cb639625aabf6e282"
+            ],
+            "ref": "refs/changes/18/52418/11",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649112251,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3000,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "As I'm looking at this and I suspect this API can be improved quite a bit.  Most efficient handlers won't have this level of specific requirements, and ideally in the end, the sensor handler doesn't have that level of requirements either, even if it does today."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3000,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "What level of specific requirements do you refer to? Does it look good now?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3000,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Ack. Please open it if you still have concerns."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3000,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Yeah, i think this is covered now."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3006,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "So in this model, we're parsing the parameters twice, which doesn't seem like the best.  Is there a way to avoid walking the parameters a second time?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3006,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "I don't have a good way to avoid calling this twice if we don't want setRedfishRoute returns a copy."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3006,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Hmm..... setRedfishRoute could return a shared_ptr<Query>, that way the ownership of the object would be shared for the lifetime of the request, and we'd avoid parsing the parameters twice, or duplicating the error check?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3006,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Please take a look at what I have now, it avoids either returning copy or pointers."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3006,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Left comments."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3008,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Generally we rely on the bool overload, and not has_value directly.  Also, if this isn't filled in, we should be returning immediately."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3008,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "if query doesn't have a value, it will fail in previous setUpRedfishRoute. We can probably just reference the value directly. Otherwise, if we can't rely on setUpRedfishRoute, we will need duplicate a lot of codes.\n\nLet me know if you still have concerns."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3008,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Lets continue in the previous comment;  I think if that goes to conclusion this problem will go away."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3009,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This call is now duplicated as well with delegateExpand"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3009,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "I removed the function, but we have to inspect the capacity again, in addition to the one in setRedfishRoute."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3009,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "The capacity?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3009,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "capability"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3009,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Ah, gotcha."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3071,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: This is redundant and not needed.\n\n\nThis callback being a lambda is making it kind of tough to review given that every line changed.  Can you put together a patch to move it to a free function first, then stack this change on top of it?  That would help quite a bit.  If you need help breaking it up, I'm happy to help as well."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3071,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. Made a separate change."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3071,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "\ud83d\udc4d"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/include/query.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 0,
+                    "deletions": -5
+                },
+                {
+                    "file": "redfish-core/ut/sensors_test.cpp",
+                    "type": "ADDED",
+                    "insertions": 42,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 143,
+                    "deletions": -53
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 264,
+            "sizeDeletions": 58
+        },
+        {
+            "number": 12,
+            "revision": "16f898b020420e3719a4c9bf890ecdd67126d9f1",
+            "parents": [
+                "fbc41398f29924e56e8cdfc590089d8efc6a276c"
+            ],
+            "ref": "refs/changes/18/52418/12",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649289679,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 78,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 95,
+                    "deletions": -25
+                }
+            ],
+            "sizeInsertions": 173,
+            "sizeDeletions": 25
+        },
+        {
+            "number": 13,
+            "revision": "63692bea57f5f69447f4b87537fc88aae08458af",
+            "parents": [
+                "7a4acfc7f4ffe8ff15993ea70fc15b3dd4c7552f"
+            ],
+            "ref": "refs/changes/18/52418/13",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649371868,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3019,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "A bool works in this simple case, but what if we had\n\n.canDelegateExpandLevel = 1\nAND\n.canDeletgateTop = true;\n\nHow would this code know when to expand, when to top, and when to do both?  I think the calling code needs access to the query structure at some point, right?  Or is there something else that I'm not seeing that would handle that?"
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3019,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Regarding combinations like this, we will reply on the order of executing query parameters,\n\n```\nServices shall process query parameters in this order:\n\u2022 $filter\n\u2022 $skip\n\u2022 $top\n\u2022 Apply server-side pagination\n\u2022 $expand\n\u2022 excerpt\n\u2022 $select\n```\n\nWhen redfish-core/lib codes said they have capabilities to do both (e.g., .canDelegateExpandLevel=1 && .canDeletgateTop=true), since we execute $top before expand, the behavior in cases when query.expandLevel=2 is still correct, the default handler won't do top, but do the remaining level=1 expand.\n\nWhen redfish-core/lib codes can only do $top, they need to set the capabilities to (.canDeletgateTop=true). The  the default handler won't do top, but do the full level=2 expand.\n\nI couldn't see a case where redfish-core/lib codes can do expand but not $top efficiently. Please note, $top only applies to resource collection. The only drawback I could see is duplicate codes. The generic $top handler might just be like the efficient one in certain cases. This can be solved in making a common $top library on JSON objects.\n\nSo, in this architecture, what we don't support is cases when redfish-core/lib codes can do higher priority parameters efficiently but not lower priority parameters efficiently. As far as I can imagine, there are not many cases we will hit this limitation.\n\nLet me know if this doesn't answer your question."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3019,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "$top is just an example, it can be replaced with essentially any of the query params, but I feel like I haven't been clear.  What if a efficient handler\n\n.canDelegateExpandLevel = 1\n.canDeletgateOnly = true;\n \nbut then the user requests /foo?$only (ie no expand)\n\nHow does the handler know that it should ONLY do the only case, and not the expand case?\n\n> I couldn't see a case where redfish-core/lib codes can do expand but not $top efficiently\n\nPost codes might be one example, LogServiceCollection (in systems or manager) might be another.\n\n\n> So, in this architecture, what we don't support is cases when redfish-core/lib codes can do higher priority parameters efficiently but not lower priority parameters efficiently. As far as I can imagine, there are not many cases we will hit this limitation.\n\nI could definitely see both a case where an implementation would want to do only efficient $filter (LogEntryCollections), and a case where a handler would want to do only efficient $select (Sensor), and those are at opposite ends of the list you made.\n\n\nI really suspect that just returning the query structure, or a reference to the query structure (even if it's a copy) is the best thing here.  It makes it a ton more clear what the API requires (ie, you check the Query structure for things that need done) rather than it just being implicit."
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "line": 3019,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "Done. I finally got what the problem is. As you said, a simple case is that the resource handler can do only and expand, the actual query only has \"only\", then how does the resource handler know this fact.\n\nPlease take a look at what I have now, I returned a new Query, as \"delegatedQuery\", so that resource handler doesn't need to parse query parameters again."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 14,
+            "revision": "0e35dd7fd6a438b70c4c1ea2e5049f4545ae9060",
+            "parents": [
+                "76513a5b8081b42ac70d77237f8f363d86cca94c"
+            ],
+            "ref": "refs/changes/18/52418/14",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649442523,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 15,
+            "revision": "8a5e7da7589f541fef5f5ebd2ebcd5d46eba5d05",
+            "parents": [
+                "bacb216228c45ca715163f4c81717b1af39889ab"
+            ],
+            "ref": "refs/changes/18/52418/15",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649442966,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 16,
+            "revision": "f769ed57e00614aa70553d1de0d47d74ed1f5fc1",
+            "parents": [
+                "525d18988750767aaa3211592dced9a8a2c8a75a"
+            ],
+            "ref": "refs/changes/18/52418/16",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649442988,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 17,
+            "revision": "4c12523010a0d83632b33a064c774a64c2db2fee",
+            "parents": [
+                "525d18988750767aaa3211592dced9a8a2c8a75a"
+            ],
+            "ref": "refs/changes/18/52418/17",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649443655,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 92,
+                    "deletions": -26
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 26
+        },
+        {
+            "number": 18,
+            "revision": "a2545977be44e302fda8e21cb09ea71cdfc3f0c0",
+            "parents": [
+                "76513a5b8081b42ac70d77237f8f363d86cca94c"
+            ],
+            "ref": "refs/changes/18/52418/18",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649443748,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 29
+        },
+        {
+            "number": 19,
+            "revision": "bab5b5276bdadb678327f2a94fe2895a6c3814f6",
+            "parents": [
+                "525d18988750767aaa3211592dced9a8a2c8a75a"
+            ],
+            "ref": "refs/changes/18/52418/19",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649443775,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Looking pretty happy with this pattern.  One minor thing that arguably is a nit, then I suspect this series is good to go."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 29
+        },
+        {
+            "number": 20,
+            "revision": "9f173cae1a592f8ef91c0133a34dcfc5390aca5e",
+            "parents": [
+                "84705e0217ba8777aa156980432171efc4b6f1ba"
+            ],
+            "ref": "refs/changes/18/52418/20",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649458247,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 29
+        },
+        {
+            "number": 21,
+            "revision": "fef20a97b9f31897aa39ff7123d60cc832d6e2a8",
+            "parents": [
+                "8829a4af35c7a5f047b36aea594f9727dc010c14"
+            ],
+            "ref": "refs/changes/18/52418/21",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649458333,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 29
+        },
+        {
+            "number": 22,
+            "revision": "fc0ee651500c91f7433b994dc36c2513e1a00572",
+            "parents": [
+                "928a1a3bc670e833e44c8af863dd2f4b302bc05b"
+            ],
+            "ref": "refs/changes/18/52418/22",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649458395,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "zhanghaicheng",
+                        "email": "zhanghch05@inspur.com",
+                        "username": "zhanghch05"
+                    },
+                    "message": "Does it work when we use it like this?\nhttp://localhost/redfish/v1/Chassis/xxx?$expand=.($levels=2)\nI have a feeling it won't work, are we going to consider this situation?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Does it work when we use it like this?\n> http://localhost/redfish/v1/Chassis/xxx?$expand=.($levels=2)\n\nThis was discussed heavily in the prior patch;  Yes, this would give the correct response, although might not be the most optimal.\n\n> I have a feeling it won't work, are we going to consider this situation?\n\nIf you try it, and it doesn't give the server doesn't give the correct response, please let us know.  If it gives the correct response, but just slower than you'd like, that's probably a good thing to add on a followup patch, but as written, I don't believe this patchset intends to improve the performance of that query."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "zhanghaicheng",
+                        "email": "zhanghch05@inspur.com",
+                        "username": "zhanghch05"
+                    },
+                    "message": "> > Does it work when we use it like this?\n> > http://localhost/redfish/v1/Chassis/xxx?$expand=.($levels=2)\n> \n> This was discussed heavily in the prior patch;  Yes, this would give the correct response, although might not be the most optimal.\n\nSorry, I didn't find your discussion.\nMy thinking is that only the first request comes with query parameters, so when this happens:\nhttp://localhost/redfish/v1/Chassis/xxx?$expand=.($levels=2)\nSensors is not the first request, so we can't get the correct data from setUpRedfishRouteWithDelegation().\nCan we solve the problem this way?\n> auto it = finalObj.find(\"@odata.id\");\n> if (it != finalObj.end())\n> {\n>     const std::string* uri = it.value().get_ptr<const std::string*>();\n>     if (uri != nullptr)\n>     {\n>         std::filesystem::path sensor(*uri);\n>         if (sensor.filename() == \"Sensors\")\n>         {\n>             std::error_code ec;\n>             crow::Request newReq(\n>                 {boost::beast::http::verb::get, sensor.string(), 11},\n>                 ec);\n>             if (ec)\n>             {\n>                 messages::internalError(res);\n>                 return;\n>             }\n>             newReq.body = \"{\\\"Expand\\\":true}\";\n>             auto asyncResp = std::make_shared<bmcweb::AsyncResp>();\n>             addAwaitingResponse(query, asyncResp, locationToPlace);\n>             app.handle(newReq, asyncResp);\n>             return;\n>         }\n>     }\n> }\nThese codes should go here:\nhttps://github.com/openbmc/bmcweb/blob/master/redfish-core/include/utils/query_param.hpp#L312\n\n\n> > I have a feeling it won't work, are we going to consider this situation?\n> \n> If you try it, and it doesn't give the server doesn't give the correct response, please let us know.  If it gives the correct response, but just slower than you'd like, that's probably a good thing to add on a followup patch, but as written, I don't believe this patchset intends to improve the performance of that query.\n\nYes, it can give correct response. Just from the code, it can only optimize the level=1 case. But I don't have an environment where I can test the performance."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Nan Zhou",
+                        "email": "nanzhoumails@gmail.com",
+                        "username": "FighterNan"
+                    },
+                    "message": "> Sorry, I didn't find your discussion. My thinking is that only the first request comes with query parameters, so when this happens:\n\nThat's correct. The recursive calls at https://github.com/openbmc/bmcweb/blob/master/redfish-core/include/utils/query_param.hpp#L312 don't come with query parameters for now.\n\nIt doesn't affect the correctness, though, only this sensor collection efficient handler doesn't get invoked.\n\n> http://localhost/redfish/v1/Chassis/xxx?$expand=.($levels=2)\nSensors is not the first request, so we can't get the correct data from setUpRedfishRouteWithDelegation(). Can we solve the problem this way?\n\nAgain, the current codes are still correct IIUC. Only the performance is not improved when you query the Chassis collection.\n\nYour idea about adding query parameters to request of Expand calls should work, but shouldn't you change the URL string? Also, you have to consider query parameter combinations as well (e.g., Expand + Select). I would imagine that in |MultiAsyncResp|, you will have to replace the recursive call with an iteration, then append all parameters in |query| to the request URL, finally assemble the JSON object at this level of Expand.\n\nAlso, it won't help much if we don't have a way to \"select\" the attributes to expand at the Chassis Collection (e.g., /Chassis/chassis/$expand=.($levels=2)&$select=Sensors).\n\nAs a conclusion, this change only targets Sensor Collection, it doesn't mean to improve Chassis Collection with Expand level 2. So your concern should be addressed in new patches.\n\nLet me know if this doesn't resolve your comment."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> As a conclusion, this change only targets Sensor Collection, it doesn't mean to improve Chassis Collection with Expand level 2. So your concern should be addressed in new patches.\n\n+1 to this overall.  I'm happy to discuss making the query you showed above faster as well, but in the context of this patchset, and with the goal of keeping this patchset small and self contained, I'd like to keep it largely as-is.  From my maintainers perspective, there's only one setUpRedfishWithDelegation call sofar, so if the prototype needs to change in the future, it's not as difficult of a change to effect."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "zhanghaicheng",
+                        "email": "zhanghch05@inspur.com",
+                        "username": "zhanghch05"
+                    },
+                    "message": "> Also, you have to consider query parameter combinations as well (e.g., Expand + Select).\n\nI didn't think about that. Maybe it would be better to consider optimizing it after other parameters are implemented. I have no problem with this patch."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 29
+        },
+        {
+            "number": 23,
+            "revision": "928fefb9a542b816d7c0418077def2b3874d1b0f",
+            "parents": [
+                "a6b9125ff91500afed34dc923e9bafb90da75ec4"
+            ],
+            "ref": "refs/changes/18/52418/23",
+            "uploader": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "createdOn": 1649691751,
+            "author": {
+                "name": "Nan Zhou",
+                "email": "nanzhoumails@gmail.com",
+                "username": "FighterNan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 76,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/sensors.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -29
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 29
+        }
+    ]
+}

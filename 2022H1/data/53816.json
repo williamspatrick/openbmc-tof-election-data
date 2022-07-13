@@ -1,0 +1,220 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "id": "If9c07ad69f5287bb054645f460d7e370d433dc27",
+    "number": 53816,
+    "subject": "RFC: Make routes start matching Redfish",
+    "owner": {
+        "name": "Ed Tanous",
+        "email": "ed@tanous.net",
+        "username": "edtanous"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/53816",
+    "commitMessage": "RFC: Make routes start matching Redfish\n\nThis is preliminary patch to set up the route handling such that it's\nready for the addition of multiple hosts, multiple managers in the\nfuture.  Routes previously took the form of\n\n/redfish/v1/Systems/system\n\nwhich essentially hardcoded the name \"system\" into a number of places.\nAs the stack evolves to support multiple systems, this needs to change.\n\nThis patchset changes all the ComputerSystem resources to the form:\n/redfish/v1/Systems/<str>\n\nand adds 404 checks to each route such that they will be handled\nproperly still.  This means that as we evolve our multi-host support,\neach individual route can be moved one at a time to support multi-host.\n\n/redfish/v1/Managers/bmc is in a similar boat, and this commit moves\nSOME of those routes over to the same pattern to prove that it can be\ndone.\n\nIn the future, moving these to redfish-spec-defined routing would likely\nmeant that we could generate this code in the future at some point,\nwhich reduces the likelihood that people do it incorrectly.\n\nThis patch currently sets the resource id and resource type in the\nresourceNotFound message to empty string (\"\").  This handling is still\narguably more correct than what we had before, which just returned 404\nwith an empty payload, although in the future will need to be corrected\nover time.\n\nTested: None yet.  RFC to see if this is a pattern we'd like to\npropogate\n\nSigned-off-by: Ed Tanous <edtanous@google.com>\nChange-Id: If9c07ad69f5287bb054645f460d7e370d433dc27\n",
+    "createdOn": 1652979044,
+    "lastUpdated": 1657711627,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1652979044,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1652979060,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1652979060,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1652979754,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/43530/ : SUCCESS"
+        },
+        {
+            "timestamp": 1653438076,
+            "reviewer": {
+                "name": "Carson",
+                "email": "clabrado@google.com",
+                "username": "carsonlab"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653489923,
+            "reviewer": {
+                "name": "Naveen Moses ",
+                "email": "naveen.mosess@hcl.com",
+                "username": "naveenmosess"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653490317,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1653490979,
+            "reviewer": {
+                "name": "Naveen Moses ",
+                "email": "naveen.mosess@hcl.com",
+                "username": "naveenmosess"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "f7d29e1d8c41f4232e034709cc289eb2c34fcc44",
+            "parents": [
+                "c37c2cafafb3be909436fad1fddac5c8ae554fd1"
+            ],
+            "ref": "refs/changes/16/53816/1",
+            "uploader": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "createdOn": 1652979044,
+            "author": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Carson",
+                        "email": "clabrado@google.com",
+                        "username": "carsonlab"
+                    },
+                    "message": "I'm in favor of making this change.  \n\nRedfish aggregation is another in-development feature that would greatly benefit from not having hard coded IDs.  The hard coded IDs are preventing adding prefixes to URIs to explicitly denote when a request is meant for the aggregating BMC.  Those prefixes would also prevent possible collisions between local and satellite resources."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Naveen Moses ",
+                        "email": "naveen.mosess@hcl.com",
+                        "username": "naveenmosess"
+                    },
+                    "message": "The fwupdate service file(bmcweb/redfish-core/lib/update_service.hpp) has one hardcoded system name entry -\n      item[\"@odata.id\"] = \"/redfish/v1/Systems/system/Bios\"\nis this also needs to be changed?"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Given that we still only support \"system\" this code is still correct.  It would need to be changed if we ever supported more than one system, like you're doing in your patch, and is one of the reasons why I recommended you keep the first host named \"system\" for a while."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Naveen Moses ",
+                        "email": "naveen.mosess@hcl.com",
+                        "username": "naveenmosess"
+                    },
+                    "message": "yeah got it and agreed.There are no redfish route handling calls (/redfish/v1/Systems/<str>) on the fwupdate service file. so it is not needed here."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 43,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/certificate_service.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 68,
+                    "deletions": -21
+                },
+                {
+                    "file": "redfish-core/lib/processor.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 26,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/storage.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 27,
+                    "deletions": -8
+                },
+                {
+                    "file": "redfish-core/lib/pcie.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 16,
+                    "deletions": -3
+                },
+                {
+                    "file": "redfish-core/lib/bios.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 18,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/memory.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": -4
+                },
+                {
+                    "file": "redfish-core/lib/log_services.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 360,
+                    "deletions": -119
+                },
+                {
+                    "file": "redfish-core/lib/ethernet.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 58,
+                    "deletions": -15
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 28,
+                    "deletions": -9
+                }
+            ],
+            "sizeInsertions": 661,
+            "sizeDeletions": 187
+        }
+    ]
+}

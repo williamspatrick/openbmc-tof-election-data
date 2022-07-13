@@ -1,0 +1,3176 @@
+{
+    "project": "openbmc/bmcweb",
+    "branch": "master",
+    "topic": "leds-redfish",
+    "id": "Icffdb01581c37957bdc95dcd36cd83a126fd5859",
+    "number": 38957,
+    "subject": "Redfish: Implement OEM lamp test",
+    "owner": {
+        "name": "Chicago Duan",
+        "email": "duanzhijia01@inspur.com",
+        "username": "ChicagoDuan"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/bmcweb/+/38957",
+    "commitMessage": "Redfish: Implement OEM lamp test\n\nImplement OEM lamp test in redfish/v1/Systems/system\n\nIBM oem Lamptest is a switch used to test all leds.When the \"lamptest\"\nstatus is set to true, all leds are lit. When \"lamptest\" is set to\nfalse or timeout(default is 4 minutes and can be configured), the\nlamptest is finished and all leds revert to their original state.\n\nThe existing LocationIndicator interfaces is not suitable to this\ntask, because we have to light all the leds, not just one identity\nled.\n\nWe need set the asserted property of\n/xyz/openbmc_project/led/groups/lamp_test to true as part of PATCH\nif the request is true. Similarly, it could also set asserted to\nfalse if the request is to false.\n\nWe use macros to control the URL, which need to be enabled in\nbmcweb_%.bbappend to see it, for example:\nEXTRA_OEMESON_append = \" \\\n    -Dibm-lamp-test=enabled \\\n    \"\n\nI used a test version of dbus\nobject(xyz.openbmc_project.LED.GroupManager) to test this URL.\nWhen I set the Redfish LampTest to true or false, the output\nfrom the \"busctl get-property ...\" is changed.\nfor example :\nbusctl get-property xyz.openbmc_project.LED.GroupManager\n                   /xyz/openbmc_project/led/groups/lamp_test\n                   xyz.openbmc_project.Led.Group Asserted\nb true\n\nTested:\nValidator no error\n1\u3001Start the lamp test:\n   curl -k -H \"X-Auth-Token: $token\" -X PATCH\n   https://${bmc}/redfish/v1/Systems/system -d\n   '{\"Oem\":{\"IBM\":{\"LampTest\": true}}}'\n\nWhen we set Redfish LampTest to true, the output of\nbusctl get-property on /xyz/openbmc_project/led/groups/lamp_test\nis also true:\n\nbusctl get-property xyz.openbmc_project.LED.GroupManager\n                   /xyz/openbmc_project/led/groups/lamp_test\n                   xyz.openbmc_project.Led.Group Asserted\nb true\n\n2\u3001Stop the lamp test:\n   curl -k -H \"X-Auth-Token: $token\" -X PATCH\n   https://${bmc}/redfish/v1/Systems/system -d\n   '{\"Oem\":{\"IBM\":{\"LampTest\": false}}}'\n\n3\u3001 Get the lamp test status:\n   We use set-propery to set the Asserted to false:\n   busctl set-property xyz.openbmc_project.LED.GroupManager\n                   /xyz/openbmc_project/led/groups/lamp_test\n                   xyz.openbmc_project.Led.Group Asserted b false\n\n   Then we will see that Redfish LampTest is false:\n    curl -k -H \"X-Auth-Token: $token\" -XGET\n    https://${bmc}/redfish/v1/Systems/system\n    {\n      \"@odata.id\": \"/redfish/v1/Systems/system\",\n      \"@odata.type\": \"#ComputerSystem.v1_13_0.ComputerSystem\",\n      \"Actions\": {\n         \"#ComputerSystem.Reset\": {\n         \"@Redfish.ActionInfo\":\n         \t \"/redfish/v1/Systems/system/ResetActionInfo\",\n         \"target\":\n          \"/redfish/v1/Systems/system/Actions/ComputerSystem.Reset\"\n      }\n    },\n    \"Bios\": {\n      \"@odata.id\": \"/redfish/v1/Systems/system/Bios\"\n    },\n\n    ... ...\n\n   \"Oem\": {\n     \"@odata.type\": \"#OemComputerSystem.Oem\",\n     \"IBM\": {\n       \"@odata.type\": \"#OemComputerSystem.IBM\",\n       \"LampTest\": false\n     }\n   },\n\n    ... ...\n\n    \"SystemType\": \"Physical\"\n    }\n\nSigned-off-by: Chicago Duan <duanzhijia01@inspur.com>\nChange-Id: Icffdb01581c37957bdc95dcd36cd83a126fd5859\n",
+    "createdOn": 1607601780,
+    "lastUpdated": 1641515856,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1607601780,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1607601797,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1607602735,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9493/ : SUCCESS"
+        },
+        {
+            "timestamp": 1607603220,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1607603995,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1607606879,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1607653897,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1607653916,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1607655583,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9527/ : SUCCESS"
+        },
+        {
+            "timestamp": 1607655809,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Patch Set 2:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1607663362,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 2:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1607670538,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1607672005,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1607672032,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1607673100,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Patch Set 3:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1607674541,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9545/ : SUCCESS"
+        },
+        {
+            "timestamp": 1607674763,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 3:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1607947996,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1607948013,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1607948786,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Patch Set 4:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1607949019,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9745/ : SUCCESS"
+        },
+        {
+            "timestamp": 1607958734,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 4:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1608002811,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 5."
+        },
+        {
+            "timestamp": 1608002830,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608003789,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/9773/ : SUCCESS"
+        },
+        {
+            "timestamp": 1608004920,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Patch Set 4:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1608042486,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1608043416,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 5:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1608056736,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 5:\n\nThis was asked for here: https://redfishforum.com/thread/344/lamptest-functionality-system-schema \nAlthough if anyone also uses this functionality, please post on that forum and we can go back to Redfish. Redfish did not add because no other interest than IBM."
+        },
+        {
+            "timestamp": 1608063189,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1608063469,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1608080739,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1608765911,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1608769115,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1608888559,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1608888577,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608888767,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/10319/ : FAILURE"
+        },
+        {
+            "timestamp": 1608889423,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 7."
+        },
+        {
+            "timestamp": 1608889442,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608889631,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/10320/ : FAILURE"
+        },
+        {
+            "timestamp": 1608890655,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 8."
+        },
+        {
+            "timestamp": 1608890672,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1608891673,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/10321/ : SUCCESS"
+        },
+        {
+            "timestamp": 1608891761,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Patch Set 8:\n\n(9 comments)"
+        },
+        {
+            "timestamp": 1608946178,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 8:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1609020940,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 8:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1610027191,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 8:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1611137869,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 9."
+        },
+        {
+            "timestamp": 1611137883,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1611138881,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/11146/ : SUCCESS"
+        },
+        {
+            "timestamp": 1611160020,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1611234320,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1612254245,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Patch Set 9:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1612329760,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1612782610,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 9:\n\nGunnar : Can this go in ?"
+        },
+        {
+            "timestamp": 1612887889,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)\n\n> Patch Set 9:\n> \n> Gunnar : Can this go in ?\n\nI'm going to leave this one up to Ed / probably need some community discussion  \nWe asked Redfish here, https://redfishforum.com/thread/344/lamptest-functionality-system-schema and Redfish said no so technically we fulfilled https://github.com/openbmc/bmcweb/blob/master/OEM_SCHEMAS.md but I still am not sure if this truly meets the bar for OEM. \n\nI feel most (Ed threw out 90%) of what this does can be accomplished by walking the inventory and setting the LEDs to true.\n\nThis has requirements \"timeout (default is 4 minutes and can be configured), the lamptest is finished and all leds revert to their original state\" that conflict with how Redfish does LED management. \n\nIf another company came in later with a new OEM to get Inventory in one call (even if it does return some additional data), I would have a problem with that too. \n\nIMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..? \n\nThat said, you do have a design for this and asked Redfish."
+        },
+        {
+            "timestamp": 1612890123,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)\n\n> Patch Set 9:\n> \n> (1 comment)\n> \n> > Patch Set 9:\n> > \n> > Gunnar : Can this go in ?\n> \n> I'm going to leave this one up to Ed / probably need some community discussion  \n\nHere's my primary worry with something like this going in: we haven't even implemented the Redfish base schema way to do it yet, so this feels like it's avoiding that work.  I understand that you have some unique requirements, and that's fine, but I'm quite worried about this thing conflicting with the LocationIndicatorActive properties once they go in, as your lamp test will need to interact with those properties significantly, as well as have representations for every LED that this targets.\n\nMy other concern is separation.  Redfish as a general rule does not have any of these \"set all\" style interfaces for a reason.  It's because when this gets orchestrated up into a higher rack manager, the schema itself still has to make sense and be useful to those higher layers when combined with hundreds of other systems.  If you have one resource, that sets properties on other resources, without any kind of link, that breaks the composability of redfish, as when setting \"lamp test\" on the resource, there's no way to know what things it effects.\n\nAs a third point (and this is definitely fixable), this doesn't really belong on systems;  The existing LED behaviors are in Chassis, that's where (if we figure out the other hurdles) something like this should go.\n\n> We asked Redfish here, https://redfishforum.com/thread/344/lamptest-functionality-system-schema and Redfish said no so technically we fulfilled https://github.com/openbmc/bmcweb/blob/master/OEM_SCHEMAS.md but I still am not sure if this truly meets the bar for OEM. \n> \n> I feel most (Ed threw out 90%) of what this does can be accomplished by walking the inventory and setting the LEDs to true.\n> \n> This has requirements \"timeout (default is 4 minutes and can be configured), the lamptest is finished and all leds revert to their original state\" that conflict with how Redfish does LED management.\n\nIsn't this what job service (possibly task service) Is for though?  Triggering an action on resources after a certain timer has expired?  It should be noted, all the lamp test examples I've seen in industry have no timeout, and are explicitly shut off through a followup command rather than a timeout.  I'm not here to tell you requirements, but removing the timeout would mean this could be 100% implemented in base redfish without OEM.\n\n> \n> If another company came in later with a new OEM to get Inventory in one call (even if it does return some additional data), I would have a problem with that too.\n\n+1\n\n> \n> IMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..?\n\nThe existing OEM schemas are causing no end of grief.  I still need to go clean up the OemManager mess, which has schemas that are straight up wrong, and have to break client behavior to make them correct.\n\n> \n> That said, you do have a design for this and asked Redfish."
+        },
+        {
+            "timestamp": 1612891747,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 9:\n\n> Patch Set 9:\n> \n> (1 comment)\n> \n> > Patch Set 9:\n> > \n> > (1 comment)\n> > \n> > > Patch Set 9:\n> > > \n> > > Gunnar : Can this go in ?\n> > \n> > I'm going to leave this one up to Ed / probably need some community discussion  \n> \n> Here's my primary worry with something like this going in: we haven't even implemented the Redfish base schema way to do it yet, so this feels like it's avoiding that work.  I understand that you have some unique requirements, and that's fine, but I'm quite worried about this thing conflicting with the LocationIndicatorActive properties once they go in, as your lamp test will need to interact with those properties significantly, as well as have representations for every LED that this targets.\n> \n> My other concern is separation.  Redfish as a general rule does not have any of these \"set all\" style interfaces for a reason.  It's because when this gets orchestrated up into a higher rack manager, the schema itself still has to make sense and be useful to those higher layers when combined with hundreds of other systems.  If you have one resource, that sets properties on other resources, without any kind of link, that breaks the composability of redfish, as when setting \"lamp test\" on the resource, there's no way to know what things it effects.\n> \n> As a third point (and this is definitely fixable), this doesn't really belong on systems;  The existing LED behaviors are in Chassis, that's where (if we figure out the other hurdles) something like this should go.\n> \n> > We asked Redfish here, https://redfishforum.com/thread/344/lamptest-functionality-system-schema and Redfish said no so technically we fulfilled https://github.com/openbmc/bmcweb/blob/master/OEM_SCHEMAS.md but I still am not sure if this truly meets the bar for OEM. \n> > \n> > I feel most (Ed threw out 90%) of what this does can be accomplished by walking the inventory and setting the LEDs to true.\n> > \n> > This has requirements \"timeout (default is 4 minutes and can be configured), the lamptest is finished and all leds revert to their original state\" that conflict with how Redfish does LED management.\n> \n> Isn't this what job service (possibly task service) Is for though?  Triggering an action on resources after a certain timer has expired?  It should be noted, all the lamp test examples I've seen in industry have no timeout, and are explicitly shut off through a followup command rather than a timeout.  I'm not here to tell you requirements, but removing the timeout would mean this could be 100% implemented in base redfish without OEM.\n> \n> > \n> > If another company came in later with a new OEM to get Inventory in one call (even if it does return some additional data), I would have a problem with that too.\n> \n> +1\n> \n> > \n> > IMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..?\n> \n> The existing OEM schemas are causing no end of grief.  I still need to go clean up the OemManager mess, which has schemas that are straight up wrong, and have to break client behavior to make them correct.\n> \n> > \n> > That said, you do have a design for this and asked Redfish.\n\nAll this discussion is centred around redfish. How are we going to address the requirement of being able to initiate a lamp test via Operator Panel hardware button presses ?. Redfish is not the only initiator for lamp test."
+        },
+        {
+            "timestamp": 1612892363,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n> Patch Set 9:\n> \n> > Patch Set 9:\n> > \n> > (1 comment)\n> > \n> > > Patch Set 9:\n> > > \n> > > (1 comment)\n> > > \n> > > > Patch Set 9:\n> > > > \n> > > > Gunnar : Can this go in ?\n> > > \n> > > I'm going to leave this one up to Ed / probably need some community discussion  \n> > \n> > Here's my primary worry with something like this going in: we haven't even implemented the Redfish base schema way to do it yet, so this feels like it's avoiding that work.  I understand that you have some unique requirements, and that's fine, but I'm quite worried about this thing conflicting with the LocationIndicatorActive properties once they go in, as your lamp test will need to interact with those properties significantly, as well as have representations for every LED that this targets.\n> > \n> > My other concern is separation.  Redfish as a general rule does not have any of these \"set all\" style interfaces for a reason.  It's because when this gets orchestrated up into a higher rack manager, the schema itself still has to make sense and be useful to those higher layers when combined with hundreds of other systems.  If you have one resource, that sets properties on other resources, without any kind of link, that breaks the composability of redfish, as when setting \"lamp test\" on the resource, there's no way to know what things it effects.\n> > \n> > As a third point (and this is definitely fixable), this doesn't really belong on systems;  The existing LED behaviors are in Chassis, that's where (if we figure out the other hurdles) something like this should go.\n> > \n> > > We asked Redfish here, https://redfishforum.com/thread/344/lamptest-functionality-system-schema and Redfish said no so technically we fulfilled https://github.com/openbmc/bmcweb/blob/master/OEM_SCHEMAS.md but I still am not sure if this truly meets the bar for OEM. \n> > > \n> > > I feel most (Ed threw out 90%) of what this does can be accomplished by walking the inventory and setting the LEDs to true.\n> > > \n> > > This has requirements \"timeout (default is 4 minutes and can be configured), the lamptest is finished and all leds revert to their original state\" that conflict with how Redfish does LED management.\n> > \n> > Isn't this what job service (possibly task service) Is for though?  Triggering an action on resources after a certain timer has expired?  It should be noted, all the lamp test examples I've seen in industry have no timeout, and are explicitly shut off through a followup command rather than a timeout.  I'm not here to tell you requirements, but removing the timeout would mean this could be 100% implemented in base redfish without OEM.\n> > \n> > > \n> > > If another company came in later with a new OEM to get Inventory in one call (even if it does return some additional data), I would have a problem with that too.\n> > \n> > +1\n> > \n> > > \n> > > IMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..?\n> > \n> > The existing OEM schemas are causing no end of grief.  I still need to go clean up the OemManager mess, which has schemas that are straight up wrong, and have to break client behavior to make them correct.\n> > \n> > > \n> > > That said, you do have a design for this and asked Redfish.\n> \n> All this discussion is centred around redfish. How are we going to address the requirement of being able to initiate a lamp test via Operator Panel hardware button presses ?. Redfish is not the only initiator for lamp test.\n\nThis is a discussion about Redfish because this is a Redfish patchset?\n\nI would assume that the operator panel would do a similar operation to Redfish, use the mapper to find all the LEDs, and issue SetProperty to turn them on."
+        },
+        {
+            "timestamp": 1613602238,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 9:\n\n> Patch Set 9:\n> \n> (1 comment)\n> \n> > Patch Set 9:\n> > \n> > (1 comment)\n> > \n> \n> > \n> > IMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..?\n> \n> The existing OEM schemas are causing no end of grief.  I still need to go clean up the OemManager mess, which has schemas that are straight up wrong, and have to break client behavior to make them correct.\n\nI think you are saying \"not causing any grief\"? I disagree. \n\nThe existing OEM schemas are excess code / schemas ( e.g. CrashDumps now with Dump support added to Redfish, could be modeled as non-OEM)\nThey have caused problems with updating schemas / running that script. https://github.com/openbmc/bmcweb/commit/2077899f6d4534d98ca2cca3bc9020dbc6a4aef9\nAll the reasons you list in https://github.com/openbmc/bmcweb/blob/master/OEM_SCHEMAS.md apply to them. - Not standardized, lower quality of schema writing (there is errors in them), etc."
+        },
+        {
+            "timestamp": 1613604557,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n> Patch Set 9:\n> \n> > Patch Set 9:\n> > \n> > (1 comment)\n> > \n> > > Patch Set 9:\n> > > \n> > > (1 comment)\n> > > \n> > \n> > > \n> > > IMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..?\n> > \n> > The existing OEM schemas are causing no end of grief.  I still need to go clean up the OemManager mess, which has schemas that are straight up wrong, and have to break client behavior to make them correct.\n> \n> I think you are saying \"not causing any grief\"? I disagree. \n\nYou interpreted this as the exact opposite of what I said.  \"No end of grief\" ie, \"the grief is without end\"  I think we're in complete agreement.  If I would wave a magic wand and have all the OEM schemas go away, I would.  I'm tempted to just delete/refactor all of them and just come up with the policy that OEM schemas have no API guarantees, but that's a different patchset, doc, and mailing list discussion that I'm not prepared for yet.\n\n> \n> The existing OEM schemas are excess code / schemas ( e.g. CrashDumps now with Dump support added to Redfish, could be modeled as non-OEM)\n\nYep.  Completely agree.\n\n> They have caused problems with updating schemas / running that script. https://github.com/openbmc/bmcweb/commit/2077899f6d4534d98ca2cca3bc9020dbc6a4aef9\n> All the reasons you list in https://github.com/openbmc/bmcweb/blob/master/OEM_SCHEMAS.md apply to them. - Not standardized, lower quality of schema writing (there is errors in them), etc.\n\nWe're in complete agreement.  I think you misread my comment.\n\nAt some point, we need to get together bugs for all the stuff that's broken with the OEM schemas and start getting it resolved over time.  It's going to take a while."
+        },
+        {
+            "timestamp": 1613670281,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 9:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1613678705,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 9:\n\n> Patch Set 9:\n> \n> > Patch Set 9:\n> > \n> > > Patch Set 9:\n> > > \n> > > (1 comment)\n> > > \n> > > > Patch Set 9:\n> > > > \n> > > > (1 comment)\n> > > > \n> > > \n> > > > \n> > > > IMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..?\n> > > \n> > > The existing OEM schemas are causing no end of grief.  I still need to go clean up the OemManager mess, which has schemas that are straight up wrong, and have to break client behavior to make them correct.\n> > \n> > I think you are saying \"not causing any grief\"? I disagree. \n> \n> You interpreted this as the exact opposite of what I said.  \"No end of grief\" ie, \"the grief is without end\"\n> \n\nlol. yep. \n\n> \n> We're in complete agreement.  I think you misread my comment.\n> \n\nYep. I feel better after reading your reply. Thanks."
+        },
+        {
+            "timestamp": 1613682184,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 9:\n\n> Patch Set 9:\n> \n> > Patch Set 9:\n> > \n> > > Patch Set 9:\n> > > \n> > > > Patch Set 9:\n> > > > \n> > > > (1 comment)\n> > > > \n> > > > > Patch Set 9:\n> > > > > \n> > > > > (1 comment)\n> > > > > \n> > > > \n> > > > > \n> > > > > IMO we were too soft on allowing OEM when first writing bmcweb. This would be OEM we carry forever..?\n> > > > \n> > > > The existing OEM schemas are causing no end of grief.  I still need to go clean up the OemManager mess, which has schemas that are straight up wrong, and have to break client behavior to make them correct.\n> > > \n> > > I think you are saying \"not causing any grief\"? I disagree. \n> > \n> > You interpreted this as the exact opposite of what I said.  \"No end of grief\" ie, \"the grief is without end\"\n> > \n> \n> lol. yep. \n> \n> > \n> > We're in complete agreement.  I think you misread my comment.\n> > \n> \n> Yep. I feel better after reading your reply. Thanks.\n\nFor what it's worth, I started writing bugs against the OEM schemas.  At the very least, it made me feel a little better:\nhttps://github.com/openbmc/bmcweb/issues?q=is%3Aissue+is%3Aopen+label%3A%22OEM+schema%22"
+        },
+        {
+            "timestamp": 1617096667,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 10."
+        },
+        {
+            "timestamp": 1617096686,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617096982,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 11: Patch Set 10 was rebased."
+        },
+        {
+            "timestamp": 1617097001,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617097005,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/14548/ : ABORTED"
+        },
+        {
+            "timestamp": 1617097690,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14549/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617098303,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 12."
+        },
+        {
+            "timestamp": 1617098322,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617098596,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 13: Commit message was updated."
+        },
+        {
+            "timestamp": 1617099032,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14554/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617099329,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Patch Set 12:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1617175147,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 14: Commit message was updated."
+        },
+        {
+            "timestamp": 1617176248,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 15: Commit message was updated."
+        },
+        {
+            "timestamp": 1617182369,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 16: Commit message was updated."
+        },
+        {
+            "timestamp": 1619161138,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 17."
+        },
+        {
+            "timestamp": 1619161182,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1619161616,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16040/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620282170,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 17: Code-Review+1"
+        },
+        {
+            "timestamp": 1620314007,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 17:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1620314353,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Patch Set 17: -Code-Review"
+        },
+        {
+            "timestamp": 1620658245,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 17:\n\nThis patchset is still waiting on the other LED patches to land.  Once that happens, we can evalulate what features this is adding beyond the standard redfish."
+        },
+        {
+            "timestamp": 1621301773,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Topic set to leds-redfish"
+        },
+        {
+            "timestamp": 1621335438,
+            "reviewer": {
+                "name": "Vishwanatha Subbanna",
+                "email": "vishwa@linux.vnet.ibm.com",
+                "username": "vishwabmc"
+            },
+            "message": "Removed reviewer Vishwanatha Subbanna."
+        },
+        {
+            "timestamp": 1621370035,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 17:\n\n> Patch Set 17:\n> \n> This patchset is still waiting on the other LED patches to land.  Once that happens, we can evalulate what features this is adding beyond the standard redfish.\n\n+1. Let's get the other LED patches in first."
+        },
+        {
+            "timestamp": 1623383492,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1623383541,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1623384201,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/19458/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624267147,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1624267165,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624267579,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20206/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624354068,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 20."
+        },
+        {
+            "timestamp": 1624354085,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624354556,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20337/ : SUCCESS"
+        },
+        {
+            "timestamp": 1636354030,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 21."
+        },
+        {
+            "timestamp": 1636354049,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1636354644,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/29879/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639964701,
+            "reviewer": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "message": "Uploaded patch set 22."
+        },
+        {
+            "timestamp": 1639964744,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1639965661,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/32234/ : SUCCESS"
+        },
+        {
+            "timestamp": 1639979269,
+            "reviewer": {
+                "name": "George Liu",
+                "email": "liuxiwei@inspur.com",
+                "username": "lxwinspur"
+            },
+            "message": "Patch Set 22: Code-Review+1"
+        },
+        {
+            "timestamp": 1641515856,
+            "reviewer": {
+                "name": "Gunnar Mills",
+                "email": "gmills@us.ibm.com",
+                "username": "gtmills"
+            },
+            "message": "Patch Set 22:\n\n(1 comment)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "8bbcfa7c549b03e14cdf5c9e87273a919b71dfff",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/1",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1607601780,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1263,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "we would need to make a mapper call that implements groups/lamp_test as opposed to hard coding GroupManager"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1263,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1629,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "same comment as above one"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1629,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2323,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "Should a macro switch be defined?\n#ifdef USE_LAMP_TEST\n  if (oem)\n  {\n   ... ...\n  }\n#endif\n\n\n@Vishwa, What do you think?"
+                },
+                {
+                    "file": "scripts/update_schemas.py",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "These are the same as L: 119?"
+                },
+                {
+                    "file": "scripts/update_schemas.py",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "static/redfish/v1/$metadata/index.xml",
+                    "line": 2723,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "These are the same as L: 2706?"
+                },
+                {
+                    "file": "static/redfish/v1/$metadata/index.xml",
+                    "line": 2723,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "scripts/update_schemas.py",
+                    "type": "MODIFIED",
+                    "insertions": 5,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 83,
+                    "deletions": -1
+                },
+                {
+                    "file": "static/redfish/v1/$metadata/index.xml",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 145,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 2,
+            "revision": "da50f023c65463798a64cc092073352cfd7bda48",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/2",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1607653897,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1312,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "we don't need GetSubTree. what we need is the getService that implements \"/xyz/openbmc_project/led/groups/lamp_test\""
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1312,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1725,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "same comment as previous"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1725,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2403,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I think we need to make this a OEM of type IBM .. How and where are we making that ?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2403,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "If necessary, we can add it here:\nhttps://github.com/openbmc/bmcweb/blob/master/static/redfish/v1/JsonSchemas/OemComputerSystem/index.json#L58\n\n@GunnarMills what's your opinion?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 177,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 231,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 3,
+            "revision": "627268335f47216029c5ecdf3ab0158fe0c67b4d",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/3",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1607672005,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1259,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "sorry. what is BMC D-Bus object ?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1259,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1266,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "same here"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1266,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1271,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "can this be const ?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1271,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "and this begin"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1271,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1271,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1276,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I would call it `asserted` since that is what the property is"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1276,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1686,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "const ?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1686,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "begin"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1686,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1686,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2384,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "It was a previous question .. where do we say it's OEM type IBM ?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2384,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "We cant use \"IBMOem\" here.The name \"Oem\" is defined in the ComputerSystem schema, but \"IBMOem\" is not.\nBut we can set \"IBMOem\" as a subobject of \"Oem\", example:\n  \n\"Oem\": {\n    \"@odata.type\": \"#OemComputerSystem.Oem\",\n    \"IBMOem\": {\n      \"@odata.type\": \"#OemComputerSystem.IBMOem\",\n      \"LampTest\": true\n    }\n  }"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2386,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I think it is not optional and variant<bool>"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2386,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "\"LampTest\" is an optional parameter in request, so it uses std::optional"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 54,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 158,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 212,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "c88274b8c1939825f4ded77fbdc143fb13b38838",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/4",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1607947996,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1271,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "hm. this works.. but I think all over, we are used to using \".cbegin.first\" ? \n\nI leave it to maintainers"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1657,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "because these are IBM_OEM, should we have any #ifdef around these ?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1657,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1677,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "looks like the change was done only for \"Get\" method ?. \n\nThese are \"led\" D-Bus object"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1677,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done\uff0cIt's my mistake"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1682,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "same comment as before"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 171,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 267,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 5,
+            "revision": "f8623bb51850bd551d4b0dd46f42830481d2a790",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/5",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1608002811,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "More details needed here.\n\nWhat is a \"lamp test\".  What does it do?  How does it work?  How is it started, and how is it canceled?  Why were the existing LocationIndicator interfaces not suitable to this task?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done, Some details have been added."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Generally redfish would model this as an Action, that returns a reference to task service.  \"canceling\" the action would involve issuing a state change to task service."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I think they followed the LocationIndicator interface and if you had an action you would need an additional property to know the status."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You'd use Task service to determine the status in what I proposed.\n\nI guess, let me ask it this way;  Is \"lamp test\" a procedure that runs and eventually completes, or is it a \"state\" that the system can be in?\n\nI guess I had imagined lamp test was something like \"walk through each led and turn it on for a second\" but I realized I assumed that."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I guess I assumed it was a \"state\" like lamp test on / lamp test off. haha. \nI pictured a toggle on the GUI."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I guess this goes back to my question above.  What is a \"lamp test\"?  Does it involve turning on all the LEDs on the board to verify they work?  If so, I would expect the existing indicator LED interfaces to be sufficient.\n\nIf it really is a state with on and off, why not just use the existing redfish APIs?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Yes,it is a state with on and off. The existing LocationIndicator interfaces is not suitable to this task, because we have to light all the leds, not just one identity led."
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "no need to mention \"specific\".  [Enable IBM Lamp Test functionality] is good enough"
+                },
+                {
+                    "file": "meson_options.txt",
+                    "line": 21,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1233,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Please encapsulate this in its own resource, then once that is done, please put this in its own IBM specific file, so we can track maintenance of it properly."
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 1233,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done, I moved it to oem/ibm/lamp_test.hpp"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2405,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "guess I don't understand why it's optional ?"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2405,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Hi Vishwanatha\uff0cAs I have explained to you on Discord, the lampTest here is not a necessary parameter in dopatch."
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2409,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "I think it's an error if we don't see anything .."
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2409,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "as above"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2414,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "it's not a pointer to bool .. why are we de-referencing it ?.."
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 2414,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "as above"
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You seem to be missing schema definitions for the properties within this oem resource."
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Yes, I don't know how to write this schema, I have tried many ways to write it but failed. Could you give me some help? thank you very much. What I want to achieve is:\n\n   \"Oem\": {\n     \"@odata.type\": \"#OemComputerSystem.Oem\",\n     \"IBM\": {\n       \"@odata.type\": \"#OemComputerSystem.IBM\",\n       \"LampTest\": false\n     }"
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Yes, I don't know how to write this schema, I have tried many ways to write it but failed.\n\nThis is generally why writing OEM schemas isn't recommended, and it's significantly easier to use existing resources, or have spec additions added when you need help, as they get a much better review..  Schemas are not easy to write properly.  Feel free to reach out to the redfish DMTF committee for help, although if you catch me on discord, I can help you with the knowledge I do have.  Gunnar is also a good resource for this kind of thing.\n\n> Could you give me some help? thank you very much. What I want to achieve is:\n> \n>    \"Oem\": {\n>      \"@odata.type\": \"#OemComputerSystem.Oem\",\n>      \"IBM\": {\n>        \"@odata.type\": \"#OemComputerSystem.IBM\",\n>        \"LampTest\": false\n>      }\n\nUnderstood.  Your best bet would be to start reading through the redfish/odata documentation on how all these things work."
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This file is generic to all openBMC systems, it cannot contain IBM-specific features.\n\nalso, generally the Oem would be omitted from the \"IBMOem\" name."
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Sorry,but which file should I put it in?"
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "line": 32,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "You'll need to sort that out and propose something.  I suspect the file you need doesn't exist yet."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 59,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 178,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 276,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 6,
+            "revision": "04e7a79748794481dc47408ad12c8bda6972c6ed",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/6",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1608888559,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 175,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 310,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 7,
+            "revision": "4561c228769fc4144e2f83dea99f58be5af46d7b",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/7",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1608889423,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 175,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 29,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 310,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 8,
+            "revision": "9c16c58074321a2e53b543f4298e7ee5c3153224",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/8",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1608890655,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This doesn't track for me.  There isn't a single LocationIndicator instance, as this statement seems to imply, there is one per component.   They provide direct access to the LEDs, and a simple looping over all indicator properties on all resources, and turning them all on from the client seems like a much better fit for the redfish API way of doing things, as it would also allow the client to verify that all components where the LEDs are expected exist.  The only thing that's missing then is the timeout, but that seems relatively easy to implement with Job service, as a stand alone item that would be started before the routine was done.  Unless I'm mistaken, that seems to fit well within the non-OEM redfish schemas.\n\nCan you add more details about why the existing redfish APIs wont' work as I've described?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Lamp_Test is a IBM only requirement at this moment. The expectation is that the client calls \"Do The Lamp test\" and the BMC implementation will do what it means. Currently, what it means is that we :\n- Light up all the Indicator LEDs that are on the enclosure\n- Also, light-up some of the Green Power LEDs that have the software control\n- Send a command over to the LCD display daemon to exercise LCD\n- Send a PLDM command over to the Host so that Host can light-up the LEDs for all the external attached drawers.\n\n- Wait for configured time\n- Revert to old states\n\nWe can not offload this onto redfish clients and do LocationIndicatorActive one by one since we would then spread the logic into different redfish clients. Also, we can not achieve the above 4 functionalities if we offloaded that onto clients. This becomes challenging when we have more than 1 redfish clients."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Lamp_Test is a IBM only requirement at this moment. The expectation is that the client calls \"Do The Lamp test\" and the BMC implementation will do what it means. Currently, what it means is that we :\n> - Light up all the Indicator LEDs that are on the enclosure\n> - Also, light-up some of the Green Power LEDs that have the software control\n> - Send a command over to the LCD display daemon to exercise LCD\n> - Send a PLDM command over to the Host so that Host can light-up the LEDs for all the external attached drawers.\n> \n> - Wait for configured time\n> - Revert to old states\n> \n> We can not offload this onto redfish clients and do LocationIndicatorActive one by one since we would then spread the logic into different redfish clients.\n\nI'm not following this comment.  Well behaved Redfish clients already need to know how to walk the tree, and the logic is minimal (if component has an LED, set to ON).  Having all your LEDs enumerated in Redfish would give you 90% of the above.  I could see having an OEM resource for the LCD test, as that's pretty specific, but otherwise, I feel like there are resources to do what you're trying to do, it just requires that all the LEDs be enumerated in the tree, which is a good thing to have anyway.\n\n> Also, we can not achieve the above 4 functionalities if we offloaded that onto clients.\n\nYou can achieve 90% of the above, then have an OEM command for the last little part that's actually an OEM behavior.\n\nThe only other strange part is the timeout, but that seems easily modeled using task service.\n\n> This becomes challenging when we have more than 1 redfish clients.\n\nHaving an OEM resource seems more challenging, as now all redfish clients need to implement the OEM IBM only parameter, as well as detect whether or not the system is an IBM system, and fall back to the redfish defined behavior."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Thanks for the comments Ed. However, it's a feature that we want to contain in the server code for the reasons mentioned above. Also, there are some one-off behaviors that we need to enforce on led-manager when the lamp test is happening. So, we can not rely on clients to do right thing for us. We have gone over these in the phosphor-dbus-interfaces commit that I ended up abandoning."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "Also, as mentioned above , Redfish is not the only initiator of this feature. We have Operator Panel hardware in IBM systems and users can initiate the lamp test by pressing some key combinations."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 17,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> Thanks for the comments Ed. However, it's a feature that we want to contain in the server code for the reasons mentioned above. \n\nI've listed alternatives that don't require OEM properties, and implement what you want above.  Yes, it requires clients to be more complex, but given the cost burden of maintaining oem properties, it seems well worth it.\n\nAlso, considering the variety of LEDs you want to change that we don't even have them modeled in Redfish yet, I'd recommend that we need to model those first, before trying to add them to an OEM property.\n\n> Also, there are some one-off behaviors that we need to enforce on led-manager when the lamp test is happening. So, we can not rely on clients to do right thing for us.\n\nCan you give some examples of what these one-off behaviors are that you'd like to enforce?\n\n> We have gone over these in the phosphor-dbus-interfaces commit that I ended up abandoning.\n\nI will add it to my reading list, to see if I can understand your use cases better."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This seems like an odd use of the led groups API.  \"lamp test\" isn't really a group.  Maybe it should be \"all\" or something similar?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "We are adding the D-Bus object \"led/groups/lamp_test\" as part of one of the commit in led-manager repo"
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "remove it"
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 27,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 170,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "remove it"
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 170,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "George Liu",
+                        "email": "liuxiwei@inspur.com",
+                        "username": "lxwinspur"
+                    },
+                    "message": "#ifdef BMCWEB_ENABLE_IBM_LAMP_TEST\n#include \"oem/ibm/lamp_test.hpp\"\n#endif"
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 172,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 311,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 9,
+            "revision": "1ac413793941d09a2cdb489c16fbbb0b90eb23d8",
+            "parents": [
+                "9e319cf0c5ee714cdd879a1d2a6e5b5ac96c7f1d"
+            ],
+            "ref": "refs/changes/57/38957/9",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1611137869,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 57,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "can we please have an example where LampTest is \"true\" and also the output of busctl get-property on /xyz/openbmc_project/led/groups/lamp_test ?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 57,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 2,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "Not Intel, not 2019 but I don't believe this matters with the CLA so I guess oh well"
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 2,
+                    "reviewer": {
+                        "name": "Chicago Duan",
+                        "email": "duanzhijia01@inspur.com",
+                        "username": "ChicagoDuan"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 170,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 311,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 10,
+            "revision": "11f96232d0699c49b856ade04353ad938c6cf0a9",
+            "parents": [
+                "3a0aed20db1f2fe96cc89488018702283a0e8248"
+            ],
+            "ref": "refs/changes/57/38957/10",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1617096667,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 170,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 311,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 11,
+            "revision": "f192481dbbd42031f47d752febcd76aaf883504d",
+            "parents": [
+                "4df1bee0bdc9d71043b51872875d3d22b26ab68f"
+            ],
+            "ref": "refs/changes/57/38957/11",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1617096982,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 67,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 170,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 311,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 12,
+            "revision": "508243b92adcb1867cf57e69840c7a3555e49414",
+            "parents": [
+                "4df1bee0bdc9d71043b51872875d3d22b26ab68f"
+            ],
+            "ref": "refs/changes/57/38957/12",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1617098303,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 73,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 302,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 13,
+            "revision": "df5976f9d7e90b3b70653da19234a4ee78d16391",
+            "parents": [
+                "4df1bee0bdc9d71043b51872875d3d22b26ab68f"
+            ],
+            "ref": "refs/changes/57/38957/13",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1617098596,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 77,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 306,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 14,
+            "revision": "d184beb7931c4b1b6f4170a989099e2ebbb97470",
+            "parents": [
+                "4df1bee0bdc9d71043b51872875d3d22b26ab68f"
+            ],
+            "ref": "refs/changes/57/38957/14",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1617175147,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 86,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 315,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 15,
+            "revision": "5a08c55b8201a26d7578d6770d8fd20f9f0b0dbd",
+            "parents": [
+                "4df1bee0bdc9d71043b51872875d3d22b26ab68f"
+            ],
+            "ref": "refs/changes/57/38957/15",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1617176248,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 96,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 325,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 16,
+            "revision": "2ffee1dfae2d1b9dad3ecf5c657897fbadfb7221",
+            "parents": [
+                "4df1bee0bdc9d71043b51872875d3d22b26ab68f"
+            ],
+            "ref": "refs/changes/57/38957/16",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1617182369,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 331,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 17,
+            "revision": "5bdbff5027f98c8901950e6bff8846d92bb03ec3",
+            "parents": [
+                "1a6258dc985cde406d9098130e4a2d683e82beb2"
+            ],
+            "ref": "refs/changes/57/38957/17",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1619161138,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 19,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "const std::shared_ptr<bmcweb::AsyncResp>& aResp"
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "Vishwanatha Subbanna",
+                        "email": "vishwa@linux.vnet.ibm.com",
+                        "username": "vishwabmc"
+                    },
+                    "message": "const std::shared_ptr<bmcweb::AsyncResp>& aResp"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 331,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 18,
+            "revision": "f455b17b4ed6a14712d7e8dd645c9ba2e1606939",
+            "parents": [
+                "0588a3b929b2a88784db2f3dcac04d69260fb585"
+            ],
+            "ref": "refs/changes/57/38957/18",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1623383492,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 331,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 19,
+            "revision": "82046fb9672eb8ee0e89533852917f08bf8b05e0",
+            "parents": [
+                "e5a99777b8710cdcc82bffb25a7a248e18705e2d"
+            ],
+            "ref": "refs/changes/57/38957/19",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1624267147,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 331,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 20,
+            "revision": "63fb31c5660ac7ba5d54e8e1512ebb671eba33ae",
+            "parents": [
+                "54d1355fdcaea8a9b83c8fd5d7aac9b244a6146b"
+            ],
+            "ref": "refs/changes/57/38957/20",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1624354068,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 331,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 21,
+            "revision": "06ed2b89f22cdb2dc746642a49f29d6e037d522b",
+            "parents": [
+                "4028ff77ddebe603b009a8afaf6bc36bc5949612"
+            ],
+            "ref": "refs/changes/57/38957/21",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1636354030,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 331,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 22,
+            "revision": "bc8831e96dcc890a29294824465b78a195b43eeb",
+            "parents": [
+                "af4edf686e684d728fccbb69a8f550fd2adab46a"
+            ],
+            "ref": "refs/changes/57/38957/22",
+            "uploader": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "createdOn": 1639964701,
+            "author": {
+                "name": "Chicago Duan",
+                "email": "duanzhijia01@inspur.com",
+                "username": "ChicagoDuan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Gunnar Mills",
+                        "email": "gmills@us.ibm.com",
+                        "username": "gtmills"
+                    },
+                    "message": "I am not going to focus on this.\nLet's get the other LED patches in first."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 102,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/JsonSchemas/OemComputerSystem/index.json",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "static/redfish/v1/schema/OemComputerSystem_v1.xml",
+                    "type": "MODIFIED",
+                    "insertions": 7,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/oem/ibm/lamp_test.hpp",
+                    "type": "ADDED",
+                    "insertions": 155,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson_options.txt",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "meson.build",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "redfish-core/lib/systems.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 35,
+                    "deletions": -2
+                }
+            ],
+            "sizeInsertions": 331,
+            "sizeDeletions": 2
+        }
+    ]
+}

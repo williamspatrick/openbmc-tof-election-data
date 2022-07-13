@@ -1,0 +1,2971 @@
+{
+    "project": "openbmc/phosphor-pid-control",
+    "branch": "master",
+    "id": "I46fc65d6b931755d51093ea475c64cf5e3e6bacb",
+    "number": 36695,
+    "subject": "pid/zone: Restore PWM when fans returned to auto",
+    "owner": {
+        "name": "Josh Lehan",
+        "email": "krellan@google.com",
+        "username": "Krellan"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-pid-control/+/36695",
+    "commitMessage": "pid/zone: Restore PWM when fans returned to auto\n\nThis makes use of the improved write() interface, to allow the\nPID-loop-determined PWM to be restored, when the fan is returned to\nautomatic mode.\n\nWithout this fix, a fan set to manual mode, then manually set to a\ndifferent speed, would not properly return to the correct speed, when\ntransitioning back to automatic from manual.\n\nThis patch also adds a stub to allow the caller to learn the raw PWM\nvalue written as output, another useful write() interface improvement.\nAlthough not the topic of this change, it is included here, to avoid\nlater patch conflicts.\n\nTested: I can now correctly toggle between automatic, and manual, fan\ncontrol. Upon resuming automatic control, after a few seconds, the fan\nPWM is now properly restored, to what the PID loop wanted it to be at.\n\nSigned-off-by: Josh Lehan <krellan@google.com>\nSigned-off-by: Jason Ling <jasonling@google.com>\nChange-Id: I46fc65d6b931755d51093ea475c64cf5e3e6bacb\n",
+    "createdOn": 1600845975,
+    "lastUpdated": 1645057323,
+    "open": false,
+    "status": "MERGED",
+    "comments": [
+        {
+            "timestamp": 1600845975,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1600845984,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1600845991,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5038/"
+        },
+        {
+            "timestamp": 1600846278,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5038/ : SUCCESS"
+        },
+        {
+            "timestamp": 1600847228,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\nThis patch makes it so the fan write commands are repeated over D-Bus every 5-10 seconds or so. Not enough to crowd D-Bus traffic, but enough to guarantee the fans get set back if something else tries to change the setting. This feature is disabled when the fans are in manual mode, of course."
+        },
+        {
+            "timestamp": 1600876085,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)\n\n> Patch Set 1:\n> \n> This patch makes it so the fan write commands are repeated over D-Bus every 5-10 seconds or so. Not enough to crowd D-Bus traffic, but enough to guarantee the fans get set back if something else tries to change the setting. This feature is disabled when the fans are in manual mode, of course.\n\nDo we know what else is writing these PWMs?  This seems very likely to break the existing sensor tuning over dbus.  Can you try it, and verify that it's not broken with this patch, as well as update your Tested statement with that info?"
+        },
+        {
+            "timestamp": 1600882992,
+            "reviewer": {
+                "name": "Benjamin Fair",
+                "email": "benjaminfair@google.com",
+                "username": "BenjaminFair"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> (2 comments)\n> \n> > Patch Set 1:\n> > \n> > This patch makes it so the fan write commands are repeated over D-Bus every 5-10 seconds or so. Not enough to crowd D-Bus traffic, but enough to guarantee the fans get set back if something else tries to change the setting. This feature is disabled when the fans are in manual mode, of course.\n> \n> Do we know what else is writing these PWMs?  This seems very likely to break the existing sensor tuning over dbus.  Can you try it, and verify that it's not broken with this patch, as well as update your Tested statement with that info?\n\nThis issue shows up when we switch to manual mode and have the host write PWM values to the fans directly in order to test their range and response. After the test, we disable manual mode, but the fans stay at the manually set PWM until the PID loop changes enough to trigger a new write."
+        },
+        {
+            "timestamp": 1600926922,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 1:\n\n(2 comments)\n\n> > Do we know what else is writing these PWMs?  This seems very likely to break the existing sensor tuning over dbus.  Can you try it, and verify that it's not broken with this patch, as well as update your Tested statement with that info?\n\nThe below example is already in the \"Tested:\" statement.\n\n> This issue shows up when we switch to manual mode and have the host write PWM values to the fans directly in order to test their range and response. After the test, we disable manual mode, but the fans stay at the manually set PWM until the PID loop changes enough to trigger a new write.\n\nGood example. That's the point I'm trying to communicate, but evidently running into trouble making clear: because the PWM is write-only, swampd is blind to any changes made to this value that it did not originate itself, and thus has no way to correct an unwanted value back to what it should be. Thus, repetition seems to be the only way to become eventually consistent."
+        },
+        {
+            "timestamp": 1600932799,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 2."
+        },
+        {
+            "timestamp": 1600932807,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1600932814,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5103/"
+        },
+        {
+            "timestamp": 1600932838,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2:\n\nSlowed the redundant writes down to once every 15 seconds or so. This should be infrequent enough to mitigate any D-Bus slowness."
+        },
+        {
+            "timestamp": 1600932985,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5103/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601400946,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1601408740,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)\n\nAfter discussion, I have a better idea. Instead of redundantly repeating the fan write at regular intervals, I'm going to send a single redundant fan write when the fans are transitioned back from \"manual\" to \"auto\" mode. This should take care of the single specific use case I had in mind, without breaking anything else."
+        },
+        {
+            "timestamp": 1601588982,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 3."
+        },
+        {
+            "timestamp": 1601588992,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601588999,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5631/"
+        },
+        {
+            "timestamp": 1601589222,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5631/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601589402,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 3:\n\nOK, this is a much cleaner approach. Instead of redundantly repeating PWM writes at timed intervals, which was spammy and unnecessary, I'm now only doing a redundant PWM write to solve the specific use case I had in mind: a fan set to manual mode, returning to automatic mode, was not getting the PID-loop-determined PWM setting properly restored as it should have been. I'm making use of the improved write() interface from 36988 to do this."
+        },
+        {
+            "timestamp": 1601594548,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 4."
+        },
+        {
+            "timestamp": 1601594557,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601594564,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5632/"
+        },
+        {
+            "timestamp": 1601594723,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5632/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601661139,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Patch Set 4:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1601679124,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Patch Set 5: Patch Set 4 was rebased"
+        },
+        {
+            "timestamp": 1601679135,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601679143,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5674/"
+        },
+        {
+            "timestamp": 1601679431,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5674/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601689074,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 6."
+        },
+        {
+            "timestamp": 1601689086,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601689093,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5678/"
+        },
+        {
+            "timestamp": 1601689150,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 6:\n\n(1 comment)\n\nRebased, and added explanatory comment. No change to actual code."
+        },
+        {
+            "timestamp": 1601689402,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5678/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601690955,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 7: Patch Set 6 was rebased."
+        },
+        {
+            "timestamp": 1601690971,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601690978,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5689/"
+        },
+        {
+            "timestamp": 1601691147,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5689/ : SUCCESS"
+        },
+        {
+            "timestamp": 1601910780,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1601952259,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 8: Patch Set 7 was rebased."
+        },
+        {
+            "timestamp": 1601952274,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1601952281,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8:\n\nBuild Started https://jenkins.openbmc.org/job/ci-repository/5793/"
+        },
+        {
+            "timestamp": 1601952282,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1601952465,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/5793/ : SUCCESS"
+        },
+        {
+            "timestamp": 1603343873,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1605268761,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 9: Patch Set 8 was rebased."
+        },
+        {
+            "timestamp": 1605268774,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1605268958,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/7850/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617666478,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 10: Patch Set 9 was rebased."
+        },
+        {
+            "timestamp": 1617685986,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Ready For Review"
+        },
+        {
+            "timestamp": 1617685997,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 11."
+        },
+        {
+            "timestamp": 1617686025,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nRevised to use a structure instead of a std::pair, as requested during earlier review."
+        },
+        {
+            "timestamp": 1617686036,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1617686299,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14872/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617686633,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/14871/ : SUCCESS"
+        },
+        {
+            "timestamp": 1617687841,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 11:\n\nAdding linchuyuan for comparison of this fix with https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/41582 fix"
+        },
+        {
+            "timestamp": 1617744768,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 12: Commit message was updated."
+        },
+        {
+            "timestamp": 1619686135,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 12:\n\nAny objections to merging this patch? I don't want to pat myself on the back here."
+        },
+        {
+            "timestamp": 1619711248,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1619761422,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1619761623,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1619802457,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1619809846,
+            "reviewer": {
+                "name": "Benjamin Fair",
+                "email": "benjaminfair@google.com",
+                "username": "BenjaminFair"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1620084009,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1620086535,
+            "reviewer": {
+                "name": "Benjamin Fair",
+                "email": "benjaminfair@google.com",
+                "username": "BenjaminFair"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1620087182,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1620087820,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 12:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1620090031,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 12:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1620161377,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 13: Patch Set 12 was rebased."
+        },
+        {
+            "timestamp": 1620161389,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620161696,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13: Code-Review+1"
+        },
+        {
+            "timestamp": 1620161704,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 13: -Code-Review"
+        },
+        {
+            "timestamp": 1620161800,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16670/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620355013,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nI'm curious: is it bad to have a virtual function that is not pure, that is, provides a default for classes to use? A subclass can choose to override the default implementation if it wants, but is not obligated to, if it has no problem with the default."
+        },
+        {
+            "timestamp": 1620355275,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/16842/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620964471,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Uploaded patch set 14: Patch Set 13 was rebased."
+        },
+        {
+            "timestamp": 1620964484,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1620964653,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nI'm curious why the Code-Review +1 was added here, then removed. Are there any further objections?"
+        },
+        {
+            "timestamp": 1620964748,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/17245/ : SUCCESS"
+        },
+        {
+            "timestamp": 1620964920,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/17246/ : SUCCESS"
+        },
+        {
+            "timestamp": 1621016284,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n> Patch Set 13: Ok-To-Test+1\n> \n> I'm curious: is it bad to have a virtual function that is not pure, that is, provides a default for classes to use? A subclass can choose to override the default implementation if it wants, but is not obligated to, if it has no problem with the default.\n\nAs a matter of design, yes, it is bad, as it obfuscates and complicates where the implementation is coming from.\n\nfrom:\nhttps://google.github.io/styleguide/cppguide.html#Inheritance\n\"Interface inheritance\" is inheritance from a pure abstract base class (one with no state or defined methods);"
+        },
+        {
+            "timestamp": 1621016328,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n> Patch Set 14: Ok-To-Test+1\n> \n> I'm curious why the Code-Review +1 was added here, then removed. Are there any further objections?\n\nI added it before I realized we still need to fix the breakage in the interface inheritance."
+        },
+        {
+            "timestamp": 1621016388,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1621017051,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 14:\n\nAlso, are there any new unit tests we need for this behavior?"
+        },
+        {
+            "timestamp": 1621045606,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 14:\n\n> Patch Set 14:\n> As a matter of design, yes, it is bad, as it obfuscates and complicates where the implementation is coming from.\n\nHmm. I can remove the defaults for the virtual functions, to make them pure virtual instead, if that would be seen as better.\n\n> https://google.github.io/styleguide/cppguide.html#Inheritance\n> \"Interface inheritance\" is inheritance from a pure abstract base class (one with no state or defined methods);\n\nHmm. I read that, and it said \"data members should be private\". This is something that would be nice to have in sensor.hpp someday."
+        },
+        {
+            "timestamp": 1621045746,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 14:\n\n> Patch Set 14:\n> Also, are there any new unit tests we need for this behavior?\n\nHmm, not sure about that. The intent was not to change any existing behavior, just add some new refinements."
+        },
+        {
+            "timestamp": 1624377306,
+            "reviewer": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "message": "Removed reviewer Patrick Venture."
+        },
+        {
+            "timestamp": 1628628828,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Patch Set 14:\n\nwondering if there are any plans to address the comments and merge the change."
+        },
+        {
+            "timestamp": 1628629078,
+            "reviewer": {
+                "name": "Alex Qiu",
+                "email": "xqiu@google.com",
+                "username": "alex310110"
+            },
+            "message": "Removed reviewer Alex Qiu."
+        },
+        {
+            "timestamp": 1628817507,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Set Work In Progress"
+        },
+        {
+            "timestamp": 1637276479,
+            "reviewer": {
+                "name": "Charles Boyer",
+                "email": "Charles.Boyer@fii-usa.com",
+                "username": "boyercee"
+            },
+            "message": "Patch Set 14: Code-Review+1\n\nI have verified this change fixes the issue in my system. I set a fan in Manual mode, and I observed the outputs return to normal within seconds of leaving Manual mode."
+        },
+        {
+            "timestamp": 1644606010,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 15."
+        },
+        {
+            "timestamp": 1644606023,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644606023,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644606243,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37129/ : FAILURE"
+        },
+        {
+            "timestamp": 1644613067,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 16."
+        },
+        {
+            "timestamp": 1644613084,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644613084,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644613755,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 16: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37136/ : FAILURE"
+        },
+        {
+            "timestamp": 1644617241,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 17."
+        },
+        {
+            "timestamp": 1644617255,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644617255,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644617907,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 17: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37144/ : FAILURE"
+        },
+        {
+            "timestamp": 1644624322,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 18."
+        },
+        {
+            "timestamp": 1644624335,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644624335,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644624820,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 18: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37155/ : FAILURE"
+        },
+        {
+            "timestamp": 1644869772,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 19."
+        },
+        {
+            "timestamp": 1644869808,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644869809,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644870048,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 19: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/37206/ : FAILURE"
+        },
+        {
+            "timestamp": 1644874116,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 19: Code-Review-1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644964371,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 20."
+        },
+        {
+            "timestamp": 1644964394,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644964394,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644964680,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 20: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37330/ : SUCCESS"
+        },
+        {
+            "timestamp": 1644965495,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 20:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644965771,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Patch Set 20:\n\n(6 comments)"
+        },
+        {
+            "timestamp": 1644970002,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 21."
+        },
+        {
+            "timestamp": 1644970020,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1644970021,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1644970232,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Patch Set 21:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644970305,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37340/ : SUCCESS"
+        },
+        {
+            "timestamp": 1644970399,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Patch Set 21:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1644982615,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 21: Ok-To-Test+1 Code-Review+1\n\n(1 comment)\n\nThis change is ready for review."
+        },
+        {
+            "timestamp": 1644982901,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 21:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37345/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645038575,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 21:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1645049940,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Uploaded patch set 22."
+        },
+        {
+            "timestamp": 1645049950,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1645049950,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1645050019,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Patch Set 22:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645050282,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37419/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645052965,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 22: Ok-To-Test+1 Code-Review+1\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1645053248,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 22:\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/37426/ : SUCCESS"
+        },
+        {
+            "timestamp": 1645056019,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 22: Code-Review+1"
+        },
+        {
+            "timestamp": 1645056425,
+            "reviewer": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "message": "Patch Set 22: Code-Review+2"
+        },
+        {
+            "timestamp": 1645057323,
+            "reviewer": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "message": "Change has been successfully merged"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "9a83cf56d6b64795152521c1baa273a8a654ecaa",
+            "parents": [
+                "270d27defd3c73c150ea58ebc5cc132dc77877da"
+            ],
+            "ref": "refs/changes/95/36695/1",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1600845975,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Is there something else that sets the PWM values?  This seems like something where we should prevent the other senders from sending if we're in tuning mode, which is how the dbus APIs work today if you override the PWM values from dbus."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 18,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "There could be something else, but the whole point is that the program does not know it. The PWM is write-only. Thus, the program needs to repeat the PWM writing every so often, because there's really no other way to guarantee it will be reliable."
+                },
+                {
+                    "file": "dbus/dbuswrite.cpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Can we only turn this on if we're in tuning mode?  Every property write on dbus is expensive, and if 2 entities are trying to take control of the PWM, I think we should solve that problem at its source, otherwise the fan will occasionally jump up to a higher value while you're tuning."
+                },
+                {
+                    "file": "dbus/dbuswrite.cpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "I'm happy to increase the time. I found that the value of 60 here roughly corresponds to 6 seconds. If D-Bus is slow enough that this is a burden, we can increase the time to every 15-30 seconds. We could then just tell users to expect to wait a little longer before the fans return to automatic mode.\n\nIf an external entity is trying to take control of the PWM, that would be bad, and you're right, it should be dealt with at its source. The point is to put a minimum amount of time between PWM write attempts, so that if the user has just switched from manual mode back to automatic mode (for example), the PWM will still be written properly within a few seconds, instead of never being written at all."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 34,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuswrite.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": -4
+                },
+                {
+                    "file": "dbus/dbuswrite.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 66,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 2,
+            "revision": "1e329d00c28ceb4a62713fae5ccfd59bce0ccf2d",
+            "parents": [
+                "270d27defd3c73c150ea58ebc5cc132dc77877da"
+            ],
+            "ref": "refs/changes/95/36695/2",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1600932799,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "dbus/dbuswrite.cpp",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Patrick Venture",
+                        "email": "venture@google.com",
+                        "username": "pstrinkle"
+                    },
+                    "message": "Perhaps it shouldn't be treated as write-only, but -- there is a time constraint, so reading it all the time isn't ideal either."
+                },
+                {
+                    "file": "dbus/dbuswrite.cpp",
+                    "line": 35,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Unfortunately, the way the sensors are implemented now, it becomes ambiguous. In dbus-sensors, any write from D-Bus to a sensor will set the \"overriddenState\" flag on that sensor, which causes the sensor to no longer self-update itself with new values learned from the hardware, which is a drawback. So, even if we could treat this as read-write instead of write-only, we would only be able to read back the value that was just written, thus not learning anything new."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 34,
+                    "deletions": 0
+                },
+                {
+                    "file": "dbus/dbuswrite.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 30,
+                    "deletions": -4
+                },
+                {
+                    "file": "dbus/dbuswrite.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 2,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 66,
+            "sizeDeletions": 4
+        },
+        {
+            "number": 3,
+            "revision": "158b295b5458e9a177c4902c9c7a96f6e40d893e",
+            "parents": [
+                "4ca06915f13a2e069c034adf575bcf623324d564"
+            ],
+            "ref": "refs/changes/95/36695/3",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601588982,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 14,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 89,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 4,
+            "revision": "43a1237d9041215d115275191dfefee9b2e565f6",
+            "parents": [
+                "4ca06915f13a2e069c034adf575bcf623324d564"
+            ],
+            "ref": "refs/changes/95/36695/4",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601594548,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Patrick Venture",
+                        "email": "venture@google.com",
+                        "username": "pstrinkle"
+                    },
+                    "message": "Is the outputCache used? NOt in this CL clearly - perhaps a comment for what it's doing here."
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "line": 145,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Added a comment, see latest patchset. The outputCache is populated in this CL, but its contents are not actually used. I wanted to split it up, to avoid creating an unwanted dependency between CL's. The outputCache is actually used here: https://gerrit.openbmc-project.xyz/c/openbmc/phosphor-pid-control/+/36697"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 5,
+            "revision": "b381e2b1bc48d83b60ed9e8263484081281d110c",
+            "parents": [
+                "78a8ebff3d7076eb046691a87f9209fa2146d1ba"
+            ],
+            "ref": "refs/changes/95/36695/5",
+            "uploader": {
+                "name": "Patrick Venture",
+                "email": "venture@google.com",
+                "username": "pstrinkle"
+            },
+            "createdOn": 1601679124,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 79,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 6,
+            "revision": "88c8e5f8955a5b964c839f21092a748dbedb447b",
+            "parents": [
+                "2400ce43fafd35bc26b2a6798ac50ddf6aa7a517"
+            ],
+            "ref": "refs/changes/95/36695/6",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601689074,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 83,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 7,
+            "revision": "01fbc3294f6e75e3d1ae0a11f460705e437f5294",
+            "parents": [
+                "3e2f758157d0b77272996c8a6ae075189733bfc1"
+            ],
+            "ref": "refs/changes/95/36695/7",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601690955,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Patrick Venture",
+                        "email": "venture@google.com",
+                        "username": "pstrinkle"
+                    },
+                    "message": "Commented on follow-on CL, so I'll comment here.  Using a pair for this adds an unnecessary level of abstraction.  A struct would be easier to read/use."
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 51,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Good point, it could be a little struct like ReadReturn as used in interfaces.hpp toplevel file."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 83,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 8,
+            "revision": "bf5ad5fb0a9b88dbc176831d04ba3390cf5c16f3",
+            "parents": [
+                "55ccad65640cea4d91ae6b0ed38accf9c22c34c6"
+            ],
+            "ref": "refs/changes/95/36695/8",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1601952259,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 83,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 9,
+            "revision": "770e3da15493e7ddde70a1cf7d456ad9aa86a124",
+            "parents": [
+                "ca791156e2594ce7d25b42793a0a1b60d922fefd"
+            ],
+            "ref": "refs/changes/95/36695/9",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1605268761,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 83,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 10,
+            "revision": "b193f5102ab76c1b7004aeebe2463186de6bb9b7",
+            "parents": [
+                "d11a732a802cc281f4c1583275871fbc5f5ecced"
+            ],
+            "ref": "refs/changes/95/36695/10",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617666478,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 10,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 83,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 11,
+            "revision": "d750c95a611d03becf251f852d6be57fa6faa32f",
+            "parents": [
+                "d11a732a802cc281f4c1583275871fbc5f5ecced"
+            ],
+            "ref": "refs/changes/95/36695/11",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617685997,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 88,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 12,
+            "revision": "64f3dbf199754f531c35ab09a9979eb20b38b4aa",
+            "parents": [
+                "d11a732a802cc281f4c1583275871fbc5f5ecced"
+            ],
+            "ref": "refs/changes/95/36695/12",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1617744768,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "I'm not following this, wouldn't the next scan loop or sensor update immediately return the fan to the correct speed?  Sure, it doesn't happen \"immediately\" but it should happen within a single scan loop.  Is that worth the added complexitly?  Or am I missing something."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "There is logic to reduce the number of D-Bus write calls necessary, if the PID-loop-computed PWM is the same as before. It won't perform the PWM write. So, what happens is the fan will still remain at whatever speed the user left it at, even if it is vastly wrong compared to what the PID loop wants it to be at, until something happens that causes the PID loop to compute a different PWM value. If the PID loop is stable, that could take an arbitrarily long time to happen. This patch makes sure to invalidate that cache, forcing the PWM write to happen, when the user returns to auto mode from manual mode, so the expected PID-loop-computed PWM is restored."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> There is logic to reduce the number of D-Bus write calls necessary, if the PID-loop-computed PWM is the same as before. It won't perform the PWM write. So, what happens is the fan will still remain at whatever speed the user left it at, even if it is vastly wrong compared to what the PID loop wants it to be at, until something happens that causes the PID loop to compute a different PWM value.\n\nRight, but in 99% of cases, won't that be the next loop of the PID?  \n\n> If the PID loop is stable, that could take an arbitrarily long time to happen.\n\nNot following this.  Even a stable pid loop will have an I value that is changing the output, unless all thermal margins are EXACTLY at the right temperature, in which case, it means the fans are running at the speed they should be.\n\n> This patch makes sure to invalidate that cache, forcing the PWM write to happen, when the user returns to auto mode from manual mode, so the expected PID-loop-computed PWM is restored."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Benjamin Fair",
+                        "email": "benjaminfair@google.com",
+                        "username": "BenjaminFair"
+                    },
+                    "message": "We've seen this happen regularly in both manual and automated testing. The loop will likely eventually get a new value, but in practice that can take long enough to cause test failures"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Why is the test looking for values to change on very stable systems or in a very short timeframe?  That sounds like a broken test to me, not accounting for the first loop, or making assertions that are incorrect, (or equally as likely I'm very much missing something.)"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Benjamin Fair",
+                        "email": "benjaminfair@google.com",
+                        "username": "BenjaminFair"
+                    },
+                    "message": "I think this happens specifically if the loop is at some minimum output on an idling system, then someone manually sets a high PWM before reverting it to auto control. The loop will just keep sitting at the minimum value meaning the target PWM won't change meaning the high PWM will persist indefinitely"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "But then wont the CPU get overcooled, and the I coefficient will kick in and start dropping the speed back down?"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Got it, if we're at minimum there's a possibility we can't go any lower.  Works for me."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "OK, here's a scenario:\n\nComputed PWM is 80%.\nIt's a stable system.\nUser sets PWM to manual mode.\nUser sets PWM of 20%, because they were in the room and it was too loud.\nUser leaves the room, and sets PWM back to auto mode.\nThe fan PWM is still at 20%, which is incorrect.\nAt this point, it should be set back to 80%, but it's not.\nComputed PWM remains at 80%.\nAs computed PWM is unchanged, no write command is issued.\nHowever, unbeknownst to the algorithm, the fan is at 20%.\nThe system starts to heat up.\nThings get too hot, and the PWM algorithm notices this.\nEventually, computed PWM becomes 81%.\nNow, this is different enough.\nThe fan is set to 81%.\nThe system cools back down.\n\nIf the fan PWM had simply been restored to 80% after the user returned it to auto mode from manual mode, the above could have been simplified, and the system would not needlessly heat up.\n\nA worse scenario would be if the computed PWM were already 100%. Now, there is no more headroom. The PWM is already as high as it can go, and won't change, unless the system cools down. If the user  sets manual mode, slows down the fan, and then sets auto mode again, the system is now doomed to overheat, because nothing will restore the PWM to 100%. Because it's unchanged from the earlier computed value of 100%, so no write command would ever happen.\n\nThis should make more sense now."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "OpenBMC naming standard please."
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "What would be the appropriate standard in this case? Elsewhere in this file is class WriteInterface, which has local _min and _max members. I was following that naming convention, using leading underscore with lowercase. Should WriteInterface local members be renamed as well?"
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "> What would be the appropriate standard in this case?\n\nlowerCamelCase.  The docs repo has more details.\n\n> Elsewhere in this file is class WriteInterface, which has local _min and _max members.\n\nThose are also incorrect.  At some point we should really get the clang-tidy checks going on this repo which can catch this kind of stuff at CI time.\n\n> I was following that naming convention, using leading underscore with lowercase. Should WriteInterface local members be renamed as well?\n\nYes, but not part of this commit."
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "line": 22,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "These two methods are taking what was previously a pure virtual class, and gicing it a concrete implementation.  At a matter of design, I think it would be better for this to remain a virtual class."
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 56,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "made this a pure virtual and put the no-op in the concrete class."
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 99,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "same as above."
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 99,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 85,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 13,
+            "revision": "d73a93311f91a7c18658490592d2b8ebac28d39e",
+            "parents": [
+                "cb4c1a27574a7fe121a851ae7ba67aec254a1129"
+            ],
+            "ref": "refs/changes/95/36695/13",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620161377,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 85,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 14,
+            "revision": "475b0343c1953da5418ff30877cc5bf1ca98cb84",
+            "parents": [
+                "f54b260b6261f644a65efe5445a9e93a418c2eed"
+            ],
+            "ref": "refs/changes/95/36695/14",
+            "uploader": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "createdOn": 1620964471,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 99,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "This still has a default implementation.  This should be = 0 in this context, and defined in each place where it's needed."
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "line": 99,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "Done"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 27,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 22,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 85,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 15,
+            "revision": "65ed76461a3c7d57591c568fa49229ed2c4513a9",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/15",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1644606010,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 88,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 16,
+            "revision": "e04082ca3ad7e158f6c84c6869e3579dfd4eef43",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/16",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1644613067,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 11,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 86,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 17,
+            "revision": "08d1092f7c5d37943695392417eea31842fd2fbe",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/17",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1644617241,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 83,
+            "sizeDeletions": 1
+        },
+        {
+            "number": 18,
+            "revision": "6a6d2dfb30270f01fa2aa685bffcbba7951c6adf",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/18",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1644624322,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/zone_mock.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 86,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 19,
+            "revision": "4fc5bb67b2d8908024aba55c432a24b424493a55",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/19",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1644869772,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Looks like the test cases are failing now, unfortunately.\n"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/zone_mock.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 86,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 20,
+            "revision": "0f15463dc48459e81f3ae34436ca255eda6f85e8",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/20",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1644964371,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Nice, this looks good now. Are we ready to remove the WIP status?\n\n\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "almost.. putting in a unit test to guard against regressions for this new behavior."
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "new unit tests added and they pass. Ready for the WIP to be stripped."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/zone_mock.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 86,
+            "sizeDeletions": 2
+        },
+        {
+            "number": 21,
+            "revision": "f8a01721de517c935a1b2a6288f7a8b301c658f0",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/21",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1644970002,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "added unit tests to cover the new behavior and I believe I've addressed outstanding comments.\n\nMy contribution to this review is from patchset 14...21"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "Nice test cases!\n"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Looking much better."
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "nit: \"return\" is redundant here.\n\nnon-nit: this is an implementation in a header file, which, even if it's effectively no-op, should still go in the implementation (cpp)\n\nAlso, given the only implementation of setOutputCache is a no-op, that probably implies that the entire method needs to move to the patch that uses it.  It's very difficult to review APIs that have no users."
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "line": 78,
+                    "reviewer": {
+                        "name": "Jason Ling",
+                        "email": "jasonling@google.com",
+                        "username": "jclaz"
+                    },
+                    "message": "yanking setOutputCache and everything that goes with it."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "interfaces.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 15,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/pid_fancontroller_unittest.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 48,
+                    "deletions": -5
+                },
+                {
+                    "file": "test/pid_zone_unittest.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/sensor_mock.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/zone_mock.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 9,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 168,
+            "sizeDeletions": 7
+        },
+        {
+            "number": 22,
+            "revision": "a4146eb18d6a32462173a35ef16c9b6d8ab3e3ef",
+            "parents": [
+                "26de89b77388a0ae034eccca37464a20eb541640"
+            ],
+            "ref": "refs/changes/95/36695/22",
+            "uploader": {
+                "name": "Jason Ling",
+                "email": "jasonling@google.com",
+                "username": "jclaz"
+            },
+            "createdOn": 1645049940,
+            "author": {
+                "name": "Josh Lehan",
+                "email": "krellan@google.com",
+                "username": "Krellan"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Josh Lehan",
+                        "email": "krellan@google.com",
+                        "username": "Krellan"
+                    },
+                    "message": "LGTM - the 5 places where code was removed, are restored in change 51267, which is on top of this change\n"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 17,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone_interface.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 6,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/pid_fancontroller_unittest.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 48,
+                    "deletions": -5
+                },
+                {
+                    "file": "test/pid_zone_unittest.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 33,
+                    "deletions": 0
+                },
+                {
+                    "file": "pid/zone.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/sensor_mock.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                },
+                {
+                    "file": "test/zone_mock.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": -1
+                },
+                {
+                    "file": "pid/fancontroller.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 3,
+                    "deletions": -1
+                }
+            ],
+            "sizeInsertions": 141,
+            "sizeDeletions": 7
+        }
+    ]
+}
