@@ -1,0 +1,275 @@
+{
+    "project": "openbmc/docs",
+    "branch": "master",
+    "topic": "design",
+    "id": "Ic403b0ac07acdc8544a1a9495a267e3583214b2a",
+    "number": 28175,
+    "subject": "design: boot initiator mailbox support",
+    "owner": {
+        "name": "Ivan Mikhaylov",
+        "email": "i.mikhaylov@yadro.com",
+        "username": "fr0st61te"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/docs/+/28175",
+    "hashtags": [],
+    "createdOn": 1577207704,
+    "lastUpdated": 1665658086,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1577207704,
+            "reviewer": {
+                "name": "Ivan Mikhaylov",
+                "email": "i.mikhaylov@yadro.com",
+                "username": "fr0st61te"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1577207858,
+            "reviewer": {
+                "name": "Ivan Mikhaylov",
+                "email": "i.mikhaylov@yadro.com",
+                "username": "fr0st61te"
+            },
+            "message": "Topic set to design"
+        },
+        {
+            "timestamp": 1578521769,
+            "reviewer": {
+                "name": "B. J. Wyman",
+                "email": "bjwyman@gmail.com",
+                "username": "bjwyman"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1578966679,
+            "reviewer": {
+                "name": "Emily Shaffer",
+                "email": "emilyshaffer@google.com",
+                "username": "nasamuffin"
+            },
+            "message": "Patch Set 1:\n\nInteresting. I wonder how much of a worse position this puts us in than what we have today.\n\nThe contents of the mbox are OEM-dependent, right? So while a UUID for a drive partition is probably hard to exploit, it's possible that some OEM decides to interpret those contents in a way which is exploitable. So exposing this mbox over IPMI-over-LAN makes me a little nervous. Since IPMI-over-LAN is as untrustworthy as it is, I feel like this is sort of like asking the internet at large to decide what our host should boot.\n\nBut I ask that compared to our position today because it could be we're already in that precise position :)\n\nDoes it need to be exposed via the LAN interface? Is there a reason not to expose it only via the host-BMC interface? If it really needs to be exposed via LAN, is there a reason not to implement this using Redfish instead?"
+        },
+        {
+            "timestamp": 1579014842,
+            "reviewer": {
+                "name": "Alexander Amelkin",
+                "email": "a.amelkin@yadro.com",
+                "username": "AlexanderAmelkin"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> Interesting. I wonder how much of a worse position this puts us in than what we have today.\n> \n> The contents of the mbox are OEM-dependent, right? So while a UUID for a drive partition is probably hard to exploit, it's possible that some OEM decides to interpret those contents in a way which is exploitable. So exposing this mbox over IPMI-over-LAN makes me a little nervous. Since IPMI-over-LAN is as untrustworthy as it is, I feel like this is sort of like asking the internet at large to decide what our host should boot.\n\nFirst off, I must notice that in no circumstances a BMC should be exposed to \"internet at large\". Doing so is per se asking for troubles, IMO. BMC must only be accessible via a militarized network, preferably a separate VLAN.\n\nSecondly, I'm confident that trying to protect a potentially ill-written third-party software is a task that is doomed to fail by definition. We should care about vulnerabilities of OpenBMC itself and let OpenPOWER Firmware or UEFI or whatever other host firmware it may be take care of their own security.\n\n> But I ask that compared to our position today because it could be we're already in that precise position :)\n\nYou're right, we already let the users configure the host as they like and even update it's firmware to more or less whatever they want. Adding IPMI mailbox support is just another means indeed that can be used to shoot oneself in the leg, but it's not the deadliest one. In fact presence of a BMC as such is the biggest security hole if you look at it that way.\n\n> Does it need to be exposed via the LAN interface? Is there a reason not to expose it only via the host-BMC interface? If it really needs to be exposed via LAN, is there a reason not to implement this using Redfish instead?\n\nThere is quite an obvious reason. :) When your host is not yet booted you can't use it to configure itself, let alone the BMC. Essentially that's why BMC is there in the first place.\n\nWe definitely do need to implement this using Redfish. But it's \"as well\", not \"instead\". When I was implementing this feature there was no Redfish in OpenBMC yet, and so the mailbox was automagically available via REST-dbus."
+        },
+        {
+            "timestamp": 1579711348,
+            "reviewer": {
+                "name": "Andrew Geissler",
+                "email": "andrew@geissonator.com",
+                "username": "geissonator"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1580350672,
+            "reviewer": {
+                "name": "Emily Shaffer",
+                "email": "emilyshaffer@google.com",
+                "username": "nasamuffin"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > Interesting. I wonder how much of a worse position this puts us in than what we have today.\n> > \n> > The contents of the mbox are OEM-dependent, right? So while a UUID for a drive partition is probably hard to exploit, it's possible that some OEM decides to interpret those contents in a way which is exploitable. So exposing this mbox over IPMI-over-LAN makes me a little nervous. Since IPMI-over-LAN is as untrustworthy as it is, I feel like this is sort of like asking the internet at large to decide what our host should boot.\n> \n> First off, I must notice that in no circumstances a BMC should be exposed to \"internet at large\". Doing so is per se asking for troubles, IMO. BMC must only be accessible via a militarized network, preferably a separate VLAN.\n\nI agree. But I encourage you to have a look around pg 29 of this presentation: https://osfc.io/uploads/talk/paper/39/Common_BMC_vulnerabilities_and_how_to_avoid_repeating_them.pdf (The rest of the presentation is quite good, too.)\n\n> Secondly, I'm confident that trying to protect a potentially ill-written third-party software is a task that is doomed to fail by definition. We should care about vulnerabilities of OpenBMC itself and let OpenPOWER Firmware or UEFI or whatever other host firmware it may be take care of their own security.\n\nWhile that's true, I suppose I hope we can make it hard for third-party to do something so dangerous. :)\n\n> \n> > But I ask that compared to our position today because it could be we're already in that precise position :)\n> \n> You're right, we already let the users configure the host as they like and even update it's firmware to more or less whatever they want. Adding IPMI mailbox support is just another means indeed that can be used to shoot oneself in the leg, but it's not the deadliest one. In fact presence of a BMC as such is the biggest security hole if you look at it that way.\n> \n> > Does it need to be exposed via the LAN interface? Is there a reason not to expose it only via the host-BMC interface? If it really needs to be exposed via LAN, is there a reason not to implement this using Redfish instead?\n> \n> There is quite an obvious reason. :) When your host is not yet booted you can't use it to configure itself, let alone the BMC. Essentially that's why BMC is there in the first place.\n\nHm, I suppose I was thinking of a case where host could ask BMC which image to provide next time it boots. I have seen that use case before. But your point stands when the host hasn't booted at all, of course. :)\n\n> We definitely do need to implement this using Redfish. But it's \"as well\", not \"instead\". When I was implementing this feature there was no Redfish in OpenBMC yet, and so the mailbox was automagically available via REST-dbus.\n\nDoes that mean that I replied to this review much much later than I should have? That is, did you already ask for some design review before you wrote it, and I didn't respond? My apologies if so.\n\nIt stands that we do have Redfish now, and as AndrewG mentioned, we are also working towards PLDM/MCTP. I'd much prefer this sort of solution that way.\n\n\nMy argument is not \"we shouldn't tell the host how to boot over the internet\". Rather, I mean, \"we shouldn't tell the host how to boot over IPMI over LAN, which is known to be insecure, when we do have secure ways to communicate with the BMC over LAN.\"\n\nIvan and I chatted somewhat on IRC about this. My tenure as IPMI maintainer is short from here, so consider this all just some person's $0.02 - you'll ultimately have to take it up with Tom and Vernon."
+        },
+        {
+            "timestamp": 1580353074,
+            "reviewer": {
+                "name": "Rick Altherr",
+                "email": "raltherr@google.com",
+                "username": "kc8apf"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > Interesting. I wonder how much of a worse position this puts us in than what we have today.\n> > \n> > The contents of the mbox are OEM-dependent, right? So while a UUID for a drive partition is probably hard to exploit, it's possible that some OEM decides to interpret those contents in a way which is exploitable. So exposing this mbox over IPMI-over-LAN makes me a little nervous. Since IPMI-over-LAN is as untrustworthy as it is, I feel like this is sort of like asking the internet at large to decide what our host should boot.\n> \n> First off, I must notice that in no circumstances a BMC should be exposed to \"internet at large\". Doing so is per se asking for troubles, IMO. BMC must only be accessible via a militarized network, preferably a separate VLAN.\n> \n\nThis is common yet outdated and dangerous advice.  Given the lack of controls limiting host->BMC access (or their use when they exist), an isolated BMC network just gives me (as an attacker) unfettered access to all of the BMCs (and consequently their hosts) connected to that network.\n\nThat's assuming even industry followed this practice in the first place.  They don't.  Even if I look past the 90,000 BMCs directly connected to the Internet, common practice is to put them on the same network as the hosts.  Even if cipher 0 has been disabled, Metasploit includes scripts to collect RCMP+ password hashes and cracking them takes a few hours at most.\n\nYour isolated BMC network will be breached.  An attacker will be able to do anything IPMI lets them do.  Do you want to give me another tool to ease spreading from one system to the next inside your network?  There's a good chance I'll already be able to get credentials to every BMC _and_ use the iKVM to get physical presence equivalence. Yes, I can change the boot device by replaying keystrokes to navigate the firmware setup menus.  If you give me an API to make that even easier, I'll just use that.\n\n> Secondly, I'm confident that trying to protect a potentially ill-written third-party software is a task that is doomed to fail by definition. We should care about vulnerabilities of OpenBMC itself and let OpenPOWER Firmware or UEFI or whatever other host firmware it may be take care of their own security.\n> \n> > But I ask that compared to our position today because it could be we're already in that precise position :)\n> \n> You're right, we already let the users configure the host as they like and even update it's firmware to more or less whatever they want. Adding IPMI mailbox support is just another means indeed that can be used to shoot oneself in the leg, but it's not the deadliest one. In fact presence of a BMC as such is the biggest security hole if you look at it that way.\n\nSecurity improves by raising the difficulty of accomplishing attacks.  In this case, there are many ways I can accomplish the same goal (changing the boot device).  This proposed design makes it easier to accomplish that goal instead of more difficult.  An approach of \"it's already insecure so whatever\" actively defeats any security improvements implemented elsewhere and preserves the status quo.\n\n> \n> > Does it need to be exposed via the LAN interface? Is there a reason not to expose it only via the host-BMC interface? If it really needs to be exposed via LAN, is there a reason not to implement this using Redfish instead?\n> \n> There is quite an obvious reason. :) When your host is not yet booted you can't use it to configure itself, let alone the BMC. Essentially that's why BMC is there in the first place.\n> \n> We definitely do need to implement this using Redfish. But it's \"as well\", not \"instead\". When I was implementing this feature there was no Redfish in OpenBMC yet, and so the mailbox was automagically available via REST-dbus."
+        },
+        {
+            "timestamp": 1580377378,
+            "reviewer": {
+                "name": "Alexander Amelkin",
+                "email": "a.amelkin@yadro.com",
+                "username": "AlexanderAmelkin"
+            },
+            "message": "Patch Set 1:\n\nEmily, no, you aren't late with your comments. It's just that this design document has been written very much later than the original change set has been developed and submitted for review (https://gerrit.openbmc-project.xyz/q/topic:%22Add-Boot-Mailbox-GH-3391). This design is a second approach to trying to push the change through to OpenBMC upstream.\n\nRick, let's put it this way: are you suggesting that this whole change set should be abandoned or do you have any specific proposal on what we could alter in this design to make it better?\n\nI'd be glad to also hear Vernon and Tom on this."
+        },
+        {
+            "timestamp": 1583165680,
+            "reviewer": {
+                "name": "Ivan Mikhaylov",
+                "email": "i.mikhaylov@yadro.com",
+                "username": "fr0st61te"
+            },
+            "message": "Patch Set 1:\n\nTom, Vernon, Rick, any comments?"
+        },
+        {
+            "timestamp": 1583259157,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> Tom, Vernon, Rick, any comments?\n\nI think the IPMI spec is somewhat out of date with regards to security and don't really think this is a great feature.\n\nThere is no way for the host to authenticate the contents of the mailbox came from a trusted, authorized entity.\n\nIt is up to the consumer of the data to treat it with suspicion (which is out of scope of the BMC), while in this case the BMC is merely the keeper (though it can do some user-level authentication at the mailbox-set time). \n\nSo the idea of a mailbox is not bad. And even a free-form mailbox like this could be used to implement authentication. But before this is used and implemented, the security implications should be considered.\n\nFrom the BMC, the host may be an attacker. From the host, the BMC may be an attacker. To remedy this, we need to have mechanisms in place to establish trust."
+        },
+        {
+            "timestamp": 1583341279,
+            "reviewer": {
+                "name": "Ivan Mikhaylov",
+                "email": "i.mikhaylov@yadro.com",
+                "username": "fr0st61te"
+            },
+            "message": "Patch Set 1:\n\n> Patch Set 1:\n> \n> > Patch Set 1:\n> > \n> > Tom, Vernon, Rick, any comments?\n> \n> I think the IPMI spec is somewhat out of date with regards to security and don't really think this is a great feature.\n> \n> There is no way for the host to authenticate the contents of the mailbox came from a trusted, authorized entity.\n> \n> It is up to the consumer of the data to treat it with suspicion (which is out of scope of the BMC), while in this case the BMC is merely the keeper (though it can do some user-level authentication at the mailbox-set time). \n> \n> So the idea of a mailbox is not bad. And even a free-form mailbox like this could be used to implement authentication. But before this is used and implemented, the security implications should be considered.\n> \n> From the BMC, the host may be an attacker. From the host, the BMC may be an attacker. To remedy this, we need to have mechanisms in place to establish trust.\n\nSo, are we talking about additional auth in this case? Is there any ways to\naccomplish that at current state of ipmi stack? Rick, Vernon maybe you have any ideas on\nyour mind how to do it better?\n\nAt least for now I have something like:\n1. by default disable remote execution of this command via whitelists for\n   net-ipmi\n2. some encryption keys\n3. the strict option list, which I don't like\n4. additional security layer for some vulnerable stuff\n\nBut btw, any additional crypto enhancements are outside of this doc desc.\nWe are just trying to follow the ipmi spec...\n\nAlso, just mentioning that ipmitool can do remotely disruptive things:\nhost reboot/shutdown, bmc reboot/shutdown, bricking watchdog,\nfirmware update via blobs, etc."
+        },
+        {
+            "timestamp": 1584625272,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1586283203,
+            "reviewer": {
+                "name": "Alexander Amelkin",
+                "email": "a.amelkin@yadro.com",
+                "username": "AlexanderAmelkin"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1586434597,
+            "reviewer": {
+                "name": "Alexander Amelkin",
+                "email": "a.amelkin@yadro.com",
+                "username": "AlexanderAmelkin"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1665658086,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Abandoned\n\nclose due to inactivity"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "c69f64aec16c132df68e1d6efce917b6766ae1f5",
+            "parents": [
+                "256050decea920eb99bd297242061a02c871e509"
+            ],
+            "ref": "refs/changes/75/28175/1",
+            "uploader": {
+                "name": "Ivan Mikhaylov",
+                "email": "i.mikhaylov@yadro.com",
+                "username": "fr0st61te"
+            },
+            "createdOn": 1577207704,
+            "author": {
+                "name": "Ivan Mikhaylov",
+                "email": "i.mikhaylov@yadro.com",
+                "username": "fr0st61te"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "B. J. Wyman",
+                        "email": "bjwyman@gmail.com",
+                        "username": "bjwyman"
+                    },
+                    "message": "https://gerrit.openbmc-project.xyz/c/openbmc/docs/+/28105\n\"Has been some confusion about the date format, added ISO 8601 date\nformat, YYYY-MM-DD.\""
+                },
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "line": 14,
+                    "reviewer": {
+                        "name": "Alexander Amelkin",
+                        "email": "a.amelkin@yadro.com",
+                        "username": "AlexanderAmelkin"
+                    },
+                    "message": "Ack"
+                },
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Andrew Geissler",
+                        "email": "andrew@geissonator.com",
+                        "username": "geissonator"
+                    },
+                    "message": "As we start to move to PLDM over MCTP as our inband interface, any idea if this issue is handled already within PLDM?"
+                },
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Alexander Amelkin",
+                        "email": "a.amelkin@yadro.com",
+                        "username": "AlexanderAmelkin"
+                    },
+                    "message": "We'll look into that."
+                },
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "line": 30,
+                    "reviewer": {
+                        "name": "Alexander Amelkin",
+                        "email": "a.amelkin@yadro.com",
+                        "username": "AlexanderAmelkin"
+                    },
+                    "message": "We've checked how PLDM passes boot settings to BIOS. It's all about so called \"BIOS Tables\" (items 7.1, 7.2 of DSP0247 v1.0.0). I think they may be stored in the same array of bytes, but I'm not sure it the best way to do it for PLDM."
+                },
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "line": 70,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "To be honest, the whole thing seems a little heavy and IPMI-specific for what is basically a free-form extended field on top of Control.Boot.Source.  Can we simply add a free-form string or array[uint8] field into Control.Boot.Source called \"ExtendedBootSource\" or something like that?"
+                },
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "line": 70,
+                    "reviewer": {
+                        "name": "Alexander Amelkin",
+                        "email": "a.amelkin@yadro.com",
+                        "username": "AlexanderAmelkin"
+                    },
+                    "message": "Well, actually the boot initiator mailbox does not neccessarily contain extended boot source information. It may as well contain other boot parameters such as, for instance, whether or not to turn on vga to serial console redirection or other things like that.\n\nBasically, the interface that we introduce is a free-form array[uint8] field. The thing is that at least phosphor-*-ipmid needs to know the size of that field and the supported IANA Enterprise number of the Boot Initiator. Hence the new interface and not just a new field. Are you suggesting moving those data inside the IPMI daemon somehow and only adding a free-form array in an existing D-Bus interface?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "designs/boot_mailbox.md",
+                    "type": "ADDED",
+                    "insertions": 79,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 92,
+            "sizeDeletions": 0
+        }
+    ]
+}

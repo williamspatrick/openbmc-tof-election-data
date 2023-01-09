@@ -1,0 +1,159 @@
+{
+    "project": "openbmc/sdbusplus",
+    "branch": "master",
+    "id": "I1c3af065c7e7cf987733b6d32f6209e5e1942ab7",
+    "number": 44250,
+    "subject": "sdbus++: Catch generic exceptions",
+    "owner": {
+        "name": "William A. Kennington III",
+        "email": "wak@google.com",
+        "username": "wak-google"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/sdbusplus/+/44250",
+    "hashtags": [],
+    "createdOn": 1624058693,
+    "lastUpdated": 1665684895,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1624058693,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1624058718,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1624059337,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/20144/ : SUCCESS"
+        },
+        {
+            "timestamp": 1624304769,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1624312594,
+            "reviewer": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1624325762,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1665684895,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Abandoned\n\nclose due to inactivity"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "7fb6d014a6ac77f2538e033f9c973d1cd16b34d5",
+            "parents": [
+                "270f242cc2d80c2c77e5774eb461ca8a23863fb9"
+            ],
+            "ref": "refs/changes/50/44250/1",
+            "uploader": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "createdOn": 1624058693,
+            "author": {
+                "name": "William A. Kennington III",
+                "email": "wak@google.com",
+                "username": "wak-google"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Can you expand on why this is better than the current behavior?  To me the current behavior was as intended.\n\nApplications are expected to only throw the exceptions that are listed in the dbus interface.  If they throw something other than that, it is undefined behavior because the binding code cannot turn it into a well-defined error message in response.  With this change you are proposing that we change both of these error types into a generic response:\n\n1. Other PDI-defined exceptions, but which are not listed in the throwing interface.  (this is especially bad to me)\n2. std-style exceptions.\n\nTo me, both of these are bugs on the daemon side.  By silently catching them and turning them into a generic error we're actually doing a disservice in my opinion.  Now the exception isn't even noticed on the daemon side and there is no debug data to be able to solve it.  With the current behavior we're getting a core-dump and it can be debugged and fixed."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "William A. Kennington III",
+                        "email": "wak@google.com",
+                        "username": "wak-google"
+                    },
+                    "message": "I'm pretty tired of having to do this same logic everywhere for generic errors which don't map to some type of useful error type. This makes all dbus related code far more verbose than it needs to be with all of the try {} catches everywhere.\n\nWorse, the current crashing behavior results in people catching errors and returning placeholder values to signify an error.\n\nIt's also impossible currently to have more flexible error description values for some generic placeholder error name.\n\nWRT to other PDI exceptions, that is something we could handle by catching their intermediate base prior to the catchall and crash if they are encountered. Or, we could just return their error as-is and let the caller handle it appropriately. The caller has to handle non-typed errors from DBus anyway so they should have some sort of catchall to deal with these."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 11,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "> I'm pretty tired of having to do this same logic everywhere for generic errors which don't map to some type of useful error type. \n\nI appreciate the attempt to DRY the code out.  Can you point me to some examples of where you've done this?  I'm trying to understand what the use cases are.\n\n> Worse, the current crashing behavior results in people catching errors and returning placeholder values to signify an error.\n\nTo me this is very unfortunate.  Why are we seeing exceptions for non-buggy code?  And how do we know that anything is resolved by simply punting them to the client?\n\n> It's also impossible currently to have more flexible error description values for some generic placeholder error name.\n\nI'm not sure if I fully understand what you mean by some \"generic placeholder error name\" but I think this is intentional.  We have a Common.InternalError that some people are returning, but we've set a direction towards minimizing and eliminating them (I've tried not to allow new ones in dbus interface reviews).  The problem with InternalError, or another generic \"something went wrong inside the daemon you called\" is that the client has no idea what to do with it either.  Was it a bug?  Was it something they called with incorrectly?  Should they retry?  Has the daemon restarted itself?  There isn't really anything the client can do with it except restart itself and/or hope for the best.\n\n> WRT to other PDI exceptions\n\nYes, we could do that.\n\n> The caller has to handle non-typed errors from DBus anyway so they should have some sort of catchall to deal with these.\n\nI was hoping that when the client side was written that these would similarly map to some nice sdbus-defined exception type, but haven't gotten around to implementing those yet obviously."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "tools/sdbusplus/templates/method.prototype.hpp.mako",
+                    "type": "MODIFIED",
+                    "insertions": 4,
+                    "deletions": -2
+                },
+                {
+                    "file": "tools/sdbusplus/templates/property.prototype.hpp.mako",
+                    "type": "MODIFIED",
+                    "insertions": 8,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 26,
+            "sizeDeletions": 6
+        }
+    ]
+}

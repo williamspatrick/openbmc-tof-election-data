@@ -1,0 +1,193 @@
+{
+    "project": "openbmc/phosphor-dbus-interfaces",
+    "branch": "master",
+    "id": "If12f44b4047e530a6ae093b5371d2aef7c9b2760",
+    "number": 26289,
+    "subject": "Support for Discrete Sensor",
+    "owner": {
+        "name": "Payne Yang",
+        "email": "pyang4@lenovo.com",
+        "username": "ypinky"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/phosphor-dbus-interfaces/+/26289",
+    "hashtags": [],
+    "createdOn": 1571390907,
+    "lastUpdated": 1665685102,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1571390907,
+            "reviewer": {
+                "name": "Payne Yang",
+                "email": "pyang4@lenovo.com",
+                "username": "ypinky"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1571390931,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1:\n\nUser not approved, see admin, no CI"
+        },
+        {
+            "timestamp": 1572359744,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 1:\n\nI see IPMI in the commit message so I'll be looking for guidance from one of the IPMI maintainers.\n\nAlso please have some of your Lenovo peers review and sign off on your work.  Thanks!"
+        },
+        {
+            "timestamp": 1572477999,
+            "reviewer": {
+                "name": "Emily Shaffer",
+                "email": "emilyshaffer@google.com",
+                "username": "nasamuffin"
+            },
+            "message": "Patch Set 1:\n\nI need a little more information to understand what's going on here. Which part of the IPMI spec are you trying to follow? Can you give the section number in the commit message?"
+        },
+        {
+            "timestamp": 1572500035,
+            "reviewer": {
+                "name": "Payne Yang",
+                "email": "pyang4@lenovo.com",
+                "username": "ypinky"
+            },
+            "message": "Uploaded patch set 2: Commit message was updated."
+        },
+        {
+            "timestamp": 1573091700,
+            "reviewer": {
+                "name": "Emily Shaffer",
+                "email": "emilyshaffer@google.com",
+                "username": "nasamuffin"
+            },
+            "message": "Patch Set 2: Code-Review-1\n\nI went and read the spec, and have some thoughts.\n\nThe spec suggests that the type code should inform what the other offsets contain. That is, if the type is 0x00-0x04, there shouldn't be anything; the meaning of offset 0x01 is different if the type is 0x05 or 0x07 or whatever.\n\nEach type means something like \"Temperature sensor\" or \"Physical security/chassis intrustion sensor\" or \"Processor\". Each offset has a different logical meaning depending on the type given, since they are different logical objects.\n\nMy opinion is that the DBus schema should not be informed by the IPMI spec; rather, the IPMI daemon should examine the information available to it over DBus and convert it into a IPMI spec format. So I'm not in favor of doing the implementation this way. It doesn't make any sense to somebody who's using the same information somewhere else (for example, for an equivalent Redfish interface). It also doesn't make sense for someone who's manually querying DBus over the command line to try to inspect the system state (e.g. a developer, or an admin).\n\nInstead, I think that we should write DBus schemas for the logical info which we have available, although I understand it's more work. When someone wants to add an OEM sensor, they should follow a good example of a nicely defined Physical Security Sensor on the DBus, express what they need to express in a readable way, and then massage that data into IPMI format or Redfish format or whatever-we-use-in-2040 format, or even copy and paste the handwritten DBus query and its response to show their boss that it works. This also allows us to include more information from whichever type of sensor than the IPMI spec thought of (since the IPMI spec is showing its age, it's not beyond belief that there is more to a CPU today or next year than there was when the last IPMI revision came out in 2013).\n\nAnother bonus of being explicit on DBus is type safety; I can be a little more sure that sensor 0x14, which I expect to be the CPU, is actually the CPU and not, say, a DIMM - because if I try to ask for the event data on my \"CPU\" 0x14 and don't get a CPU object from DBus, I know I goofed.\n\nThe downside of this is that we will have more interface schemas checked in here, and more decisionmaking on which type to query for on the IPMI/Redfish end. But I think it is worth it - and in a way, that will make both codebases more readable, anyway."
+        },
+        {
+            "timestamp": 1573145808,
+            "reviewer": {
+                "name": "Vernon Mauery",
+                "email": "vernon.mauery@linux.intel.com",
+                "username": "vmauery"
+            },
+            "message": "Patch Set 2:\n\n> My opinion is that the DBus schema should not be informed by the IPMI spec; rather, the IPMI daemon should examine the information available to it over DBus and convert it into a IPMI spec format. So I'm not in favor of doing the implementation this way. It doesn't make any sense to somebody who's using the same information somewhere else (for example, for an equivalent Redfish interface). It also doesn't make sense for someone who's manually querying DBus over the command line to try to inspect the system state (e.g. a developer, or an admin).\n> \n> Instead, I think that we should write DBus schemas for the logical info which we have available, although I understand it's more work. When someone wants to add an OEM sensor, they should follow a good example of a nicely defined Physical Security Sensor on the DBus, express what they need to express in a readable way, and then massage that data into IPMI format or Redfish format or whatever-we-use-in-2040 format, or even copy and paste the handwritten DBus query and its response to show their boss that it works. This also allows us to include more information from whichever type of sensor than the IPMI spec thought of (since the IPMI spec is showing its age, it's not beyond belief that there is more to a CPU today or next year than there was when the last IPMI revision came out in 2013).\n\n+1 - D-Bus is a non-denominational fount of knowledge for the BMC. I agree that it should not present information biased toward on type of consumer or another. Just present the facts as they are and have the consumer massage them into whatever format is needed.\n\n> Another bonus of being explicit on DBus is type safety; I can be a little more sure that sensor 0x14, which I expect to be the CPU, is actually the CPU and not, say, a DIMM - because if I try to ask for the event data on my \"CPU\" 0x14 and don't get a CPU object from DBus, I know I goofed.\n> \n> The downside of this is that we will have more interface schemas checked in here, and more decisionmaking on which type to query for on the IPMI/Redfish end. But I think it is worth it - and in a way, that will make both codebases more readable, anyway.\n\nHopefully as we add interfaces, they can be organized in a way that could possibly reduce multiple accesses (grouping like things together to encourage GetAllProperties and such)."
+        },
+        {
+            "timestamp": 1573440921,
+            "reviewer": {
+                "name": "Payne Yang",
+                "email": "pyang4@lenovo.com",
+                "username": "ypinky"
+            },
+            "message": "Patch Set 2:\n\nOK, I will start to follow the design to make all sensor interface & property readable."
+        },
+        {
+            "timestamp": 1573603932,
+            "reviewer": {
+                "name": "Emily Shaffer",
+                "email": "emilyshaffer@google.com",
+                "username": "nasamuffin"
+            },
+            "message": "Patch Set 2:\n\n> Patch Set 2:\n> \n> OK, I will start to follow the design to make all sensor interface & property readable.\n\nThanks Yang!"
+        },
+        {
+            "timestamp": 1608140971,
+            "reviewer": {
+                "name": "Tom Joseph",
+                "email": "rushtotom@gmail.com",
+                "username": "tomjoseph83"
+            },
+            "message": "Removed reviewer Tom Joseph."
+        },
+        {
+            "timestamp": 1665685102,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Abandoned\n\nclose due to inactivity"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "0cc09bb955966db3975633cad60757f01bb02a2e",
+            "parents": [
+                "12162be363f11b9dafa92b5379db671712b3523c"
+            ],
+            "ref": "refs/changes/89/26289/1",
+            "uploader": {
+                "name": "Payne Yang",
+                "email": "pyang4@lenovo.com",
+                "username": "ypinky"
+            },
+            "createdOn": 1571390907,
+            "author": {
+                "name": "Payne Yang",
+                "email": "pyang4@lenovo.com",
+                "username": "ypinky"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 14,
+                    "deletions": 0
+                },
+                {
+                    "file": "xyz/openbmc_project/Sensor/Discrete/SpecificOffset.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 70,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 84,
+            "sizeDeletions": 0
+        },
+        {
+            "number": 2,
+            "revision": "dc2c606be264718d0ca175b62326f5247d02b637",
+            "parents": [
+                "12162be363f11b9dafa92b5379db671712b3523c"
+            ],
+            "ref": "refs/changes/89/26289/2",
+            "uploader": {
+                "name": "Payne Yang",
+                "email": "pyang4@lenovo.com",
+                "username": "ypinky"
+            },
+            "createdOn": 1572500035,
+            "author": {
+                "name": "Payne Yang",
+                "email": "pyang4@lenovo.com",
+                "username": "ypinky"
+            },
+            "kind": "NO_CODE_CHANGE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 28,
+                    "deletions": 0
+                },
+                {
+                    "file": "xyz/openbmc_project/Sensor/Discrete/SpecificOffset.interface.yaml",
+                    "type": "ADDED",
+                    "insertions": 70,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 98,
+            "sizeDeletions": 0
+        }
+    ]
+}
