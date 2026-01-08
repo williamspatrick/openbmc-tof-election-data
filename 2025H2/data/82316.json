@@ -1,0 +1,193 @@
+{
+    "project": "openbmc/entity-manager",
+    "branch": "master",
+    "id": "I5f773457ca1d4858df6ef49dafd238ee33f5ff6a",
+    "number": 82316,
+    "subject": "entity-manager: Move left over probe check to run function",
+    "owner": {
+        "name": "Christopher Meis",
+        "email": "christopher.meis@9elements.com",
+        "username": "ChriMarMe"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/entity-manager/+/82316",
+    "hashtags": [],
+    "createdOn": 1753698816,
+    "lastUpdated": 1759921865,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1753698816,
+            "reviewer": {
+                "name": "Christopher Meis",
+                "email": "christopher.meis@9elements.com",
+                "username": "ChriMarMe"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1753698864,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1753698864,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1753699308,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/113227/ : SUCCESS"
+        },
+        {
+            "timestamp": 1753713338,
+            "reviewer": {
+                "name": "Alexander",
+                "email": "alexander.hansen@9elements.com",
+                "username": "pointbazaar"
+            },
+            "message": "Patch Set 1:\n\n(4 comments)"
+        },
+        {
+            "timestamp": 1753941955,
+            "reviewer": {
+                "name": "Christopher Meis",
+                "email": "christopher.meis@9elements.com",
+                "username": "ChriMarMe"
+            },
+            "message": "Patch Set 1:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1759921865,
+            "reviewer": {
+                "name": "Christopher Meis",
+                "email": "christopher.meis@9elements.com",
+                "username": "ChriMarMe"
+            },
+            "message": "Abandoned"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "9a953ac24edee1d84e8246057aeb78fe358b84d7",
+            "parents": [
+                "213b397d35168ef975a2bf5b6de7492dc00439c6"
+            ],
+            "ref": "refs/changes/16/82316/1",
+            "uploader": {
+                "name": "Christopher Meis",
+                "email": "christopher.meis@9elements.com",
+                "username": "ChriMarMe"
+            },
+            "createdOn": 1753698816,
+            "author": {
+                "name": "Christopher Meis",
+                "email": "christopher.meis@9elements.com",
+                "username": "ChriMarMe"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Alexander",
+                        "email": "alexander.hansen@9elements.com",
+                        "username": "pointbazaar"
+                    },
+                    "message": "Can you quickly summarize why the code is moved for someone unfamiliar with the code?\n\nMy impression is that you are moving this to avoid repeating the work as `findDbusObjects` recurses due to the retry logic."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Christopher Meis",
+                        "email": "christopher.meis@9elements.com",
+                        "username": "ChriMarMe"
+                    },
+                    "message": "That is a correct assumption."
+                },
+                {
+                    "file": "src/entity_manager/perform_scan.cpp",
+                    "line": 118,
+                    "reviewer": {
+                        "name": "Alexander",
+                        "email": "alexander.hansen@9elements.com",
+                        "username": "pointbazaar"
+                    },
+                    "message": "Previous behavior (please forgive any lack of understanding)\n\n`findDbusObjects -> processDbusObjects -> getInterfaces`\n\ndoes\n```\nscan->dbusProbeObjects[instance.path][instance.interface] = resp;\n```\n\nand then that does not get queried anymore in the next retry for the `GetSubTree` call.\n\n`findDbusObjects` has exactly one non-recursive call site in `void scan::PerformScan::run()`.\n\nMoving the battery saving code there makes the `GetSubTree` call be performed with the same arguments each time.\n\n\nWhich may have different results even for the interfaces which were already found.\n\nNow for each interface `processDbusObjects` does the `getInterfaces` does a DBus `GetAll` call.\n\nSo we are potentially doing more DBus calls as result of this change on systems where the retries are used. Is this the correct understanding?"
+                },
+                {
+                    "file": "src/entity_manager/perform_scan.cpp",
+                    "line": 118,
+                    "reviewer": {
+                        "name": "Christopher Meis",
+                        "email": "christopher.meis@9elements.com",
+                        "username": "ChriMarMe"
+                    },
+                    "message": "We're doing less, because the asynchronous function \"findDbusObjects\" is not invoked, if the argument 'interfaces' of findDbusObjects is empty. The run-function is called every time a PerformScan object is created. So I simply moved the check before the asynchronous call."
+                },
+                {
+                    "file": "src/entity_manager/perform_scan.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Alexander",
+                        "email": "alexander.hansen@9elements.com",
+                        "username": "pointbazaar"
+                    },
+                    "message": "We may want to keep the `if (interfaces.empty())` check\n\nhere, otherwise it will be duplicated in callers (even if there is *currently* only one caller)"
+                },
+                {
+                    "file": "src/entity_manager/perform_scan.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Christopher Meis",
+                        "email": "christopher.meis@9elements.com",
+                        "username": "ChriMarMe"
+                    },
+                    "message": "If the interfaces are empty at this point, they probably are already before the invokation of findDbusObjects."
+                },
+                {
+                    "file": "src/entity_manager/perform_scan.cpp",
+                    "line": 148,
+                    "reviewer": {
+                        "name": "Alexander",
+                        "email": "alexander.hansen@9elements.com",
+                        "username": "pointbazaar"
+                    },
+                    "message": "sidenote: let's not exit here. Exiting won't revive the mapper, right?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "src/entity_manager/perform_scan.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 13,
+                    "deletions": -13
+                }
+            ],
+            "sizeInsertions": 23,
+            "sizeDeletions": 13
+        }
+    ]
+}

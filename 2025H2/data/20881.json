@@ -1,0 +1,214 @@
+{
+    "project": "openbmc/meta-phosphor",
+    "branch": "master",
+    "id": "I731305a61594424c941169f19ff6a282e34526ec",
+    "number": 20881,
+    "subject": "Add recipe for libmctp and modify dbus-sensor recipe to support nvmesensors",
+    "owner": {
+        "name": "Nikhil Potade",
+        "email": "nikhil.potade@linux.intel.com",
+        "username": "nipot"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/meta-phosphor/+/20881",
+    "hashtags": [],
+    "createdOn": 1556047563,
+    "lastUpdated": 1757088406,
+    "open": false,
+    "status": "ABANDONED",
+    "comments": [
+        {
+            "timestamp": 1556047563,
+            "reviewer": {
+                "name": "Nikhil Potade",
+                "email": "nikhil.potade@linux.intel.com",
+                "username": "nipot"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1556047590,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1556047605,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1:\n\nBuild Started https://openpower.xyz/job/run-meta-ci/1692/"
+        },
+        {
+            "timestamp": 1556048756,
+            "reviewer": {
+                "name": "Jenkins",
+                "email": "openbmc-ci-admin@ozlabs.org",
+                "username": "jenkins-openbmc"
+            },
+            "message": "Patch Set 1: Verified-1\n\nBuild Failed \n\nhttps://openpower.xyz/job/run-meta-ci/1692/ : FAILURE"
+        },
+        {
+            "timestamp": 1556053520,
+            "reviewer": {
+                "name": "James Feist",
+                "email": "james.feist@linux.intel.com",
+                "username": "feistjj"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1556053549,
+            "reviewer": {
+                "name": "James Feist",
+                "email": "james.feist@linux.intel.com",
+                "username": "feistjj"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1556054967,
+            "reviewer": {
+                "name": "Nikhil Potade",
+                "email": "nikhil.potade@linux.intel.com",
+                "username": "nipot"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1556150852,
+            "reviewer": {
+                "name": "Brad Bishop",
+                "email": "bradleyb@fuzziesquirrel.com",
+                "username": "bradbishop"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\nJeremy - you are the only maintainer for the libmctp repository.  There has been no discussion on the list resembling a plan for getting your prototype into the \"official\" repo for quite some time.\n\nThis has come to a head I think...this patch attempts to point at a libmctp \"fork\" although its hard to call it a fork when the \"real\" repo is empty...\n\nDo you have any opinions on how to proceed here?"
+        },
+        {
+            "timestamp": 1556261483,
+            "reviewer": {
+                "name": "Jeremy Kerr",
+                "email": "jk@ozlabs.org",
+                "username": "jk-ozlabs"
+            },
+            "message": "Patch Set 1:\n\nHi all,\n\n> Do you have any opinions on how to proceed here?\n\nMost of the discussion on getting actual MCTP-based infrastructure into OpenBMC is happening in the MCTP daemon design discussion:\n\nhttps://gerrit.openbmc-project.xyz/c/openbmc/docs/+/20420\n\nThis change req seems to sidestep that a little; I'd imagine that the nvme sensors would use the infrastructure introduced by that design, instead of using libmctp directly.\n\nThat said, we still have the fork issue. I'm happy to move libmctp to under openbmc/ if that makes things easier. Any objections to that?"
+        },
+        {
+            "timestamp": 1556298262,
+            "reviewer": {
+                "name": "Ed Tanous",
+                "email": "ed@tanous.net",
+                "username": "edtanous"
+            },
+            "message": "Patch Set 1:\n\n(1 comment)\n\n> Patch Set 1:\n> \n> Hi all,\n> \n> > Do you have any opinions on how to proceed here?\n> \n> Most of the discussion on getting actual MCTP-based infrastructure into OpenBMC is happening in the MCTP daemon design discussion:\n> \n> https://gerrit.openbmc-project.xyz/c/openbmc/docs/+/20420\n> \n> This change req seems to sidestep that a little; I'd imagine that the nvme sensors would use the infrastructure introduced by that design, instead of using libmctp directly.\n\nI was unaware of that discussion, I will try to weigh in on the review.  With that said, in our experience with IPMB, which follows a similar path to what's being suggested, the added dbus traffic of a bridge tends to very quickly overwhelm the BMCs CPU resources.  This is fine for IPMB, as there's 2-3 clients in a given system, and we can simply reduce scan rates to once every 3 seconds make it more capable, but MCTP (for the NVMe use case) has more stringent needs around throughput.  Namely, there are systems that have 24 NVMe drives on a single i2c \"bus\", behind multiple muxes that need to be scanned on 1-2 second intervals.  Our expectation was that, given the performance we're seeing out of IPMB, a dbus->MCTP bridge was not going to cut it.  With that said, some members of our Poland team did build an example for testing performance characteristics of this mechanism, that I've just got my hands on this morning.  I will try to make that code available once I've pieced through it.\n\n> \n> That said, we still have the fork issue. I'm happy to move libmctp to under openbmc/ if that makes things easier. Any objections to that?\n\nI don't have a strong opinion where libmctp lives repo-wise.  I would like the changes code reviewed, and have a mechanism for pushing reviews.  If we want to use github for that, great, I can get Nikhil to open reviews for the changes he's made.  The logical place to me seemed to be openbmc/ but I'm open to other possibilities."
+        },
+        {
+            "timestamp": 1757088406,
+            "reviewer": {
+                "name": "OpenBMC Bot",
+                "username": "openbmc-bot"
+            },
+            "message": "Abandoned\n\nAutomatically abandoned due to inactivity of over two years. Please rebase and reopen if this should still be merged."
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "90fd92044e9096e59cdf486e336bb4eb2b738e09",
+            "parents": [
+                "593ac2ebb5ff779356de676865b37bd6f067b0c5"
+            ],
+            "ref": "refs/changes/81/20881/1",
+            "uploader": {
+                "name": "Nikhil Potade",
+                "email": "nikhil.potade@linux.intel.com",
+                "username": "nipot"
+            },
+            "createdOn": 1556047563,
+            "author": {
+                "name": "Nikhil Potade",
+                "email": "nikhil.potade@linux.intel.com",
+                "username": "nipot"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "recipes-phosphor/interfaces/libmctp_git.bb",
+                    "line": 4,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "why is this using a private repo?"
+                },
+                {
+                    "file": "recipes-phosphor/interfaces/libmctp_git.bb",
+                    "line": 4,
+                    "reviewer": {
+                        "name": "Nikhil Potade",
+                        "email": "nikhil.potade@linux.intel.com",
+                        "username": "nipot"
+                    },
+                    "message": "This is the fork from the original repo containing MCTP over SMBus changes made by Ed. Those changes are still not merged on master in the original repo."
+                },
+                {
+                    "file": "recipes-phosphor/interfaces/libmctp_git.bb",
+                    "line": 4,
+                    "reviewer": {
+                        "name": "Brad Bishop",
+                        "email": "bradleyb@fuzziesquirrel.com",
+                        "username": "bradbishop"
+                    },
+                    "message": "I will try and get this sorted out."
+                },
+                {
+                    "file": "recipes-phosphor/interfaces/libmctp_git.bb",
+                    "line": 4,
+                    "reviewer": {
+                        "name": "Ed Tanous",
+                        "email": "ed@tanous.net",
+                        "username": "edtanous"
+                    },
+                    "message": "Agree, this is incorrect, but is representative of something that works until we have a better repo to point it at.  Nikhil is not suggesting this should be merged as-is."
+                },
+                {
+                    "file": "recipes-phosphor/sensors/dbus-sensors_git.bb",
+                    "line": 20,
+                    "reviewer": {
+                        "name": "James Feist",
+                        "email": "james.feist@linux.intel.com",
+                        "username": "feistjj"
+                    },
+                    "message": "I'd delete this from this patch as it is causing it to not build"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 10,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-phosphor/interfaces/libmctp_git.bb",
+                    "type": "ADDED",
+                    "insertions": 13,
+                    "deletions": 0
+                },
+                {
+                    "file": "recipes-phosphor/sensors/dbus-sensors_git.bb",
+                    "type": "MODIFIED",
+                    "insertions": 1,
+                    "deletions": 0
+                }
+            ],
+            "sizeInsertions": 24,
+            "sizeDeletions": 0
+        }
+    ]
+}
