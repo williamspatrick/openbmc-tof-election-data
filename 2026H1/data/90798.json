@@ -1,0 +1,1869 @@
+{
+    "project": "openbmc/spdm",
+    "branch": "main",
+    "id": "I5dd6a64f1ae8fb39ccfb693b718b551fed6eca2a",
+    "number": 90798,
+    "subject": "spdmd: Add runtime MCTP endpoint discovery via D-Bus signals",
+    "owner": {
+        "name": "garybeihl",
+        "email": "garybeihl@microsoft.com",
+        "username": "garybeihl"
+    },
+    "url": "https://gerrit.openbmc.org/c/openbmc/spdm/+/90798",
+    "hashtags": [],
+    "createdOn": 1780326489,
+    "lastUpdated": 1783460937,
+    "open": true,
+    "status": "NEW",
+    "comments": [
+        {
+            "timestamp": 1780326489,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 1."
+        },
+        {
+            "timestamp": 1780326503,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1780326503,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1780326565,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 1: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/135894/console : SUCCESS"
+        },
+        {
+            "timestamp": 1780484435,
+            "reviewer": {
+                "name": "Chinmay Shripad Hegde",
+                "email": "hosmanechinmay@gmail.com",
+                "username": "chinmay-hegde"
+            },
+            "message": "Patch Set 1:\n\n(5 comments)"
+        },
+        {
+            "timestamp": 1780491627,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 2.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1780491639,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1780491640,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1780491691,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 2: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/136180/console : SUCCESS"
+        },
+        {
+            "timestamp": 1780491758,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 2:\n\nThanks for the review. Replies:\n\nmctp_transport_discovery.cpp:126\n\nPer mctpd's source (`src/mctpd.c` `publish_peer()` ~line 3373 and `emit_endpoint_added()` ~line 4461), mctpd uses `sd_bus_emit_object_added(bus, path)` which emits a single InterfacesAdded signal containing all interfaces currently registered at the path. So the payload-based approach is sound architecturally and avoids the extra D-Bus calls.\n\nHowever the UUID interface (`xyz.openbmc_project.Common.UUID`) is added **conditionally** in `publish_peer` \u2014 only when `peer->uuid` is set at publish time. So a strictly correct consumer must:\n1. Extract EID from the payload (always present)\n2. Extract UUID from the payload if the UUID interface is included; handle absence explicitly\n\nRefactored in PS2 to use the payload, with the UUID-absent case handled.\n\nOne open question back: does spdmd have a hard requirement for UUID as the responder identifier, or is EID alone sufficient? If UUID is required, options are (a) skip endpoints without UUID, (b) wait/retry hoping mctpd later publishes UUID via PropertiesChanged or InterfacesAdded, (c) treat UUID as optional and fall back to EID. Want to make sure we're aligned on which.\n\nmctp_transport_discovery.cpp:131\n\nDone in PS2.\n\nmctp_transport_discovery.cpp:134\n\nGood catch \u2014 this exact race is already mitigated by 90799 (merged 2026-06-01) which adds dedup in `SPDMDiscovery::add()`: inserts are skipped when a `ResponderInfo` with the same path already exists, so `discovery()` and `monitor_added` collapse to one entry per path even if they race. Referenced 90799 in the PS2 commit message for traceability.\n\nmctp_transport_discovery.hpp:34\n\nDone in PS2.\n\nmctp_transport_discovery.hpp:39\n\nDone in PS2."
+        },
+        {
+            "timestamp": 1781073610,
+            "reviewer": {
+                "name": "Chinmay Shripad Hegde",
+                "email": "hosmanechinmay@gmail.com",
+                "username": "chinmay-hegde"
+            },
+            "message": "Patch Set 2:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1781705412,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 2:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1781711583,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 3.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1781711595,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1781711595,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1781711648,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 3: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/137654/console : SUCCESS"
+        },
+        {
+            "timestamp": 1781713915,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 4.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1781713930,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1781713930,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1781714032,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 4: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/137656/console : SUCCESS"
+        },
+        {
+            "timestamp": 1781714504,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 4:\n\n(7 comments)"
+        },
+        {
+            "timestamp": 1782474158,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Uploaded patch set 5.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1782474172,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1782474172,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1782474223,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 5: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/138548/console : SUCCESS"
+        },
+        {
+            "timestamp": 1782474258,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 5:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1782506927,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 6.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1782506938,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1782506938,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1782507004,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 6: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/138583/console : SUCCESS"
+        },
+        {
+            "timestamp": 1782507229,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 6:\n\nHeads-up, Ratan -- the PS5 rebase appears to have dropped my PS3 review fixes, so I have pushed PS6 restoring them on the same parent (ca670ece). When you rebase the stack, please base it on PS6 so they are not lost again.\n\nSummary of comments addressed in PS6:\n- EID-primary identity: monitor_added and the initial sweep key on EID and record UUID best-effort (empty when mctpd has not populated it), so endpoints are not skipped for a missing UUID. Also settles the open question -- EID is the responder identifier, UUID is informational.\n- Use the InterfacesAdded payload directly: EID/UUID/SupportedMessageTypes are extracted from the signal interface map instead of a follow-up Get/GetAll, removing the extra D-Bus round-trip and the not-yet-populated race.\n- discovery/monitor_added double-add during the in-flight mapper sweep: no-op at the sink -- SPDMDiscovery.add dedups duplicate path adds (merged in 90799).\n- UUID now logged on both the runtime and initial-sweep paths.\n- num_startup_tasks named constant; startup_barrier moved to private; method docstrings added; mctpd-tree comment corrected.\n\nCI is green on PS6. Happy to adjust if the chain ordering needs anything. Thanks!"
+        },
+        {
+            "timestamp": 1782822032,
+            "reviewer": {
+                "name": "Chinmay Shripad Hegde",
+                "email": "hosmanechinmay@gmail.com",
+                "username": "chinmay-hegde"
+            },
+            "message": "Uploaded patch set 7: Patch Set 6 was rebased.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1782822050,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1782822050,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1782822119,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 7: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/138875/console : SUCCESS"
+        },
+        {
+            "timestamp": 1782885135,
+            "reviewer": {
+                "name": "ManojKiran Eda",
+                "email": "manojkiran.eda@gmail.com",
+                "username": "manojkiraneda"
+            },
+            "message": "Patch Set 7: Code-Review-1\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1782893380,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Patch Set 7:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1782904114,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 8.\n\nOutdated Votes:\n* Code-Review-1 (copy condition: \"changekind:NO_CHANGE OR changekind:NO_CODE_CHANGE OR changekind:TRIVIAL_REBASE OR is:MIN\")\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1782904129,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1782904129,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1782904181,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 8: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/139055/console : SUCCESS"
+        },
+        {
+            "timestamp": 1782904325,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 8:\n\n(1 comment)"
+        },
+        {
+            "timestamp": 1782925764,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 8:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1782955441,
+            "reviewer": {
+                "name": "Archana Kakani",
+                "email": "archana.kakani@ibm.com",
+                "username": "ArchanaKakani"
+            },
+            "message": "Patch Set 8:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1783019493,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 9.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1783019506,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1783019506,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1783019618,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 8:\n\n(3 comments)"
+        },
+        {
+            "timestamp": 1783019657,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 9: Verified-1\n\nBuild Failed \n\nhttps://jenkins.openbmc.org/job/ci-repository/139194/console : FAILURE"
+        },
+        {
+            "timestamp": 1783020179,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 10.\n\nOutdated Votes:\n* Verified-1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1783020191,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1783020191,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1783020261,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 10: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/139195/console : SUCCESS"
+        },
+        {
+            "timestamp": 1783048431,
+            "reviewer": {
+                "name": "Archana Kakani",
+                "email": "archana.kakani@ibm.com",
+                "username": "ArchanaKakani"
+            },
+            "message": "Patch Set 10:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1783084143,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Uploaded patch set 11.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1783084156,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1783084156,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1783084225,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 11: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/139278/console : SUCCESS"
+        },
+        {
+            "timestamp": 1783084710,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Uploaded patch set 12.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1783084726,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1783084726,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1783084794,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 12: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/139293/console : SUCCESS"
+        },
+        {
+            "timestamp": 1783333281,
+            "reviewer": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "message": "Uploaded patch set 13: Patch Set 12 was rebased.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1783333302,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1783333302,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1783333368,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 13: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/139447/console : SUCCESS"
+        },
+        {
+            "timestamp": 1783363711,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 14.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1783363725,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1783363725,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1783363795,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 14: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/139510/console : SUCCESS"
+        },
+        {
+            "timestamp": 1783364117,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 14:\n\n(2 comments)"
+        },
+        {
+            "timestamp": 1783441047,
+            "reviewer": {
+                "name": "Patrick Williams",
+                "email": "patrick@stwcx.xyz",
+                "username": "williamspatrick"
+            },
+            "message": "Patch Set 14:\n\n(8 comments)"
+        },
+        {
+            "timestamp": 1783460001,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Uploaded patch set 15.\n\nOutdated Votes:\n* Verified+1 (copy condition: \"changekind:NO_CHANGE\")\n"
+        },
+        {
+            "timestamp": 1783460014,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Ok-To-Test+1\n\nUser approved, CI ok to start"
+        },
+        {
+            "timestamp": 1783460014,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: -Ok-To-Test"
+        },
+        {
+            "timestamp": 1783460077,
+            "reviewer": {
+                "name": "OpenBMC CI",
+                "email": "openbmcbump-ci@yahoo.com",
+                "username": "jenkins-openbmc-ci"
+            },
+            "message": "Patch Set 15: Verified+1\n\nBuild Successful \n\nhttps://jenkins.openbmc.org/job/ci-repository/139715/console : SUCCESS"
+        },
+        {
+            "timestamp": 1783460937,
+            "reviewer": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "message": "Patch Set 15:\n\n(8 comments)"
+        }
+    ],
+    "patchSets": [
+        {
+            "number": 1,
+            "revision": "f7a4f73b1ad8b177ffd4ab4f69a03cafc57067f4",
+            "parents": [
+                "ca670ece060949cea08314540686d891e4d02c17"
+            ],
+            "ref": "refs/changes/98/90798/1",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1780326489,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Chinmay Shripad Hegde",
+                        "email": "hosmanechinmay@gmail.com",
+                        "username": "chinmay-hegde"
+                    },
+                    "message": "The InterfacesAdded signal from ObjectManager carries all interfaces and all their properties for the added path. Can we use that instead of D-Bus call here?\n\nWhat if UUID inteface is not populated by mctpd in path when EID interface is emitted?"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "Chinmay Shripad Hegde",
+                        "email": "hosmanechinmay@gmail.com",
+                        "username": "chinmay-hegde"
+                    },
+                    "message": "@garybeihl@microsoft.com\n\n```\nOne open question back: does spdmd have a hard requirement for UUID as the responder identifier, or is EID alone sufficient? If UUID is required, options are (a) skip endpoints without UUID, (b) wait/retry hoping mctpd later publishes UUID via PropertiesChanged or InterfacesAdded, (c) treat UUID as optional and fall back to EID. Want to make sure we're aligned on which.\n```\n\n--> UUID is unique for the device and can change across systems for same device. EID assignment is done by the MCTP bus owner and in OpenBMC case MCTPD will assign the EID. Usually EID is assigned based on system topology and fixed for the device and won't change across systems for the platform. Both are required fields. We plan to use EID for MCTP based devices as an identifier in Entity manager to identify device and add corresponding association."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 126,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Thanks \u2014 went EID-primary, per your point that EID is the identifier. monitor_added() and the initial sweep no longer skip endpoints that lack a UUID: we key on EID and record the UUID best-effort (empty when mctpd hasn't published it). That also dissolves the original race \u2014 discovery no longer depends on the UUID interface being present when the EID interface is emitted.\n\nConfirmed it's safe downstream: the UUID in MctpResponderInfo is stored but not consumed by any production code today (only tests reference it), and responders are keyed by object_path, so an empty UUID can't affect identification or dedup. If a later layer needs UUID it can require it there."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 131,
+                    "reviewer": {
+                        "name": "Chinmay Shripad Hegde",
+                        "email": "hosmanechinmay@gmail.com",
+                        "username": "chinmay-hegde"
+                    },
+                    "message": "Can we please add UUID as well in the log?"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 131,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done \u2014 UUID is now logged on both paths: the runtime InterfacesAdded path and the initial-sweep discovery() log (\u2026EID={EID}, UUID={UUID})."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 134,
+                    "reviewer": {
+                        "name": "Chinmay Shripad Hegde",
+                        "email": "hosmanechinmay@gmail.com",
+                        "username": "chinmay-hegde"
+                    },
+                    "message": "If endpoint X appears while the mapper sweep (line 44) is in flight, both discovery() and monitor_added will add X \u2014 discovery() via the mapper result, monitor_added via the queued InterfacesAdded signal. I think will need a fix in SPDMDiscovery::add() to check for an existing entry with the same path before inserting"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 134,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Good catch on the ordering \u2014 already handled at the sink: SPDMDiscovery::add() dedups against duplicate path adds (merged in 90799), so the discovery() + monitor_added double-add is a no-op for an existing path. startup_barrier arms the matchers before the mapper sweep, narrowing the window further. The runtime remove-then-readd case (where we want a fresh entry) is 90810's delete-recreate, which I'll refresh alongside the runtime re-discovery series (89179)."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "Chinmay Shripad Hegde",
+                        "email": "hosmanechinmay@gmail.com",
+                        "username": "chinmay-hegde"
+                    },
+                    "message": "Can this be moved to private? No external code needs access to the barrier."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 34,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done \u2014 startup_barrier is in the private: section now."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "Chinmay Shripad Hegde",
+                        "email": "hosmanechinmay@gmail.com",
+                        "username": "chinmay-hegde"
+                    },
+                    "message": "docstring for methods"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 39,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done \u2014 added @brief/@param doc comments to discovery(), monitor_added(), and monitor_removed() (and the barrier member)."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 120,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 2,
+            "revision": "18adbdbada82326a543b5920899381f308544ee3",
+            "parents": [
+                "ca670ece060949cea08314540686d891e4d02c17"
+            ],
+            "ref": "refs/changes/98/90798/2",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1780491627,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Minor comments - otherwise code LGTM"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "named constant? eg: num_startup_tasks"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 29,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done \u2014 replaced the literal with static constexpr std::size_t num_startup_tasks = 3 (the two monitor_* matchers + discovery()'s initial-snapshot read that rendezvous at the barrier)."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "// mctpd publishes endpoints under its own tree, not /xyz/openbmc_project"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 95,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done \u2014 lifted that one-liner to the lead of the comment block above mctp_namespace_path."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 160,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 66,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 283,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 3,
+            "revision": "2ae8ca4f1898f58cd62f12de373de2b3127dd633",
+            "parents": [
+                "ca670ece060949cea08314540686d891e4d02c17"
+            ],
+            "ref": "refs/changes/98/90798/3",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1781711583,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 160,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 75,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 292,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 4,
+            "revision": "434e59e69fd12f738074e2516f7fd4f8d4b6885b",
+            "parents": [
+                "ca670ece060949cea08314540686d891e4d02c17"
+            ],
+            "ref": "refs/changes/98/90798/4",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1781713915,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 178,
+                    "deletions": -9
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 311,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 5,
+            "revision": "3a7102b548bbbf98c49a762ff32a4ba7e6a7d86a",
+            "parents": [
+                "ca670ece060949cea08314540686d891e4d02c17"
+            ],
+            "ref": "refs/changes/98/90798/5",
+            "uploader": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "createdOn": 1782474158,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "@garybeihl@microsoft.com: I have added your commit in this chain, Can you please address the comments and push the changes?"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 30,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 120,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 19,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 169,
+            "sizeDeletions": 3
+        },
+        {
+            "number": 6,
+            "revision": "1954b241446b05de21a47e24da15e7913fb5d725",
+            "parents": [
+                "ca670ece060949cea08314540686d891e4d02c17"
+            ],
+            "ref": "refs/changes/98/90798/6",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1782506927,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 178,
+                    "deletions": -9
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 311,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 7,
+            "revision": "2887dd80a2159dca0712a6d7fe54adbe8491694b",
+            "parents": [
+                "eae7d727d4ddec45ea7c7d29832d4cd101402fab"
+            ],
+            "ref": "refs/changes/98/90798/7",
+            "uploader": {
+                "name": "Chinmay Shripad Hegde",
+                "email": "hosmanechinmay@gmail.com",
+                "username": "chinmay-hegde"
+            },
+            "createdOn": 1782822032,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "comments": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "@garybeihl@microsoft.com - Thanks for patch, but I think this commit message could be trimmed down quite a bit. Right now it reads more like an AI-generated design summary than a commit message, with a lot of explanatory detail that isn't necessary for understanding the change from the project history.\n\nA shorter message that clearly explains the problem, the solution, and any user-visible or architectural impact would be much easier to read. The implementation-specific reasoning can always live in the review discussion or code comments if it's useful to preserve."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 7,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Trimmed in PS8 - thanks"
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "This sort of detail is too much verbose to be in a commit message."
+                },
+                {
+                    "file": "/COMMIT_MSG",
+                    "line": 33,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Trimmed in PS8 - thanks"
+                },
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "Ratan Gupta",
+                        "email": "ratankgupta31@gmail.com",
+                        "username": "ratagupt"
+                    },
+                    "message": "Code LGTM. I agree with Manoj that commit message could have been trimmed"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "Archana Kakani",
+                        "email": "archana.kakani@ibm.com",
+                        "username": "ArchanaKakani"
+                    },
+                    "message": "Consider passing e instead of e.what(). lg2 has support for logging exceptions directly."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 77,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 116,
+                    "reviewer": {
+                        "name": "Archana Kakani",
+                        "email": "archana.kakani@ibm.com",
+                        "username": "ArchanaKakani"
+                    },
+                    "message": "Consider passing e instead of e.what(). lg2 has support for logging exceptions directly."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 116,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done \u2014 also applied it to the InterfacesRemoved handler (monitor_removed) for consistency."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 180,
+                    "reviewer": {
+                        "name": "Archana Kakani",
+                        "email": "archana.kakani@ibm.com",
+                        "username": "ArchanaKakani"
+                    },
+                    "message": "The parsing of MCTP interface for properties EID, UUid is similar to the discovery function from line 54-70. Can we avoid code duplication here?"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 180,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Factored the shared SPDM-support check + ResponderInfo registration into a new addIfSpdmCapable() helper, now used by both the initial mapper sweep and monitor_added. I kept the property extraction separate on purpose: the sweep reads typed properties through the MctpEndpoint/CommonUUID client proxy, while monitor_added parses the raw InterfacesAdded payload directly to avoid the extra Get/GetAll round-trip and keep the read atomic with the signal (the rationale in the comment above the payload parse). So the two extractions differ by design; the check + registration is now shared. Happy to split it differently if you'd prefer."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "ManojKiran Eda",
+                        "email": "manojkiran.eda@gmail.com",
+                        "username": "manojkiraneda"
+                    },
+                    "message": "quick look on the code also seems to spill other commit details in this commit- please do a self review for these sort of issues before a community review."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 47,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Trimmed in PS8 - thanks"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 57,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 178,
+                    "deletions": -9
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 311,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 8,
+            "revision": "8ecdda850cc36fc3967767417e8352288686ed83",
+            "parents": [
+                "eae7d727d4ddec45ea7c7d29832d4cd101402fab"
+            ],
+            "ref": "refs/changes/98/90798/8",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1782904114,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "/PATCHSET_LEVEL",
+                    "line": 0,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Trimmed the commit message down to problem/solution/impact, and removed the (added in 90799) cross-reference from the discovery() docstring. Thanks for the review!"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 178,
+                    "deletions": -9
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 277,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 9,
+            "revision": "c03286c5438ff7e0be1da73316736feb669b1e90",
+            "parents": [
+                "eae7d727d4ddec45ea7c7d29832d4cd101402fab"
+            ],
+            "ref": "refs/changes/98/90798/9",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1783019493,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 191,
+                    "deletions": -13
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 307,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 10,
+            "revision": "1f1c87c74aa53471dce56e27c3455d003a329e0c",
+            "parents": [
+                "eae7d727d4ddec45ea7c7d29832d4cd101402fab"
+            ],
+            "ref": "refs/changes/98/90798/10",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1783020179,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 165,
+                    "reviewer": {
+                        "name": "Archana Kakani",
+                        "email": "archana.kakani@ibm.com",
+                        "username": "ArchanaKakani"
+                    },
+                    "message": "Can you use generated bindings to get all the properties and access them via variable names?"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 165,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done. Refactored the InterfacesAdded payload parse to\nsdbusplus::unpackPropertiesNoThrow \u2014 EID, MessageTypes and UUID are now read by\nname into typed variables, dropping the manual find / holds_alternative / get.\nThe inner interface map was changed to a vector<pair> (PropertyMap) so\nunpackProperties accepts it. Kept on the signal payload rather than a\nGet/GetAll round-trip, since the properties arrive in the InterfacesAdded\nsignal itself."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 85,
+                    "reviewer": {
+                        "name": "Archana Kakani",
+                        "email": "archana.kakani@ibm.com",
+                        "username": "ArchanaKakani"
+                    },
+                    "message": "typo??"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 85,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Fixed \u2014 reworded \"iff\" to \"only when\" (\"Register an endpoint with the discovery\nsink only when it advertises SPDM support.\")."
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 191,
+                    "deletions": -13
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 307,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 11,
+            "revision": "9f93df89ec52187b751ab7c678080cc1b03d31a7",
+            "parents": [
+                "53b137d47ae63f402926f5a2a287f76ba257e57a"
+            ],
+            "ref": "refs/changes/98/90798/11",
+            "uploader": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "createdOn": 1783084143,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 178,
+                    "deletions": -9
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 76,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 277,
+            "sizeDeletions": 12
+        },
+        {
+            "number": 12,
+            "revision": "62a72f903b19acf9d6317203a1e29beb4576fdd1",
+            "parents": [
+                "53b137d47ae63f402926f5a2a287f76ba257e57a"
+            ],
+            "ref": "refs/changes/98/90798/12",
+            "uploader": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "createdOn": 1783084710,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 191,
+                    "deletions": -13
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 307,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 13,
+            "revision": "feee627af0d20498864a23ad8b591c4a53b74894",
+            "parents": [
+                "6b17f676c47ce3953befbd5430fec0303e808a07"
+            ],
+            "ref": "refs/changes/98/90798/13",
+            "uploader": {
+                "name": "Ratan Gupta",
+                "email": "ratankgupta31@gmail.com",
+                "username": "ratagupt"
+            },
+            "createdOn": 1783333281,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "TRIVIAL_REBASE",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 191,
+                    "deletions": -13
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 307,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 14,
+            "revision": "9d7dfe1f91e8c8f56248ada11fcf4493dc49ee55",
+            "parents": [
+                "6b17f676c47ce3953befbd5430fec0303e808a07"
+            ],
+            "ref": "refs/changes/98/90798/14",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1783363711,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "comments": [
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Catching all std::exception seems a little excessive?"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 84,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Narrowed to sdbusplus::exception::exception in PS15. This one is a real property\nread that legitimately throws when the endpoint has no UUID interface (best-\neffort UUID), so it still needs a catch -- just not std::exception. Done."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Why do this here?  Have `addIfSpdmCapable` log this if appropriate."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 98,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done -- moved the \"not SPDM\" log into addResponder() (the renamed helper) in\nPS15; both call sites drop their own log."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 121,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Unpack in one shot."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 121,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done in PS15 -- single structured-binding unpack:auto [path, interfaces] = msg.unpack<sdbusplus::object_path, InterfaceMap>();"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 131,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "There is no case where InterfacesAdded should be corrupted from the dbus-broker.  I don't think this exception catching is necessary."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 131,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done -- dropped the try/catch in PS15. Also removed the identical one in monitorRemoved() for consistency."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 154,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Why are we using these unpackProperties rather than the generated bindings?  If there is something to add to sdbusplus, we should do that, but unpackProperties isn't something we should be doing in newer async code."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "line": 154,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Agree that the string-keyed unpackProperties isn't the ideal async idiom. It's here\nto read EID/SupportedMessageTypes from the InterfacesAdded payload we already\nhold, avoiding a per-endpoint Get/GetAll (Chinmay asked for the inline read on\nPS1). The generated client accessors all go through get_property/\nget_all_properties, so switching to them reintroduces the round-trip.\n\nThe clean fix is the sdbusplus addition you mention: the generated .properties()\nalready contains the exact PropertiesVariant-map -> properties_t decode -- it's\njust chained onto get_all_properties(). I'll extract that into a standalone\ndecode_properties(a{sv}) on the client harness so the typed decode works on a\npayload we already have; this call site then becomes decode_properties(\nendpointProps) -- typed and no round-trip. I'll put that up as a separate\nsdbusplus change and switch this over once it lands, keeping\nunpackPropertiesNoThrow here in the meantime so this change isn't blocked on it. Would that be OK?"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Please use consistent function naming style.  Seems like monitorRemoved would be more apt, as much as I hate it.  Check variable and function names throughout."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 72,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done -- renamed monitor_added/monitor_removed to monitorAdded/monitorRemoved\n(camelCase) throughout in PS15."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 94,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "I'd prefer a less verbose function name.\n\n\"SPDM\" is an acronym; should be all upper or all lowercase when used."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 94,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done -- renamed addIfSpdmCapable -> addResponder in PS15."
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 115,
+                    "reviewer": {
+                        "name": "Patrick Williams",
+                        "email": "patrick@stwcx.xyz",
+                        "username": "williamspatrick"
+                    },
+                    "message": "Please do something like this:\n\nhttps://gist.github.com/williamspatrick/1bfd665b5ef604096e7a45a3b77bf5d9"
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "line": 115,
+                    "reviewer": {
+                        "name": "garybeihl",
+                        "email": "garybeihl@microsoft.com",
+                        "username": "garybeihl"
+                    },
+                    "message": "Done -- adopted the static constexpr std::array of monitors with num_startup_tasks = 1 + monitors.size() in PS15. (Also covers Ratan's earlier\n\"named constant?\" note on the hard-coded 3.)"
+                }
+            ],
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 187,
+                    "deletions": -13
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 93,
+                    "deletions": -3
+                }
+            ],
+            "sizeInsertions": 303,
+            "sizeDeletions": 16
+        },
+        {
+            "number": 15,
+            "revision": "05e22c3edb9da889baf15b2861e59953eab8da3b",
+            "parents": [
+                "604128873c749808ef56710d8dc9d3e43cdeb04a"
+            ],
+            "ref": "refs/changes/98/90798/15",
+            "uploader": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "createdOn": 1783460001,
+            "author": {
+                "name": "garybeihl",
+                "email": "garybeihl@microsoft.com",
+                "username": "garybeihl"
+            },
+            "kind": "REWORK",
+            "files": [
+                {
+                    "file": "/COMMIT_MSG",
+                    "type": "ADDED",
+                    "insertions": 23,
+                    "deletions": 0
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.cpp",
+                    "type": "MODIFIED",
+                    "insertions": 144,
+                    "deletions": -14
+                },
+                {
+                    "file": "requester/mctp_transport_discovery.hpp",
+                    "type": "MODIFIED",
+                    "insertions": 54,
+                    "deletions": -4
+                }
+            ],
+            "sizeInsertions": 221,
+            "sizeDeletions": 18
+        }
+    ]
+}
